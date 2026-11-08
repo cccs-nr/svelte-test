@@ -100,7 +100,7 @@
 		if (!status || status.assignmentCount === 0 || isWorking) return;
 
 		const prompt = status.finalized
-			? 'Reset finalized assignments? This clears the current recipient mapping for everyone.'
+			? 'Reset finalized assignments? This clears the recipient mapping and permanently deletes related private conversations.'
 			: 'Remove the current draft assignments?';
 		if (!globalThis.confirm(prompt)) return;
 

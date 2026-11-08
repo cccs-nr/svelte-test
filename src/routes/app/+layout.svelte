@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
@@ -9,6 +10,45 @@
 	let { children, data }: LayoutProps = $props();
 	let isSigningOut = $state(false);
 	let logoutError = $state<string | null>(null);
+	let clientUnreadMessageCount = $state<number | null>(null);
+	let unreadMessageCount = $derived(clientUnreadMessageCount ?? data.unreadMessageCount);
+	let unreadMessageError = $state<string | null>(null);
+
+	onMount(() => {
+		if (data.user.role !== 'participant') return;
+
+		let isDisposed = false;
+		let isRefreshing = false;
+
+		async function refreshUnreadMessageCount(): Promise<void> {
+			if (isRefreshing) return;
+			isRefreshing = true;
+
+			try {
+				const result = await trpc.conversations.unreadCount.query();
+				if (!isDisposed) {
+					clientUnreadMessageCount = result.count;
+					unreadMessageError = null;
+				}
+			} catch (error) {
+				if (!isDisposed) {
+					unreadMessageError =
+						error instanceof TRPCClientError
+							? 'Unread message count could not be refreshed.'
+							: 'Unable to reach the messaging service.';
+				}
+			} finally {
+				isRefreshing = false;
+			}
+		}
+
+		void refreshUnreadMessageCount();
+		const interval = window.setInterval(() => void refreshUnreadMessageCount(), 15_000);
+		return () => {
+			isDisposed = true;
+			window.clearInterval(interval);
+		};
+	});
 
 	async function handleLogout(): Promise<void> {
 		if (isSigningOut) return;
@@ -89,6 +129,23 @@
 					>
 						Wishlist
 					</a>
+					<a
+						href={resolve('/app/messages')}
+						aria-label={unreadMessageCount > 0
+							? `Messages, ${unreadMessageCount} unread`
+							: 'Messages'}
+						class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+					>
+						Messages
+						{#if unreadMessageCount > 0}
+							<span
+								class="grid min-w-5 place-items-center rounded-full bg-rose-100 px-1.5 py-0.5 text-xs font-semibold text-rose-800"
+								aria-hidden="true"
+							>
+								{unreadMessageCount}
+							</span>
+						{/if}
+					</a>
 				{/if}
 				<a
 					href={resolve('/app/profile')}
@@ -112,6 +169,11 @@
 	{#if logoutError}
 		<p class="mx-auto mt-4 max-w-6xl px-4 text-sm text-rose-700 sm:px-8" role="alert">
 			{logoutError}
+		</p>
+	{/if}
+	{#if unreadMessageError}
+		<p class="mx-auto mt-2 max-w-6xl px-4 text-sm text-rose-700 sm:px-8" role="status">
+			{unreadMessageError}
 		</p>
 	{/if}
 

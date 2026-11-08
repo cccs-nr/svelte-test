@@ -29,6 +29,13 @@
       "when": 1794107410574,
       "tag": "0003_wishlists_and_images",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1794151267421,
+      "tag": "0004_anonymous_messaging",
+      "breakpoints": true
     }
   ]
 }

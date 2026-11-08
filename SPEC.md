@@ -726,11 +726,11 @@ The first objective is a working MVP rather than implementing every possible fea
 
 ### Phase 5 — Anonymous Messaging
 
-- Implement conversations.
-- Implement message creation and retrieval.
-- Implement anonymous sender presentation.
-- Implement unread message indicators.
-- Enforce messaging privacy on the backend.
+- [x] Implement conversations.
+- [x] Implement message creation and retrieval.
+- [x] Implement anonymous sender presentation.
+- [x] Implement unread message indicators.
+- [x] Enforce messaging privacy on the backend.
 
 ### Phase 6 — Polish and Deployment
 

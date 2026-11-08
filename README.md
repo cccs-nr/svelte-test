@@ -49,6 +49,10 @@ Organizers can manage the draw from **Assignments** after opening the event. The
 
 Generated assignments remain private until the organizer finalizes the draw. Regenerating a draft requires confirmation; each participant can see only their own recipient after finalization. Resetting a finalized draw also requires confirmation and reopens the event. While assignment rows exist, changes that could invalidate the draw (such as participant registration, activation, role, or household membership changes, and event edits) are blocked until the organizer resets it.
 
+### Private messages
+
+After the draw is finalized, each participant can start a private conversation with their recipient and reply to their own Secret Santa. Recipients see giver messages only as **Your Secret Santa**; sender account IDs are not stored with messages or returned by the messaging API. Conversations are scoped to a finalized assignment, and resetting that assignment permanently deletes its conversation and messages. The app refreshes conversations and unread counts periodically; no external messaging service is used.
+
 ### Wishlists and gift ideas
 
 Participants can add, edit, and remove any number of gift ideas from **Wishlist**, including descriptions, notes, optional external product links, estimated CAD prices, and optional images. The configured gift budget is displayed as a guideline. Wishlists are private to their owner until assignments are finalized; afterward, each participant can view only their assigned recipient’s list.

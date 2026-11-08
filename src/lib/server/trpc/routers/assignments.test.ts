@@ -6,7 +6,14 @@ import type { AuthenticatedUser } from '#lib/auth.js';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { TRPCContext } from '#lib/server/trpc/context.js';
 import { createDatabase } from '#lib/server/db/connection.js';
-import { assignments, events, households, users } from '#lib/server/db/schema.js';
+import {
+	assignments,
+	conversations,
+	events,
+	households,
+	messages,
+	users
+} from '#lib/server/db/schema.js';
 import type { SessionCookieStore } from '#lib/server/auth/session.js';
 import { appRouter } from '#lib/server/trpc/router.js';
 
@@ -171,6 +178,24 @@ describe('assignment router', () => {
 		const caller = appRouter.createCaller(createContext(organizer));
 		await caller.assignments.generate();
 		await caller.assignments.finalize();
+		const aliceAssignment = db
+			.select()
+			.from(assignments)
+			.where(eq(assignments.giverId, 'alice'))
+			.get();
+		if (!aliceAssignment) throw new Error('Expected Alice to have a finalized assignment.');
+		db.insert(conversations)
+			.values({ id: 'alice-conversation', assignmentId: aliceAssignment.id })
+			.run();
+		db.insert(messages)
+			.values({
+				id: 'alice-message',
+				conversationId: 'alice-conversation',
+				senderSide: 'giver',
+				content: 'A private question.',
+				giverReadAt: new Date()
+			})
+			.run();
 
 		await expect(caller.assignments.reset({ confirm: false })).rejects.toMatchObject({
 			code: 'PRECONDITION_FAILED'
@@ -184,6 +209,8 @@ describe('assignment router', () => {
 		const event = db.select().from(events).where(eq(events.id, SINGLE_EVENT_ID)).get();
 		expect(event?.status).toBe('open');
 		expect(db.select().from(assignments).all()).toHaveLength(0);
+		expect(db.select().from(conversations).all()).toHaveLength(0);
+		expect(db.select().from(messages).all()).toHaveLength(0);
 	});
 
 	it('prevents account access to organizer-only assignment controls', async () => {

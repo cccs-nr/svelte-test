@@ -156,6 +156,58 @@ export const giftSuggestions = sqliteTable(
 	]
 );
 
+export const conversations = sqliteTable(
+	'conversations',
+	{
+		id: text('id').primaryKey(),
+		assignmentId: text('assignment_id')
+			.notNull()
+			.references(() => assignments.id, { onDelete: 'cascade' }),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`)
+	},
+	(table) => [uniqueIndex('conversations_assignment_unique').on(table.assignmentId)]
+);
+
+export const messages = sqliteTable(
+	'messages',
+	{
+		id: text('id').primaryKey(),
+		conversationId: text('conversation_id')
+			.notNull()
+			.references(() => conversations.id, { onDelete: 'cascade' }),
+		senderSide: text('sender_side', { enum: ['giver', 'recipient'] }).notNull(),
+		content: text('content').notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		giverReadAt: integer('giver_read_at', { mode: 'timestamp_ms' }),
+		recipientReadAt: integer('recipient_read_at', { mode: 'timestamp_ms' })
+	},
+	(table) => [
+		index('messages_conversation_created_idx').on(table.conversationId, table.createdAt),
+		index('messages_giver_unread_idx').on(
+			table.conversationId,
+			table.senderSide,
+			table.giverReadAt
+		),
+		index('messages_recipient_unread_idx').on(
+			table.conversationId,
+			table.senderSide,
+			table.recipientReadAt
+		),
+		check(
+			'messages_content_valid',
+			sql`length(trim(${table.content})) > 0 and length(${table.content}) <= 2000`
+		),
+		check('messages_sender_side_check', sql`${table.senderSide} in ('giver', 'recipient')`)
+	]
+);
+
 export const sessions = sqliteTable(
 	'sessions',
 	{
@@ -181,3 +233,5 @@ export type HouseholdRecord = typeof households.$inferSelect;
 export type EventRecord = typeof events.$inferSelect;
 export type AssignmentRecord = typeof assignments.$inferSelect;
 export type GiftSuggestionRecord = typeof giftSuggestions.$inferSelect;
+export type ConversationRecord = typeof conversations.$inferSelect;
+export type MessageRecord = typeof messages.$inferSelect;
