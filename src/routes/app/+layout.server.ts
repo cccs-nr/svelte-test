@@ -17,7 +17,12 @@ export const load: LayoutServerLoad = ({ locals }) => {
 		? getParticipantBadgeCounts(db, locals.user.id)
 		: { wishlist: 0, gift: 0 };
 	return {
-		user: locals.user,
+		user: {
+			id: locals.user.id,
+			displayName: locals.user.displayName,
+			role: locals.user.role,
+			isParticipating: locals.user.isParticipating
+		},
 		hasAvatar: Boolean(avatar?.key),
 		avatarVersion: avatar?.updatedAt.getTime() ?? 0,
 		badgeCounts

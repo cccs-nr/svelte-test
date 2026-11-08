@@ -1,25 +1,28 @@
 import { TRPCError } from '@trpc/server';
 import { randomUUID } from 'node:crypto';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { passwordSchema, registrationSchema, usernameSchema } from '#lib/auth.js';
+import { passwordSchema, registrationSchema } from '#lib/auth.js';
 import { changePasswordInputSchema, updateProfileInputSchema } from '#lib/models/participants.js';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import { loginRateLimiter, registrationRateLimiter } from '#lib/server/auth/login-rate-limiter.js';
 import { createUserSession, deleteUserSession } from '#lib/server/auth/session.js';
 import { hashPassword, verifyPassword } from '#lib/server/auth/password.js';
+import { createUniqueUsername } from '#lib/server/auth/username.js';
 import { assignments, sessions, users } from '#lib/server/db/schema.js';
 import { disconnectUserRealtime, notifyOrganizerDashboard } from '#lib/server/realtime.js';
 import { protectedProcedure, publicProcedure, router } from '#lib/server/trpc/init.js';
 
+const loginIdentifierSchema = z.string().trim().min(1).max(64);
 const loginInput = z.object({
-	username: usernameSchema,
+	identifier: loginIdentifierSchema,
 	password: passwordSchema
 });
 
 export const authRouter = router({
 	login: publicProcedure.input(loginInput).mutation(async ({ ctx, input }) => {
-		const rateLimitKey = `${ctx.event.getClientAddress()}\u0000${input.username}`;
+		const identifier = input.identifier.trim();
+		const rateLimitKey = `${ctx.event.getClientAddress()}\u0000${identifier.toLowerCase()}`;
 
 		if (!loginRateLimiter.allow(rateLimitKey)) {
 			throw new TRPCError({
@@ -28,14 +31,35 @@ export const authRouter = router({
 			});
 		}
 
-		const user = ctx.db.select().from(users).where(eq(users.username, input.username)).get();
-		const passwordIsValid =
-			user?.isActive && (await verifyPassword(input.password, user.passwordHash));
+		const candidates = ctx.db
+			.select()
+			.from(users)
+			.where(
+				or(
+					eq(users.username, identifier.toLowerCase()),
+					sql`lower(${users.displayName}) = lower(${identifier})`
+				)
+			)
+			.all();
+		const validUsers = [];
+		for (const candidate of candidates) {
+			if (candidate.isActive && (await verifyPassword(input.password, candidate.passwordHash))) {
+				validUsers.push(candidate);
+			}
+		}
 
-		if (!user || !passwordIsValid) {
+		if (validUsers.length !== 1) {
 			throw new TRPCError({
 				code: 'UNAUTHORIZED',
-				message: 'The username or password is not correct.'
+				message: 'The name or password is not correct.'
+			});
+		}
+
+		const user = validUsers[0];
+		if (!user) {
+			throw new TRPCError({
+				code: 'INTERNAL_SERVER_ERROR',
+				message: 'The authenticated account could not be loaded.'
 			});
 		}
 
@@ -80,13 +104,15 @@ export const authRouter = router({
 		}
 
 		const id = randomUUID();
+		const passwordHash = await hashPassword(input.password);
+		const username = createUniqueUsername(ctx.db, input.displayName);
 		const insertResult = ctx.db
 			.insert(users)
 			.values({
 				id,
-				username: input.username,
+				username,
 				displayName: input.displayName,
-				passwordHash: await hashPassword(input.password),
+				passwordHash,
 				role: 'participant',
 				isParticipating: true,
 				isActive: true
@@ -95,7 +121,10 @@ export const authRouter = router({
 			.run();
 
 		if (insertResult.changes === 0) {
-			throw new TRPCError({ code: 'CONFLICT', message: 'That username is already taken.' });
+			throw new TRPCError({
+				code: 'CONFLICT',
+				message: 'Unable to create an internal account identifier. Please try again.'
+			});
 		}
 
 		notifyOrganizerDashboard();
@@ -103,7 +132,7 @@ export const authRouter = router({
 
 		return {
 			id,
-			username: input.username,
+			username,
 			displayName: input.displayName,
 			role: 'participant' as const,
 			isParticipating: true,
@@ -114,7 +143,12 @@ export const authRouter = router({
 		deleteUserSession(ctx.db, ctx.event.cookies);
 		return { success: true };
 	}),
-	me: protectedProcedure.query(({ ctx }) => ctx.user),
+	me: protectedProcedure.query(({ ctx }) => ({
+		id: ctx.user.id,
+		displayName: ctx.user.displayName,
+		role: ctx.user.role,
+		isParticipating: ctx.user.isParticipating
+	})),
 	updateProfile: protectedProcedure.input(updateProfileInputSchema).mutation(({ ctx, input }) =>
 		ctx.db.transaction((transaction) => {
 			const current = transaction
@@ -161,7 +195,12 @@ export const authRouter = router({
 			if (isParticipating !== current.isParticipating) disconnectUserRealtime(ctx.user.id);
 			notifyOrganizerDashboard();
 
-			return { ...ctx.user, displayName: input.displayName, isParticipating };
+			return {
+				id: ctx.user.id,
+				displayName: input.displayName,
+				role: ctx.user.role,
+				isParticipating
+			};
 		})
 	),
 	changePassword: protectedProcedure

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { and, asc, count, eq, ne, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, ne, notInArray, sql } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import { householdNameSchema } from '#lib/models/participants.js';
@@ -11,6 +11,10 @@ import { z } from 'zod';
 
 const householdIdSchema = z.string().min(1);
 const householdNameInput = z.object({ name: householdNameSchema });
+const memberIdsSchema = z
+	.array(z.string().min(1))
+	.max(500)
+	.refine((ids) => new Set(ids).size === ids.length, 'A participant can only be selected once.');
 
 function assertHouseholdNameAvailable(
 	database: AppDatabase,
@@ -38,33 +42,85 @@ function assertHouseholdNameAvailable(
 export const householdRouter = router({
 	list: organizerProcedure.query(({ ctx }) => {
 		const householdRows = ctx.db.select().from(households).orderBy(asc(households.name)).all();
-		const memberCounts = ctx.db
-			.select({ householdId: users.householdId, memberCount: count() })
+		const memberRows = ctx.db
+			.select({
+				id: users.id,
+				displayName: users.displayName,
+				householdId: users.householdId
+			})
 			.from(users)
 			.where(sql`${users.householdId} is not null`)
-			.groupBy(users.householdId)
+			.orderBy(asc(users.displayName), asc(users.id))
 			.all();
-		const countByHousehold = new Map(memberCounts.map((row) => [row.householdId, row.memberCount]));
+		const membersByHousehold = new Map<string, { id: string; displayName: string }[]>();
+		for (const { id, displayName, householdId } of memberRows) {
+			if (!householdId) continue;
+			const members = membersByHousehold.get(householdId) ?? [];
+			members.push({ id, displayName });
+			membersByHousehold.set(householdId, members);
+		}
 
 		return householdRows.map((household) => ({
 			id: household.id,
 			name: household.name,
-			memberCount: countByHousehold.get(household.id) ?? 0
+			members: membersByHousehold.get(household.id) ?? [],
+			memberCount: membersByHousehold.get(household.id)?.length ?? 0
 		}));
 	}),
-	create: organizerProcedure.input(householdNameInput).mutation(({ ctx, input }) => {
-		assertHouseholdNameAvailable(ctx.db, input.name);
+	create: organizerProcedure
+		.input(householdNameInput.extend({ participantIds: memberIdsSchema.default([]) }))
+		.mutation(({ ctx, input }) => {
+			assertHouseholdNameAvailable(ctx.db, input.name);
+			const selectedMembers = input.participantIds.length
+				? ctx.db
+						.select({ id: users.id })
+						.from(users)
+						.where(inArray(users.id, input.participantIds))
+						.all()
+				: [];
+			if (selectedMembers.length !== input.participantIds.length) {
+				throw new TRPCError({ code: 'BAD_REQUEST', message: 'Select existing accounts only.' });
+			}
+			const assignmentSetExists = ctx.db
+				.select({ id: assignments.id })
+				.from(assignments)
+				.where(eq(assignments.eventId, SINGLE_EVENT_ID))
+				.get();
+			if (assignmentSetExists && input.participantIds.length > 0) {
+				throw new TRPCError({
+					code: 'CONFLICT',
+					message: 'Reset assignments before changing household membership.'
+				});
+			}
 
-		const household = {
-			id: randomUUID(),
-			name: input.name
-		};
-		ctx.db.insert(households).values(household).run();
-		notifyOrganizerDashboard();
-		return { ...household, memberCount: 0 };
-	}),
+			const household = { id: randomUUID(), name: input.name };
+			ctx.db.transaction((transaction) => {
+				transaction.insert(households).values(household).run();
+				if (input.participantIds.length > 0) {
+					transaction
+						.update(users)
+						.set({ householdId: household.id, updatedAt: new Date() })
+						.where(inArray(users.id, input.participantIds))
+						.run();
+				}
+			});
+			const members = ctx.db
+				.select({ id: users.id, displayName: users.displayName })
+				.from(users)
+				.where(eq(users.householdId, household.id))
+				.orderBy(asc(users.displayName), asc(users.id))
+				.all();
+			notifyOrganizerDashboard();
+			return { ...household, members, memberCount: members.length };
+		}),
 	update: organizerProcedure
-		.input(z.object({ id: householdIdSchema, name: householdNameSchema }))
+		.input(
+			z.object({
+				id: householdIdSchema,
+				name: householdNameSchema,
+				participantIds: memberIdsSchema.optional()
+			})
+		)
 		.mutation(({ ctx, input }) => {
 			const existing = ctx.db
 				.select({ id: households.id })
@@ -76,20 +132,90 @@ export const householdRouter = router({
 			}
 
 			assertHouseholdNameAvailable(ctx.db, input.name, input.id);
-			ctx.db
-				.update(households)
-				.set({ name: input.name, updatedAt: new Date() })
-				.where(eq(households.id, input.id))
-				.run();
+			const assignmentSetExists = ctx.db
+				.select({ id: assignments.id })
+				.from(assignments)
+				.where(eq(assignments.eventId, SINGLE_EVENT_ID))
+				.get();
+			let members: { id: string; displayName: string }[];
 
-			const memberCount = ctx.db
-				.select({ value: count() })
-				.from(users)
-				.where(eq(users.householdId, input.id))
-				.get()?.value;
+			const participantIds = input.participantIds;
+			if (participantIds !== undefined) {
+				const selectedMembers = participantIds.length
+					? ctx.db
+							.select({ id: users.id, householdId: users.householdId })
+							.from(users)
+							.where(inArray(users.id, participantIds))
+							.all()
+					: [];
+				if (selectedMembers.length !== participantIds.length) {
+					throw new TRPCError({ code: 'BAD_REQUEST', message: 'Select existing accounts only.' });
+				}
+				const existingMemberIds = ctx.db
+					.select({ id: users.id })
+					.from(users)
+					.where(eq(users.householdId, input.id))
+					.all()
+					.map((user) => user.id);
+				const selectedIds = new Set(participantIds);
+				const membershipChanged =
+					existingMemberIds.length !== selectedIds.size ||
+					existingMemberIds.some((id) => !selectedIds.has(id)) ||
+					selectedMembers.some((member) => member.householdId !== input.id);
+				if (assignmentSetExists && membershipChanged) {
+					throw new TRPCError({
+						code: 'CONFLICT',
+						message: 'Reset assignments before changing household membership.'
+					});
+				}
+
+				ctx.db.transaction((transaction) => {
+					transaction
+						.update(households)
+						.set({ name: input.name, updatedAt: new Date() })
+						.where(eq(households.id, input.id))
+						.run();
+					if (participantIds.length === 0) {
+						transaction
+							.update(users)
+							.set({ householdId: null, updatedAt: new Date() })
+							.where(eq(users.householdId, input.id))
+							.run();
+					} else {
+						transaction
+							.update(users)
+							.set({ householdId: null, updatedAt: new Date() })
+							.where(and(eq(users.householdId, input.id), notInArray(users.id, participantIds)))
+							.run();
+						transaction
+							.update(users)
+							.set({ householdId: input.id, updatedAt: new Date() })
+							.where(inArray(users.id, participantIds))
+							.run();
+					}
+				});
+				members = ctx.db
+					.select({ id: users.id, displayName: users.displayName })
+					.from(users)
+					.where(eq(users.householdId, input.id))
+					.orderBy(asc(users.displayName), asc(users.id))
+					.all();
+			} else {
+				ctx.db
+					.update(households)
+					.set({ name: input.name, updatedAt: new Date() })
+					.where(eq(households.id, input.id))
+					.run();
+				members = ctx.db
+					.select({ id: users.id, displayName: users.displayName })
+					.from(users)
+					.where(eq(users.householdId, input.id))
+					.orderBy(asc(users.displayName), asc(users.id))
+					.all();
+			}
 
 			notifyOrganizerDashboard();
-			return { id: input.id, name: input.name, memberCount: memberCount ?? 0 };
+			return { id: input.id, name: input.name, members, memberCount: members.length };
 		}),
 	remove: organizerProcedure.input(householdIdSchema).mutation(({ ctx, input: id }) => {
 		const assignmentSetExists = ctx.db

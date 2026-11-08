@@ -23,12 +23,14 @@
 	let clientBadgeCounts = $state<{ wishlist: number; gift: number } | null>(null);
 	let badgeCounts = $derived(clientBadgeCounts ?? data.badgeCounts);
 	let isDashboardActive = $derived(page.url.pathname === resolve('/app/dashboard'));
-	let isEventActive = $derived(page.url.pathname === resolve('/app/event'));
-	let isParticipantsActive = $derived(page.url.pathname === resolve('/app/participants'));
-	let isHouseholdsActive = $derived(page.url.pathname === resolve('/app/households'));
 	let isAssignmentsActive = $derived(page.url.pathname === resolve('/app/assignments'));
-	let isWishlistActive = $derived(page.url.pathname === resolve('/app/wishlist'));
-	let isGiftActive = $derived(page.url.pathname === resolve('/app/gift'));
+	let isGiftActive = $derived(
+		page.url.pathname === resolve('/app/gift') ||
+			(page.url.pathname === resolve('/app/wishlist') &&
+				(page.url.searchParams.get('tab') === 'recipient' ||
+					page.state.wishlistTab === 'recipient'))
+	);
+	let isWishlistActive = $derived(page.url.pathname === resolve('/app/wishlist') && !isGiftActive);
 
 	onMount(() => {
 		const socket = connectRealtime();
@@ -123,6 +125,15 @@
 		isAccountMenuOpen = false;
 	}
 
+	function openWishlistNavigation(event: MouseEvent): void {
+		event.preventDefault();
+		closeMobileNavigation();
+		void goto(resolve('/app/wishlist'), {
+			replaceState: true,
+			state: { wishlistTab: 'ideas', wishlistMessageDirection: 'asRecipient' }
+		});
+	}
+
 	function navigationClass(isActive: boolean): string {
 		return `holiday-topnav__link rounded-lg px-3 py-2 transition-colors ${
 			isActive ? 'is-current shadow-sm' : ''
@@ -185,30 +196,6 @@
 						Dashboard
 					</a>
 					<a
-						href={resolve('/app/event')}
-						onclick={closeMobileNavigation}
-						class={navigationClass(isEventActive)}
-						aria-current={isEventActive ? 'page' : undefined}
-					>
-						Event
-					</a>
-					<a
-						href={resolve('/app/participants')}
-						onclick={closeMobileNavigation}
-						class={navigationClass(isParticipantsActive)}
-						aria-current={isParticipantsActive ? 'page' : undefined}
-					>
-						Participants
-					</a>
-					<a
-						href={resolve('/app/households')}
-						onclick={closeMobileNavigation}
-						class={navigationClass(isHouseholdsActive)}
-						aria-current={isHouseholdsActive ? 'page' : undefined}
-					>
-						Households
-					</a>
-					<a
 						href={resolve('/app/assignments')}
 						onclick={closeMobileNavigation}
 						class={navigationClass(isAssignmentsActive)}
@@ -220,7 +207,7 @@
 				{#if data.user.isParticipating}
 					<a
 						href={resolve('/app/wishlist')}
-						onclick={closeMobileNavigation}
+						onclick={openWishlistNavigation}
 						class={`${navigationClass(isWishlistActive)} inline-flex items-center gap-2`}
 						aria-current={isWishlistActive ? 'page' : undefined}
 						aria-label={badgeCounts.wishlist > 0
@@ -317,7 +304,6 @@
 								<p id="account-menu-title" class="truncate font-semibold">
 									{data.user.displayName}
 								</p>
-								<p class="truncate text-sm text-stone-600">@{data.user.username}</p>
 								<p class="mt-1 text-xs text-stone-500">
 									{data.user.role === 'organizer' && data.user.isParticipating
 										? 'Organizer · Participant'

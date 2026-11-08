@@ -1,21 +1,8 @@
-import { eq } from 'drizzle-orm';
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { SINGLE_EVENT_ID } from '#lib/models/event.js';
-import { db } from '#lib/server/db/index.js';
 import { requireParticipantPage } from '#lib/server/page-guards.js';
-import { events } from '#lib/server/db/schema.js';
 
 export const load: PageServerLoad = ({ locals }) => {
 	requireParticipantPage(locals.user);
-
-	const event = db
-		.select({ giftBudgetCents: events.giftBudgetCents, currency: events.currency })
-		.from(events)
-		.where(eq(events.id, SINGLE_EVENT_ID))
-		.get();
-
-	return {
-		giftBudgetCents: event?.giftBudgetCents ?? null,
-		currency: event?.currency ?? 'CAD'
-	};
+	redirect(303, '/app/wishlist?tab=recipient');
 };

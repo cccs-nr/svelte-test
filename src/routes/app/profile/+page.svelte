@@ -28,6 +28,19 @@
 	let isSaving = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let successMessage = $state<string | null>(null);
+	let avatarDialog = $state<HTMLDialogElement>();
+	let profileDialog = $state<HTMLDialogElement>();
+	let passwordDialog = $state<HTMLDialogElement>();
+
+	function closeDialog(dialog: HTMLDialogElement | undefined): void {
+		if (!isSaving && !isSavingAvatar) dialog?.close();
+	}
+
+	function handleDialogClick(event: MouseEvent): void {
+		if (event.target === avatarDialog) closeDialog(avatarDialog);
+		if (event.target === profileDialog) closeDialog(profileDialog);
+		if (event.target === passwordDialog) closeDialog(passwordDialog);
+	}
 
 	async function checkAvatarResponse(response: Response, fallback: string): Promise<void> {
 		if (response.ok) return;
@@ -83,6 +96,7 @@
 			avatarFiles = undefined;
 			await invalidateAll();
 			avatarSuccessMessage = 'Profile picture updated.';
+			avatarDialog?.close();
 		} catch (error) {
 			avatarErrorMessage =
 				error instanceof TRPCClientError
@@ -107,6 +121,7 @@
 			await checkAvatarResponse(response, 'Unable to remove your profile picture.');
 			await invalidateAll();
 			avatarSuccessMessage = 'Profile picture removed.';
+			avatarDialog?.close();
 		} catch (error) {
 			avatarErrorMessage =
 				error instanceof Error ? error.message : 'Unable to remove your profile picture.';
@@ -137,6 +152,7 @@
 			});
 			await invalidateAll();
 			successMessage = 'Profile updated.';
+			profileDialog?.close();
 		} catch (error) {
 			errorMessage =
 				error instanceof TRPCClientError ? error.message : 'Unable to update your profile.';
@@ -165,6 +181,7 @@
 			newPassword = '';
 			confirmPassword = '';
 			successMessage = 'Password changed. Your other sessions have been signed out.';
+			passwordDialog?.close();
 		} catch (error) {
 			errorMessage =
 				error instanceof TRPCClientError ? error.message : 'Unable to change your password.';
@@ -217,59 +234,120 @@
 				size="lg"
 			/>
 			<div class="min-w-0 flex-1 space-y-4">
-				{#if avatarErrorMessage}
-					<p class="text-sm text-rose-700" role="alert">{avatarErrorMessage}</p>
-				{/if}
 				{#if avatarSuccessMessage}
 					<p class="text-sm text-emerald-800" role="status">{avatarSuccessMessage}</p>
 				{/if}
-				<form class="flex flex-wrap items-end gap-3" onsubmit={uploadAvatar}>
-					<div class="min-w-0 flex-1 space-y-2">
-						<label class="text-sm font-medium" for="profile-picture">Choose a picture</label>
-						<Input
-							id="profile-picture"
-							type="file"
-							accept="image/jpeg,image/png,image/webp"
-							bind:files={avatarFiles}
-							disabled={isSavingAvatar}
-						/>
-						<p class="text-xs text-stone-500">
-							JPEG, PNG, or WebP up to {formatFileSize(data.maxImageBytes)}.
-						</p>
-					</div>
-					<Button type="submit" disabled={isSavingAvatar}>
-						{isSavingAvatar ? 'Uploading…' : 'Upload'}
-					</Button>
-					{#if data.profile.hasAvatar}
-						<Button
-							type="button"
-							variant="outline"
-							onclick={removeAvatar}
-							disabled={isSavingAvatar}
-						>
-							Remove
-						</Button>
-					{/if}
-				</form>
+				<Button type="button" variant="outline" onclick={() => avatarDialog?.showModal()}>
+					{data.profile.hasAvatar ? 'Change picture' : 'Add profile picture'}
+				</Button>
 			</div>
 		</CardContent>
 	</Card>
 
+	<dialog
+		bind:this={avatarDialog}
+		class="m-auto max-h-[92vh] w-[95vw] max-w-xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
+		aria-labelledby="profile-picture-title"
+		onclick={handleDialogClick}
+	>
+		<div class="p-5 sm:p-7">
+			<div class="mb-6 flex items-start justify-between gap-4">
+				<div>
+					<h2 id="profile-picture-title" class="text-xl font-semibold">Profile picture</h2>
+					<p class="mt-1 text-sm text-stone-600">
+						JPEG, PNG, or WebP up to {formatFileSize(data.maxImageBytes)}.
+					</p>
+				</div>
+				<Button
+					type="button"
+					variant="outline"
+					onclick={() => closeDialog(avatarDialog)}
+					disabled={isSavingAvatar}
+				>
+					Close
+				</Button>
+			</div>
+			{#if avatarErrorMessage}
+				<p class="mb-4 text-sm text-rose-700" role="alert">{avatarErrorMessage}</p>
+			{/if}
+			<form class="flex flex-wrap items-end gap-3" onsubmit={uploadAvatar}>
+				<div class="min-w-0 flex-1 space-y-2">
+					<label class="text-sm font-medium" for="profile-picture">Choose a picture</label>
+					<Input
+						id="profile-picture"
+						type="file"
+						accept="image/jpeg,image/png,image/webp"
+						bind:files={avatarFiles}
+						disabled={isSavingAvatar}
+					/>
+				</div>
+				<Button type="submit" disabled={isSavingAvatar}>
+					{isSavingAvatar ? 'Uploading…' : 'Upload'}
+				</Button>
+				{#if data.profile.hasAvatar}
+					<Button type="button" variant="outline" onclick={removeAvatar} disabled={isSavingAvatar}>
+						Remove
+					</Button>
+				{/if}
+			</form>
+		</div>
+	</dialog>
+
 	<Card class="border-stone-200 bg-white">
 		<CardHeader>
 			<CardTitle>Profile details</CardTitle>
-			<CardDescription
-				>Your username and role are managed by the event account system.</CardDescription
-			>
+			<CardDescription>
+				Your name is how family members recognize you and what you can use to sign in.
+			</CardDescription>
 		</CardHeader>
-		<CardContent>
+		<CardContent class="flex flex-wrap items-center justify-between gap-4">
+			<div>
+				<p class="font-medium text-stone-950">{data.profile.displayName}</p>
+				<p class="mt-1 text-sm text-stone-600 capitalize">
+					{data.profile.role}
+					{#if data.profile.role === 'organizer' && data.profile.isParticipating}
+						· Participant
+					{/if}
+					{#if data.profile.householdName}
+						· {data.profile.householdName}
+					{/if}
+				</p>
+			</div>
+			<Button type="button" variant="outline" onclick={() => profileDialog?.showModal()}>
+				Edit profile
+			</Button>
+		</CardContent>
+	</Card>
+
+	<dialog
+		bind:this={profileDialog}
+		class="m-auto max-h-[92vh] w-[95vw] max-w-xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
+		aria-labelledby="profile-details-title"
+		onclick={handleDialogClick}
+	>
+		<div class="p-5 sm:p-7">
+			<div class="mb-6 flex items-start justify-between gap-4">
+				<div>
+					<h2 id="profile-details-title" class="text-xl font-semibold">Edit profile</h2>
+					<p class="mt-1 text-sm text-stone-600">
+						Your name is how family members recognize you and what you can use to sign in.
+					</p>
+				</div>
+				<Button
+					type="button"
+					variant="outline"
+					onclick={() => closeDialog(profileDialog)}
+					disabled={isSaving}
+				>
+					Close
+				</Button>
+			</div>
+			{#if errorMessage}
+				<p class="mb-4 text-sm text-rose-700" role="alert">{errorMessage}</p>
+			{/if}
 			<form class="space-y-5" onsubmit={saveProfile}>
 				<div class="space-y-2">
-					<label class="text-sm font-medium" for="profile-username">Username</label>
-					<Input id="profile-username" value={data.profile.username} disabled />
-				</div>
-				<div class="space-y-2">
-					<label class="text-sm font-medium" for="profile-display-name">Display name</label>
+					<label class="text-sm font-medium" for="profile-display-name">Your name</label>
 					<Input
 						id="profile-display-name"
 						bind:value={displayName}
@@ -278,13 +356,6 @@
 						disabled={isSaving}
 					/>
 				</div>
-				<p class="text-sm text-stone-500">
-					Role: <span class="font-medium text-stone-800 capitalize">{data.profile.role}</span>
-					{#if data.profile.householdName}
-						· Household: <span class="font-medium text-stone-800">{data.profile.householdName}</span
-						>
-					{/if}
-				</p>
 				{#if data.profile.role === 'organizer'}
 					<div class="space-y-2 rounded-xl border border-stone-200 bg-stone-50 p-4">
 						<label class="flex items-start gap-3 text-sm text-stone-700">
@@ -309,10 +380,22 @@
 						{/if}
 					</div>
 				{/if}
-				<Button type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Save profile'}</Button>
+				<div class="flex justify-end gap-3">
+					<Button
+						type="button"
+						variant="outline"
+						onclick={() => closeDialog(profileDialog)}
+						disabled={isSaving}
+					>
+						Cancel
+					</Button>
+					<Button type="submit" disabled={isSaving}>
+						{isSaving ? 'Saving…' : 'Save profile'}
+					</Button>
+				</div>
 			</form>
-		</CardContent>
-	</Card>
+		</div>
+	</dialog>
 
 	<Card class="border-stone-200 bg-white">
 		<CardHeader>
@@ -322,7 +405,40 @@
 				other active sessions.
 			</CardDescription>
 		</CardHeader>
-		<CardContent>
+		<CardContent class="flex flex-wrap items-center justify-between gap-4">
+			<p class="text-sm text-stone-600">Update your password and sign out other active sessions.</p>
+			<Button type="button" variant="outline" onclick={() => passwordDialog?.showModal()}>
+				Change password
+			</Button>
+		</CardContent>
+	</Card>
+
+	<dialog
+		bind:this={passwordDialog}
+		class="m-auto max-h-[92vh] w-[95vw] max-w-xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
+		aria-labelledby="change-password-title"
+		onclick={handleDialogClick}
+	>
+		<div class="p-5 sm:p-7">
+			<div class="mb-6 flex items-start justify-between gap-4">
+				<div>
+					<h2 id="change-password-title" class="text-xl font-semibold">Change password</h2>
+					<p class="mt-1 text-sm text-stone-600">
+						Use at least 3 characters. Any characters are allowed.
+					</p>
+				</div>
+				<Button
+					type="button"
+					variant="outline"
+					onclick={() => closeDialog(passwordDialog)}
+					disabled={isSaving}
+				>
+					Close
+				</Button>
+			</div>
+			{#if errorMessage}
+				<p class="mb-4 text-sm text-rose-700" role="alert">{errorMessage}</p>
+			{/if}
 			<form class="space-y-5" onsubmit={changePassword}>
 				<div class="space-y-2">
 					<label class="text-sm font-medium" for="current-password">Current password</label>
@@ -363,10 +479,20 @@
 						disabled={isSaving}
 					/>
 				</div>
-				<Button type="submit" variant="outline" disabled={isSaving}>
-					{isSaving ? 'Changing…' : 'Change password'}
-				</Button>
+				<div class="flex justify-end gap-3">
+					<Button
+						type="button"
+						variant="outline"
+						onclick={() => closeDialog(passwordDialog)}
+						disabled={isSaving}
+					>
+						Cancel
+					</Button>
+					<Button type="submit" disabled={isSaving}>
+						{isSaving ? 'Changing…' : 'Change password'}
+					</Button>
+				</div>
 			</form>
-		</CardContent>
-	</Card>
+		</div>
+	</dialog>
 </section>

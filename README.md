@@ -22,9 +22,11 @@ The app is available at <http://localhost:5173>. `DATABASE_URL` must point to a 
 
 ### Registration and first organizer
 
-Participant self-registration is open to anyone who can reach the site. New accounts always receive the participant role; no invite code or email verification is required. Registration is rate-limited per network.
+Participant self-registration is open to anyone who can reach the site. Registration asks for the name family members recognize, not a username; the app generates an internal unique handle. New accounts always receive the participant role; no invite code or email verification is required. Registration is rate-limited per network.
 
-There is no default organizer account or password. After migrations, set `INITIAL_ORGANIZER_USERNAME`, `INITIAL_ORGANIZER_DISPLAY_NAME`, and `INITIAL_ORGANIZER_PASSWORD` in your ignored local `.env`, then run:
+Participants sign in with their name and password. Existing accounts can continue signing in with their legacy username. If duplicate names exist, the password selects the matching account; legacy usernames remain a fallback if duplicate accounts share the same password.
+
+There is no default organizer account or password. After migrations, set `INITIAL_ORGANIZER_DISPLAY_NAME` and `INITIAL_ORGANIZER_PASSWORD` in your ignored local `.env`, then run. `INITIAL_ORGANIZER_USERNAME` is an optional internal-handle override; if omitted, it is generated from the organizer’s name.
 
 ```sh
 pnpm db:create-organizer
@@ -53,7 +55,7 @@ Generated assignments remain private until the organizer finalizes the draw. Reg
 
 ### Live messages and notifications
 
-After the draw is finalized, each participant can start a private conversation with their recipient from **Gift** and reply to their own Secret Santa from **Wishlist**. Socket.IO updates open conversations and relevant page data live without a refresh. Recipients see giver messages only as **Your Secret Santa**; sender account IDs are not stored with messages or returned by the messaging API. Conversations are scoped to a finalized assignment, and resetting that assignment permanently deletes its conversation and messages.
+After the draw is finalized, each participant can start a private conversation with their recipient or reply to their Secret Santa in the **Messages** tab on **Wishlist**. Socket.IO updates open conversations and relevant page data live without a refresh. Recipients see giver messages only as **Your Secret Santa**; sender account IDs are not stored with messages or returned by the messaging API. Conversations are scoped to a finalized assignment, and resetting that assignment permanently deletes its conversation and messages.
 
 Socket connections are authenticated with the existing session and same-origin checks. Message events go only to the two participants in that conversation; wishlist changes go to the list owner and their assigned giver; gift-status changes go to the giver and recipient. Organizers receive aggregate dashboard refresh signals only, without private message contents or assignment pairings. The **Wishlist** badge tracks incoming Secret Santa messages and unviewed purchase status; **Gift** tracks recipient replies and new or updated recipient ideas. Opening the corresponding page clears its badge.
 
@@ -65,11 +67,11 @@ The top-nav avatar opens a Google-style account menu with profile, theme, and si
 
 ### Wishlists and gift ideas
 
-Participants can add, edit, and remove any number of gift ideas from **Wishlist** using a dialog form and table, including descriptions, notes, optional external product links, estimated CAD prices, and optional images. The configured gift budget is displayed as a guideline. Wishlists are private to their owner until assignments are finalized; afterward, **Gift** shows only the current participant’s assigned recipient’s ideas.
+Participants can use **Wishlist** tabs to manage **My Gift Ideas**, view their assigned recipient’s ideas, or open **Messages**. Add/edit actions use dialogs; the participant’s own ideas appear in a compact table with descriptions, notes, optional external product links, estimated CAD prices, and optional images. The configured gift budget is displayed as a guideline. Wishlists are private to their owner until assignments are finalized; the **Gift** navigation option opens the recipient-ideas tab.
 
-On the **Gift** page, a Secret Santa can mark their gift as purchased or undo that status. The recipient sees a generic update on their wishlist and overview; the status does not reveal the giver’s identity or assignment mapping. Organizers can view per-account purchase indicators and aggregate progress from **Dashboard**, but cannot see recipient pairings or private message contents. The dashboard also summarizes wishlist and message counts and shows progress through setup, open, assignments generated, and completed.
+On the **View Gift Ideas** tab, a Secret Santa can mark their gift as purchased or undo that status. The recipient sees a generic update on their wishlist and overview; the status does not reveal the giver’s identity or assignment mapping. Organizers can view per-account purchase indicators and aggregate progress from **Dashboard**, but cannot see recipient pairings or private message contents. The dashboard summarizes event progress, participants, households, wishlist and message counts.
 
-The overview shows the signed-in participant’s wishlist and recipient-idea counts, unread messages, recent messages, and recent gift ideas. The sticky top navigation is 64px high when collapsed and has separate **Wishlist** and **Gift** options for participants; each page includes the matching conversation. The interface uses an original winter-holiday background pattern with evergreen, cranberry, and warm-neutral colors. The Node adapter is served through `server.mjs` so Socket.IO and the SvelteKit app share the same port in production and Docker.
+The organizer Dashboard consolidates event settings, statistics, participant/account management, and household management. Creation and editing use accessible dialogs, and the participant and household lists use compact tables. The participant overview shows the signed-in participant’s account counts and recent activity. The sticky top navigation is 64px high when collapsed and keeps **Wishlist** and **Gift** shortcuts for participants. The interface uses an original winter-holiday background pattern with evergreen, cranberry, and warm-neutral colors. The Node adapter is served through `server.mjs` so Socket.IO and the SvelteKit app share the same port in production and Docker.
 
 Wishlist and profile images are validated as JPEG, PNG, or WebP from their file contents and stored outside the source tree. `UPLOADS_DIR` controls local storage and `MAX_IMAGE_BYTES` sets the per-image limit (default 5 MiB, maximum 25 MiB). Profile images are private to their owner except that a participant may see their assigned recipient’s avatar in their giver-side message view. A recipient continues to see their Secret Santa as anonymous. Docker stores images in the persistent `secret-santa-uploads` volume.
 
@@ -86,18 +88,19 @@ SQLite data and future image uploads persist in named Docker volumes. Container 
 
 `ORIGIN` is embedded during the image build, so rebuild after changing it. For Internet access, terminate TLS at a reverse proxy, set `ORIGIN` to the public HTTPS origin, and configure the host firewall to expose only the required ports. Do not expose the app over plain HTTP to the public Internet. Since registration is open, anyone who can reach the site can create a participant account.
 
-To create the initial organizer in Docker, provide the username and password as environment variables to a one-off container, then remove them from the shell environment:
+To create the initial organizer in Docker, provide the display name and password as environment variables to a one-off container, then remove them from the shell environment:
 
 ```sh
-export INITIAL_ORGANIZER_USERNAME=organizer
+read -r -p "Organizer display name: " INITIAL_ORGANIZER_DISPLAY_NAME
+export INITIAL_ORGANIZER_DISPLAY_NAME
 read -r -s -p "Organizer password: " INITIAL_ORGANIZER_PASSWORD
 printf '\n'
 export INITIAL_ORGANIZER_PASSWORD
 docker compose run --rm \
-  -e INITIAL_ORGANIZER_USERNAME \
+  -e INITIAL_ORGANIZER_DISPLAY_NAME \
   -e INITIAL_ORGANIZER_PASSWORD \
   app node --experimental-strip-types scripts/create-organizer.mjs
-unset INITIAL_ORGANIZER_USERNAME INITIAL_ORGANIZER_PASSWORD
+unset INITIAL_ORGANIZER_DISPLAY_NAME INITIAL_ORGANIZER_PASSWORD
 ```
 
 ## Development checks

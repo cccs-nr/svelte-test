@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { and, asc, count, eq, ne } from 'drizzle-orm';
+import { and, asc, count, eq } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import {
 	createAccountInputSchema,
@@ -9,6 +9,7 @@ import {
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { hashPassword } from '#lib/server/auth/password.js';
+import { createUniqueUsername } from '#lib/server/auth/username.js';
 import { assignments, households, sessions, users } from '#lib/server/db/schema.js';
 import { disconnectUserRealtime, notifyOrganizerDashboard } from '#lib/server/realtime.js';
 import { organizerProcedure, router } from '#lib/server/trpc/init.js';
@@ -60,7 +61,7 @@ export const participantsRouter = router({
 			})
 			.from(users)
 			.leftJoin(households, eq(users.householdId, households.id))
-			.orderBy(asc(users.displayName), asc(users.username))
+			.orderBy(asc(users.displayName), asc(users.id))
 			.all()
 	),
 	create: organizerProcedure.input(createAccountInputSchema).mutation(async ({ ctx, input }) => {
@@ -79,13 +80,15 @@ export const participantsRouter = router({
 		assertHouseholdExists(ctx.db, input.householdId);
 
 		const id = randomUUID();
+		const passwordHash = await hashPassword(input.password);
+		const username = createUniqueUsername(ctx.db, input.displayName);
 		const insertResult = ctx.db
 			.insert(users)
 			.values({
 				id,
-				username: input.username,
+				username,
 				displayName: input.displayName,
-				passwordHash: await hashPassword(input.password),
+				passwordHash,
 				role: input.role,
 				isParticipating: input.role === 'participant',
 				householdId: input.householdId,
@@ -95,7 +98,10 @@ export const participantsRouter = router({
 			.run();
 
 		if (insertResult.changes === 0) {
-			throw new TRPCError({ code: 'CONFLICT', message: 'That username is already taken.' });
+			throw new TRPCError({
+				code: 'CONFLICT',
+				message: 'Unable to create an internal account identifier. Please try again.'
+			});
 		}
 
 		const account = getAccount(ctx.db, id);
@@ -160,15 +166,6 @@ export const participantsRouter = router({
 				}
 			}
 
-			const duplicateUsername = transaction
-				.select({ id: users.id })
-				.from(users)
-				.where(and(eq(users.username, input.username), ne(users.id, input.id)))
-				.get();
-			if (duplicateUsername) {
-				throw new TRPCError({ code: 'CONFLICT', message: 'That username is already taken.' });
-			}
-
 			if (
 				current.isActive &&
 				current.role === 'organizer' &&
@@ -192,7 +189,6 @@ export const participantsRouter = router({
 			transaction
 				.update(users)
 				.set({
-					username: input.username,
 					displayName: input.displayName,
 					role: input.role,
 					isParticipating,

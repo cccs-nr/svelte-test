@@ -101,11 +101,11 @@ The deployment should support environment-based configuration.
 
 ## 4. Authentication and Authorization
 
-Implement a simple username-and-password authentication system.
+Implement a simple name-and-password authentication system. Usernames are internal unique handles, not the primary name shown to participants.
 
 ### Authentication requirements
 
-- Users log in using a username and password.
+- Users log in using their display name and password. Existing accounts may continue using their legacy username.
 - Passwords accept any characters, with a minimum of 3 characters and a maximum of 128.
 - Passwords must be securely hashed using Argon2id or an equivalent secure password-hashing algorithm.
 - Authentication sessions should use secure, HTTP-only cookies.
@@ -119,14 +119,14 @@ The application is intended for a small, private group.
 
 ### Account creation
 
-Participant self-registration is open to anyone who can reach the site. Self-registered accounts always receive the participant role; no invite code or email verification is required.
+Participant self-registration is open to anyone who can reach the site. The form asks for a display name rather than a username; the system generates an internal username. Self-registered accounts always receive the participant role; no invite code or email verification is required.
 
 The organizer should also be able to manage accounts.
 
 The organizer should be able to:
 
 - Create participant accounts.
-- Assign usernames and temporary passwords.
+- Assign display names and temporary passwords; internal usernames are generated automatically.
 - Enable or disable accounts.
 - Reset participant passwords.
 - Change participant roles.
@@ -191,7 +191,7 @@ The organizer should have access to a participant management interface.
 Each participant should have:
 
 - Unique identifier.
-- Username.
+- Internal unique username.
 - Display name.
 - Password hash.
 - Role.
@@ -760,6 +760,11 @@ The first objective is a working MVP rather than implementing every possible fea
 - [x] Show real-time unread/new-item counts on Wishlist and Gift navigation links.
 - [x] Replace the inline wishlist form and cards with an add/edit dialog and a wishlist table.
 - [x] Highlight the active top-navigation page with the primary color.
+- [x] Consolidate event settings, statistics, participant accounts, and households on the organizer Dashboard.
+- [x] Use accessible dialogs for event, account, household, and gift-idea create/edit actions.
+- [x] Show participant and household management in compact, responsive tables.
+- [x] Organize participant ideas, recipient ideas, and conversations in responsive Wishlist tabs.
+- [x] Provide household creation and editing with participant selection.
 
 ## 18. Explicit Non-Goals
 

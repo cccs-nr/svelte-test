@@ -16,7 +16,7 @@
 	import { Input } from '#lib/components/ui/input/index.js';
 	import { trpc } from '#lib/trpc/client.js';
 
-	let username = $state('');
+	let identifier = $state('');
 	let password = $state('');
 	let isSubmitting = $state(false);
 	let errorMessage = $state<string | null>(null);
@@ -29,13 +29,13 @@
 		errorMessage = null;
 
 		try {
-			await trpc.auth.login.mutate({ username, password });
+			await trpc.auth.login.mutate({ identifier, password });
 			await goto(resolve('/app'));
 		} catch (error) {
 			if (error instanceof TRPCClientError && error.data?.code === 'TOO_MANY_REQUESTS') {
 				errorMessage = 'Too many sign-in attempts. Please wait a little before trying again.';
 			} else if (error instanceof TRPCClientError) {
-				errorMessage = 'The username or password is not correct.';
+				errorMessage = 'The name or password is not correct.';
 			} else {
 				errorMessage = 'Unable to reach the sign-in service. Please try again.';
 			}
@@ -122,25 +122,28 @@
 					</p>
 					<CardTitle class="text-2xl tracking-tight">Welcome back</CardTitle>
 					<CardDescription class="text-base">
-						Sign in with your account to continue to the family exchange.
+						Sign in with your name and password to continue to the family exchange.
 					</CardDescription>
 				</CardHeader>
 				<CardContent class="px-7 pb-6 sm:px-8">
 					<form class="space-y-5" onsubmit={handleSubmit}>
 						<div class="space-y-2">
-							<label class="text-sm font-medium" for="username">Username</label>
+							<label class="text-sm font-medium" for="login-identifier">Your name</label>
 							<Input
-								id="username"
+								id="login-identifier"
 								name="username"
 								autocomplete="username"
-								placeholder="Your username"
-								bind:value={username}
+								placeholder="Your first or full name"
+								bind:value={identifier}
 								required
-								minlength={3}
-								maxlength={32}
+								minlength={1}
+								maxlength={64}
 								disabled={isSubmitting}
 								aria-invalid={Boolean(errorMessage)}
 							/>
+							<p class="text-xs text-stone-500">
+								Older accounts can also sign in with their previous username.
+							</p>
 						</div>
 
 						<div class="space-y-2">

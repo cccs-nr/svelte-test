@@ -79,10 +79,9 @@ afterEach(() => {
 });
 
 describe('participant management', () => {
-	it('creates accounts with normalized usernames and never returns password hashes', async () => {
+	it('creates accounts from names with internal usernames and never returns password hashes', async () => {
 		const caller = appRouter.createCaller(createContext(organizer));
 		const account = await caller.participants.create({
-			username: ' NewMember ',
 			displayName: 'New Member',
 			password: 'a-strong-initial-password',
 			role: 'participant',
@@ -90,7 +89,6 @@ describe('participant management', () => {
 		});
 
 		expect(account).toMatchObject({
-			username: 'newmember',
 			displayName: 'New Member',
 			role: 'participant',
 			isParticipating: true,
@@ -102,12 +100,12 @@ describe('participant management', () => {
 
 		const savedUser = db.select().from(users).where(eq(users.id, account.id)).get();
 		if (!savedUser) throw new Error('Expected the new account to be stored.');
+		expect(savedUser.username).toBe('new.member');
 		await expect(verifyPassword('a-strong-initial-password', savedUser.passwordHash)).resolves.toBe(
 			true
 		);
 
 		const organizerAccount = await caller.participants.create({
-			username: 'second-organizer',
 			displayName: 'Second Organizer',
 			password: 'a-strong-organizer-password',
 			role: 'organizer',
@@ -122,7 +120,6 @@ describe('participant management', () => {
 		await expect(
 			caller.participants.update({
 				id: organizer.id,
-				username: organizer.username,
 				displayName: organizer.displayName,
 				role: 'participant',
 				isActive: true,
@@ -133,7 +130,6 @@ describe('participant management', () => {
 		await expect(
 			caller.participants.update({
 				id: organizer.id,
-				username: organizer.username,
 				displayName: organizer.displayName,
 				role: 'organizer',
 				isActive: false,
@@ -158,7 +154,6 @@ describe('participant management', () => {
 
 		await appRouter.createCaller(createContext(organizer)).participants.update({
 			id: participantId,
-			username: participant.username,
 			displayName: participant.displayName,
 			role: participant.role,
 			isActive: false,

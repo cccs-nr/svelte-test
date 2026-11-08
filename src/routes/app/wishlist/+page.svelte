@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { TRPCClientError } from '@trpc/client';
 	import { X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import ConversationPanel from '#lib/components/ConversationPanel.svelte';
+	import RecipientGiftIdeasPanel from '#lib/components/RecipientGiftIdeasPanel.svelte';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { formatEventBudget, formatBudgetInput } from '#lib/models/event.js';
 	import { trpc } from '#lib/trpc/client.js';
@@ -19,11 +22,32 @@
 	import { Input } from '#lib/components/ui/input/index.js';
 
 	type GiftSuggestion = Awaited<ReturnType<typeof trpc.wishlists.mine.query>>[number];
+	type WishlistTab = 'ideas' | 'recipient' | 'messages';
 	type RecipientGiftStatus = Awaited<
 		ReturnType<typeof trpc.assignments.myRecipientGiftStatus.query>
 	>;
 
+	function isWishlistTab(value: unknown): value is WishlistTab {
+		return value === 'ideas' || value === 'recipient' || value === 'messages';
+	}
+
 	let { data }: PageProps = $props();
+	let activeTab = $state<WishlistTab>(
+		page.url.searchParams.get('tab') === 'recipient'
+			? 'recipient'
+			: page.url.searchParams.get('tab') === 'messages'
+				? 'messages'
+				: isWishlistTab(page.state.wishlistTab)
+					? page.state.wishlistTab
+					: 'ideas'
+	);
+	let activeMessageDirection = $state<'asRecipient' | 'asGiver'>(
+		page.url.searchParams.get('direction') === 'asGiver'
+			? 'asGiver'
+			: page.url.searchParams.get('direction') === 'asRecipient'
+				? 'asRecipient'
+				: (page.state.wishlistMessageDirection ?? 'asRecipient')
+	);
 	let suggestions = $state<GiftSuggestion[]>([]);
 	let recipientGiftStatus = $state<RecipientGiftStatus>({ purchased: false, purchasedAt: null });
 	let editingId = $state<string | null>(null);
@@ -45,6 +69,24 @@
 	let ideaDialog = $state<HTMLDialogElement>();
 	let imageDialog = $state<HTMLDialogElement>();
 	let fullSizeImage = $state<{ src: string; alt: string } | null>(null);
+
+	$effect(() => {
+		const routeTab = page.url.searchParams.get('tab');
+		activeTab =
+			routeTab === 'recipient'
+				? 'recipient'
+				: routeTab === 'messages'
+					? 'messages'
+					: isWishlistTab(page.state.wishlistTab)
+						? page.state.wishlistTab
+						: 'ideas';
+		activeMessageDirection =
+			page.url.searchParams.get('direction') === 'asGiver'
+				? 'asGiver'
+				: page.url.searchParams.get('direction') === 'asRecipient'
+					? 'asRecipient'
+					: (page.state.wishlistMessageDirection ?? 'asRecipient');
+	});
 
 	onMount(() => {
 		const socket = getRealtimeSocket();
@@ -297,6 +339,39 @@
 		fullSizeImage = null;
 	}
 
+	async function selectTab(tab: WishlistTab): Promise<void> {
+		activeTab = tab;
+		await goto(resolve('/app/wishlist'), {
+			replaceState: true,
+			state: { wishlistTab: tab, wishlistMessageDirection: activeMessageDirection }
+		});
+	}
+
+	async function selectMessageDirection(direction: 'asRecipient' | 'asGiver'): Promise<void> {
+		activeMessageDirection = direction;
+		activeTab = 'messages';
+		await goto(resolve('/app/wishlist'), {
+			replaceState: true,
+			state: { wishlistTab: 'messages', wishlistMessageDirection: direction }
+		});
+	}
+
+	function handleTabKeydown(event: KeyboardEvent, currentTab: WishlistTab): void {
+		if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+		event.preventDefault();
+		const tabOrder: WishlistTab[] = ['ideas', 'recipient', 'messages'];
+		const currentIndex = tabOrder.indexOf(currentTab);
+		const nextIndex =
+			event.key === 'ArrowRight'
+				? (currentIndex + 1) % tabOrder.length
+				: (currentIndex + tabOrder.length - 1) % tabOrder.length;
+		const nextTab = tabOrder[nextIndex];
+		if (!nextTab) return;
+		void selectTab(nextTab).then(() => {
+			document.getElementById(`wishlist-tab-${nextTab}`)?.focus();
+		});
+	}
+
 	function formatFileSize(bytes: number): string {
 		const mebibyte = 1024 * 1024;
 		if (bytes >= mebibyte) {
@@ -321,16 +396,6 @@
 			Add a few ideas to help your Secret Santa find something you’ll love. Your gift ideas are only
 			shared with your assigned Secret Santa after the draw is finalized.
 		</p>
-		<div class="mt-4">
-			<Button
-				type="button"
-				variant="outline"
-				onclick={() => void loadWishlists(true)}
-				disabled={isLoading || isSaving || isDeleting !== null}
-			>
-				Refresh wishlists
-			</Button>
-		</div>
 	</div>
 
 	{#if errorMessage}
@@ -356,140 +421,243 @@
 		</div>
 	{/if}
 
-	<Card class="border-stone-200 bg-white">
-		<CardHeader class="flex flex-row flex-wrap items-center justify-between gap-4">
-			<div>
-				<CardTitle>Your wishlist ideas</CardTitle>
-				<CardDescription>
-					{#if data.giftBudgetCents !== null}
-						Event budget: {formatEventBudget(data.giftBudgetCents, data.currency)} (a guideline).
-					{:else}
-						Your event budget will appear here once the organizer sets it.
-					{/if}
-				</CardDescription>
-			</div>
-			<Button type="button" onclick={openNewSuggestionDialog} disabled={isFormDisabled}>
-				Add a gift idea
-			</Button>
-		</CardHeader>
-	</Card>
+	<div
+		role="tablist"
+		aria-label="Wishlist sections"
+		class="flex max-w-full gap-1 overflow-x-auto rounded-xl border border-stone-200 bg-white p-1"
+	>
+		<button
+			id="wishlist-tab-ideas"
+			type="button"
+			role="tab"
+			aria-controls="wishlist-panel"
+			aria-selected={activeTab === 'ideas'}
+			tabindex={activeTab === 'ideas' ? 0 : -1}
+			class={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+				activeTab === 'ideas'
+					? 'bg-rose-700 text-white'
+					: 'text-stone-600 hover:bg-stone-100 hover:text-stone-950'
+			}`}
+			onclick={() => void selectTab('ideas')}
+			onkeydown={(event) => handleTabKeydown(event, 'ideas')}
+		>
+			My Gift Ideas
+		</button>
+		<button
+			id="wishlist-tab-recipient"
+			type="button"
+			role="tab"
+			aria-controls="wishlist-panel"
+			aria-selected={activeTab === 'recipient'}
+			tabindex={activeTab === 'recipient' ? 0 : -1}
+			class={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+				activeTab === 'recipient'
+					? 'bg-rose-700 text-white'
+					: 'text-stone-600 hover:bg-stone-100 hover:text-stone-950'
+			}`}
+			onclick={() => void selectTab('recipient')}
+			onkeydown={(event) => handleTabKeydown(event, 'recipient')}
+		>
+			View Gift Ideas
+		</button>
+		<button
+			id="wishlist-tab-messages"
+			type="button"
+			role="tab"
+			aria-controls="wishlist-panel"
+			aria-selected={activeTab === 'messages'}
+			tabindex={activeTab === 'messages' ? 0 : -1}
+			class={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+				activeTab === 'messages'
+					? 'bg-rose-700 text-white'
+					: 'text-stone-600 hover:bg-stone-100 hover:text-stone-950'
+			}`}
+			onclick={() => void selectTab('messages')}
+			onkeydown={(event) => handleTabKeydown(event, 'messages')}
+		>
+			Messages
+		</button>
+	</div>
 
-	<div class="grid gap-6">
-		<Card id="my-wishlist" class="border-stone-200 bg-white">
-			<CardHeader>
-				<CardTitle>Your gift ideas</CardTitle>
-				<CardDescription>
-					Only you can see these until the organizer finalizes the assignments.
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				{#if isLoading}
-					<p class="text-sm text-stone-500">Loading your wishlist…</p>
-				{:else if isLoadFailed}
-					<p class="text-sm text-stone-600">Your wishlist could not be loaded. Try refreshing.</p>
-				{:else if suggestions.length === 0}
-					<p class="text-sm text-stone-600">
-						No ideas yet. Select “Add a gift idea” to get started.
-					</p>
-				{:else}
-					<div class="-mx-2 overflow-x-auto px-2">
-						<table class="w-full min-w-[760px] border-collapse text-left text-sm">
-							<thead>
-								<tr
-									class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase"
-								>
-									<th scope="col" class="px-3 py-3 font-medium">Gift idea</th>
-									<th scope="col" class="px-3 py-3 font-medium">Estimated price</th>
-									<th scope="col" class="px-3 py-3 font-medium">Updated</th>
-									<th scope="col" class="px-3 py-3 font-medium">Actions</th>
-								</tr>
-							</thead>
-							<tbody>
-								{#each suggestions as suggestion (suggestion.id)}
-									<tr class="border-b border-stone-100 last:border-0">
-										<th scope="row" class="max-w-2xl px-3 py-4 font-normal">
-											<div class="flex items-start gap-3">
-												{#if suggestion.imageKey}
-													<button
-														type="button"
-														class="size-16 shrink-0 cursor-zoom-in overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
-														aria-label={`View full-size image for ${suggestion.title}`}
-														onclick={() =>
-															openSuggestionImage(suggestion.imageKey, suggestion.title)}
-													>
-														<img
-															class="size-full object-cover"
-															src={imageUrl(suggestion.imageKey)}
-															alt=""
-															loading="lazy"
-														/>
-													</button>
-												{/if}
-												<div class="min-w-0">
-													<p class="font-semibold text-stone-950">{suggestion.title}</p>
-													{#if suggestion.description}
-														<p class="mt-1 whitespace-pre-wrap text-stone-600">
-															{suggestion.description}
-														</p>
-													{/if}
-													{#if suggestion.notes}
-														<p class="mt-1 whitespace-pre-wrap text-stone-600">
-															Notes: {suggestion.notes}
-														</p>
-													{/if}
-													{#if suggestion.url}
-														<a
-															class="mt-2 inline-block font-medium text-emerald-800 underline-offset-4 hover:underline"
-															href={suggestion.url}
-															target="_blank"
-															rel="noopener noreferrer external"
-														>
-															View gift link
-														</a>
-													{/if}
-												</div>
-											</div>
-										</th>
-										<td class="px-3 py-4 align-top text-stone-700">
-											{suggestion.estimatedPriceCents === null
-												? '—'
-												: formatEventBudget(suggestion.estimatedPriceCents, 'CAD')}
-										</td>
-										<td class="px-3 py-4 align-top text-stone-700">
-											<time datetime={suggestion.updatedAt}>
-												{formatTimestamp(suggestion.updatedAt)}
-											</time>
-										</td>
-										<td class="px-3 py-4 align-top">
-											<div class="flex flex-wrap gap-2">
-												<Button
-													type="button"
-													size="sm"
-													variant="outline"
-													onclick={() => startEditing(suggestion)}
-													disabled={isSaving || isDeleting !== null}
-												>
-													Edit
-												</Button>
-												<Button
-													type="button"
-													size="sm"
-													variant="destructive"
-													onclick={() => deleteSuggestion(suggestion)}
-													disabled={isSaving || isDeleting !== null}
-												>
-													{isDeleting === suggestion.id ? 'Deleting…' : 'Delete'}
-												</Button>
-											</div>
-										</td>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
+	<div
+		id="wishlist-panel"
+		role="tabpanel"
+		aria-labelledby={`wishlist-tab-${activeTab}`}
+		tabindex="0"
+		class="min-w-0"
+	>
+		{#if activeTab === 'ideas'}
+			<Card id="my-wishlist" class="border-stone-200 bg-white">
+				<CardHeader class="flex flex-row flex-wrap items-center justify-between gap-4">
+					<div class="min-w-0">
+						<CardTitle>My Gift Ideas</CardTitle>
+						<CardDescription>
+							{#if data.giftBudgetCents !== null}
+								Event budget: {formatEventBudget(data.giftBudgetCents, data.currency)} (a guideline).
+							{:else}
+								Only you can see your ideas until the organizer finalizes assignments.
+							{/if}
+						</CardDescription>
 					</div>
-				{/if}
-			</CardContent>
-		</Card>
+					<div class="flex flex-wrap gap-2">
+						<Button
+							type="button"
+							size="sm"
+							variant="outline"
+							onclick={() => void loadWishlists(true)}
+							disabled={isLoading || isSaving || isDeleting !== null}
+						>
+							Refresh
+						</Button>
+						<Button type="button" onclick={openNewSuggestionDialog} disabled={isFormDisabled}>
+							Add a gift idea
+						</Button>
+					</div>
+				</CardHeader>
+				<CardContent>
+					{#if isLoading}
+						<p class="text-sm text-stone-500">Loading your wishlist…</p>
+					{:else if isLoadFailed}
+						<p class="text-sm text-stone-600">Your wishlist could not be loaded. Try refreshing.</p>
+					{:else if suggestions.length === 0}
+						<p class="text-sm text-stone-600">
+							No ideas yet. Select “Add a gift idea” to get started.
+						</p>
+					{:else}
+						<div class="-mx-2 overflow-x-auto px-2">
+							<table class="w-full min-w-[760px] border-collapse text-left text-sm">
+								<thead>
+									<tr
+										class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase"
+									>
+										<th scope="col" class="px-3 py-3 font-medium">Gift idea</th>
+										<th scope="col" class="px-3 py-3 font-medium">Estimated price</th>
+										<th scope="col" class="px-3 py-3 font-medium">Updated</th>
+										<th scope="col" class="px-3 py-3 font-medium">Actions</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each suggestions as suggestion (suggestion.id)}
+										<tr class="border-b border-stone-100 last:border-0">
+											<th scope="row" class="max-w-2xl px-3 py-4 font-normal">
+												<div class="flex items-start gap-3">
+													{#if suggestion.imageKey}
+														<button
+															type="button"
+															class="size-16 shrink-0 cursor-zoom-in overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+															aria-label={`View full-size image for ${suggestion.title}`}
+															onclick={() =>
+																openSuggestionImage(suggestion.imageKey, suggestion.title)}
+														>
+															<img
+																class="size-full object-cover"
+																src={imageUrl(suggestion.imageKey)}
+																alt=""
+																loading="lazy"
+															/>
+														</button>
+													{/if}
+													<div class="min-w-0">
+														<p class="font-semibold text-stone-950">{suggestion.title}</p>
+														{#if suggestion.description}
+															<p class="mt-1 whitespace-pre-wrap text-stone-600">
+																{suggestion.description}
+															</p>
+														{/if}
+														{#if suggestion.notes}
+															<p class="mt-1 whitespace-pre-wrap text-stone-600">
+																Notes: {suggestion.notes}
+															</p>
+														{/if}
+														{#if suggestion.url}
+															<a
+																class="mt-2 inline-block font-medium text-emerald-800 underline-offset-4 hover:underline"
+																href={suggestion.url}
+																target="_blank"
+																rel="noopener noreferrer external"
+															>
+																View gift link
+															</a>
+														{/if}
+													</div>
+												</div>
+											</th>
+											<td class="px-3 py-4 align-top text-stone-700">
+												{suggestion.estimatedPriceCents === null
+													? '—'
+													: formatEventBudget(suggestion.estimatedPriceCents, 'CAD')}
+											</td>
+											<td class="px-3 py-4 align-top text-stone-700">
+												<time datetime={suggestion.updatedAt}>
+													{formatTimestamp(suggestion.updatedAt)}
+												</time>
+											</td>
+											<td class="px-3 py-4 align-top">
+												<div class="flex flex-wrap gap-2">
+													<Button
+														type="button"
+														size="sm"
+														variant="outline"
+														onclick={() => startEditing(suggestion)}
+														disabled={isSaving || isDeleting !== null}
+													>
+														Edit
+													</Button>
+													<Button
+														type="button"
+														size="sm"
+														variant="destructive"
+														onclick={() => deleteSuggestion(suggestion)}
+														disabled={isSaving || isDeleting !== null}
+													>
+														{isDeleting === suggestion.id ? 'Deleting…' : 'Delete'}
+													</Button>
+												</div>
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					{/if}
+				</CardContent>
+			</Card>
+		{:else if activeTab === 'recipient'}
+			<RecipientGiftIdeasPanel giftBudgetCents={data.giftBudgetCents} currency={data.currency} />
+		{:else}
+			<div class="space-y-4">
+				<div>
+					<h2 class="text-lg font-semibold text-stone-950">Messages</h2>
+					<p class="mt-1 text-sm text-stone-600">
+						Choose which private conversation to open. Your Secret Santa remains anonymous.
+					</p>
+				</div>
+				<div class="flex flex-wrap gap-2" role="group" aria-label="Choose who to message">
+					<Button
+						type="button"
+						variant={activeMessageDirection === 'asRecipient' ? 'default' : 'outline'}
+						aria-pressed={activeMessageDirection === 'asRecipient'}
+						onclick={() => void selectMessageDirection('asRecipient')}
+					>
+						My Secret Santa
+					</Button>
+					<Button
+						type="button"
+						variant={activeMessageDirection === 'asGiver' ? 'default' : 'outline'}
+						aria-pressed={activeMessageDirection === 'asGiver'}
+						onclick={() => void selectMessageDirection('asGiver')}
+					>
+						My recipient
+					</Button>
+				</div>
+				<ConversationPanel
+					direction={activeMessageDirection}
+					displayName={data.user.displayName}
+					hasAvatar={data.hasAvatar}
+					avatarVersion={data.avatarVersion}
+				/>
+			</div>
+		{/if}
 	</div>
 
 	<dialog
@@ -619,13 +787,6 @@
 			</form>
 		</div>
 	</dialog>
-
-	<ConversationPanel
-		direction="asRecipient"
-		displayName={data.user.displayName}
-		hasAvatar={data.hasAvatar}
-		avatarVersion={data.avatarVersion}
-	/>
 
 	<dialog
 		bind:this={imageDialog}

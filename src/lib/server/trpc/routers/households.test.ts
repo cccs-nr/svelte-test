@@ -64,6 +64,55 @@ afterEach(() => {
 });
 
 describe('household router', () => {
+	it('creates and edits household membership in one operation', async () => {
+		db.insert(users)
+			.values([
+				{
+					id: 'participant-one',
+					username: 'participant-one',
+					displayName: 'Participant One',
+					passwordHash: 'not-used-by-household-test',
+					role: 'participant'
+				},
+				{
+					id: 'participant-two',
+					username: 'participant-two',
+					displayName: 'Participant Two',
+					passwordHash: 'not-used-by-household-test',
+					role: 'participant'
+				}
+			])
+			.run();
+		const caller = appRouter.createCaller(createContext(organizer));
+		const household = await caller.households.create({
+			name: 'Family A',
+			participantIds: ['participant-one']
+		});
+
+		expect(household.members).toEqual([{ id: 'participant-one', displayName: 'Participant One' }]);
+		await caller.households.update({
+			id: household.id,
+			name: 'Family B',
+			participantIds: ['participant-two']
+		});
+
+		const members = await caller.households.list();
+		expect(members).toMatchObject([
+			{
+				id: household.id,
+				name: 'Family B',
+				memberCount: 1,
+				members: [{ id: 'participant-two', displayName: 'Participant Two' }]
+			}
+		]);
+		const previousMember = db
+			.select({ householdId: users.householdId })
+			.from(users)
+			.where(eq(users.id, 'participant-one'))
+			.get();
+		expect(previousMember?.householdId).toBeNull();
+	});
+
 	it('creates households with case-insensitive unique names', async () => {
 		const caller = appRouter.createCaller(createContext(organizer));
 		const household = await caller.households.create({ name: 'The Lees' });

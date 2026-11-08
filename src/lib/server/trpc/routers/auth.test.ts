@@ -72,12 +72,12 @@ afterEach(() => {
 });
 
 describe('auth router', () => {
-	it('signs in with normalized usernames and creates a secure session cookie', async () => {
+	it('signs in with a display name and supports legacy usernames', async () => {
 		const cookies = createCookieStore();
 		const caller = appRouter.createCaller(createContext(cookies));
 
 		const user = await caller.auth.login({
-			username: ' ORGANIZER ',
+			identifier: ' Organizer ',
 			password: 'correct-horse-battery-staple'
 		});
 
@@ -90,6 +90,9 @@ describe('auth router', () => {
 			hasAvatar: false
 		});
 		expect(cookies.get(SESSION_COOKIE_NAME)).toBeDefined();
+		await expect(
+			caller.auth.login({ identifier: 'organizer', password: 'correct-horse-battery-staple' })
+		).resolves.toMatchObject({ id: user.id });
 	});
 
 	it('allows open participant registration and signs the new participant in', async () => {
@@ -97,13 +100,11 @@ describe('auth router', () => {
 		const caller = appRouter.createCaller(createContext(cookies));
 
 		const user = await caller.auth.register({
-			username: ' NewMember ',
 			displayName: 'New Member',
 			password: ' !a'
 		});
 
 		expect(user).toMatchObject({
-			username: 'newmember',
 			displayName: 'New Member',
 			role: 'participant',
 			isParticipating: true,
@@ -112,11 +113,26 @@ describe('auth router', () => {
 		expect(cookies.get(SESSION_COOKIE_NAME)).toBeDefined();
 
 		const savedUser = db.select().from(users).where(eq(users.id, user.id)).get();
+		expect(savedUser?.username).toBe('new.member');
 		expect(savedUser?.role).toBe('participant');
 		expect(savedUser?.isActive).toBe(true);
 		await expect(
-			caller.auth.login({ username: 'newmember', password: ' !a' })
+			caller.auth.login({ identifier: 'New Member', password: ' !a' })
 		).resolves.toMatchObject({ id: user.id });
+
+		const duplicateNameUser = await caller.auth.register({
+			displayName: 'New Member',
+			password: ' !b'
+		});
+		const duplicateNameAccount = db
+			.select()
+			.from(users)
+			.where(eq(users.id, duplicateNameUser.id))
+			.get();
+		expect(duplicateNameAccount?.username).toBe('new.member.2');
+		await expect(
+			caller.auth.login({ identifier: 'New Member', password: ' !b' })
+		).resolves.toMatchObject({ id: duplicateNameUser.id });
 	});
 
 	it('rejects passwords shorter than three characters', async () => {
@@ -124,7 +140,6 @@ describe('auth router', () => {
 
 		await expect(
 			caller.auth.register({
-				username: 'short-pass',
 				displayName: 'Short Pass',
 				password: 'ab'
 			})
@@ -136,7 +151,7 @@ describe('auth router', () => {
 		const anonymousContext = createContext(cookies);
 		const caller = appRouter.createCaller(anonymousContext);
 		const user = await caller.auth.login({
-			username: 'organizer',
+			identifier: 'Organizer',
 			password: 'correct-horse-battery-staple'
 		});
 		const signedInCaller = appRouter.createCaller({ ...anonymousContext, user });
@@ -155,7 +170,7 @@ describe('auth router', () => {
 		expect(db.select().from(sessions).all()).toHaveLength(1);
 		expect(cookies.get(SESSION_COOKIE_NAME)).toBeDefined();
 		await expect(
-			caller.auth.login({ username: 'organizer', password: '? =' })
+			caller.auth.login({ identifier: 'Organizer', password: '? =' })
 		).resolves.toMatchObject({ id: user.id });
 	});
 
@@ -164,7 +179,7 @@ describe('auth router', () => {
 		const organizerContext = createContext(organizerCookies);
 		const organizer = await appRouter
 			.createCaller(organizerContext)
-			.auth.login({ username: 'organizer', password: 'correct-horse-battery-staple' });
+			.auth.login({ identifier: 'Organizer', password: 'correct-horse-battery-staple' });
 		const organizerCaller = appRouter.createCaller({ ...organizerContext, user: organizer });
 
 		await expect(
@@ -177,7 +192,6 @@ describe('auth router', () => {
 		const participantCookies = createCookieStore();
 		const participantContext = createContext(participantCookies);
 		const participant = await appRouter.createCaller(participantContext).auth.register({
-			username: 'member',
 			displayName: 'Member',
 			password: 'a-strong-registration-password'
 		});
@@ -228,7 +242,7 @@ describe('auth router', () => {
 		const context = createContext(cookies);
 		const organizer = await appRouter
 			.createCaller(context)
-			.auth.login({ username: 'organizer', password: 'correct-horse-battery-staple' });
+			.auth.login({ identifier: 'Organizer', password: 'correct-horse-battery-staple' });
 		const caller = appRouter.createCaller({ ...context, user: organizer });
 
 		await expect(
@@ -240,10 +254,13 @@ describe('auth router', () => {
 		const caller = appRouter.createCaller(createContext(createCookieStore()));
 
 		await expect(
-			caller.auth.login({ username: 'unknown-user', password: 'correct-horse-battery-staple' })
+			caller.auth.login({
+				identifier: 'unknown-user',
+				password: 'correct-horse-battery-staple'
+			})
 		).rejects.toMatchObject({
 			code: 'UNAUTHORIZED',
-			message: 'The username or password is not correct.'
+			message: 'The name or password is not correct.'
 		});
 	});
 
@@ -253,7 +270,7 @@ describe('auth router', () => {
 
 		await expect(
 			appRouter.createCaller(context).auth.login({
-				username: 'organizer',
+				identifier: 'organizer',
 				password: 'correct-horse-battery-staple'
 			})
 		).rejects.toMatchObject({ code: 'FORBIDDEN' });

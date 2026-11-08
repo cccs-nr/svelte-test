@@ -1,4 +1,4 @@
-import { count, eq } from 'drizzle-orm';
+import { count, eq, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 import { SINGLE_EVENT_ID, type EventStatus } from '#lib/models/event.js';
 import { db } from '#lib/server/db/index.js';
@@ -21,13 +21,17 @@ const eventStages: { value: EventStatus; label: string }[] = [
 ];
 
 export const load: PageServerLoad = ({ locals }) => {
-	requireOrganizerPage(locals.user);
+	const organizer = requireOrganizerPage(locals.user);
 
 	const event =
 		db
 			.select({
 				name: events.name,
+				description: events.description,
 				exchangeDate: events.exchangeDate,
+				giftBudgetCents: events.giftBudgetCents,
+				currency: events.currency,
+				instructions: events.instructions,
 				status: events.status
 			})
 			.from(events)
@@ -38,6 +42,7 @@ export const load: PageServerLoad = ({ locals }) => {
 			id: users.id,
 			username: users.username,
 			displayName: users.displayName,
+			householdId: users.householdId,
 			role: users.role,
 			isActive: users.isActive,
 			isParticipating: users.isParticipating,
@@ -45,8 +50,31 @@ export const load: PageServerLoad = ({ locals }) => {
 		})
 		.from(users)
 		.leftJoin(households, eq(households.id, users.householdId))
-		.orderBy(users.displayName, users.username)
+		.orderBy(users.displayName, users.id)
 		.all();
+	const householdRows = db
+		.select({ id: households.id, name: households.name })
+		.from(households)
+		.orderBy(households.name)
+		.all();
+	const householdMembers = db
+		.select({ id: users.id, displayName: users.displayName, householdId: users.householdId })
+		.from(users)
+		.where(sql`${users.householdId} is not null`)
+		.orderBy(users.displayName, users.id)
+		.all();
+	const membersByHousehold = new Map<string, { id: string; displayName: string }[]>();
+	for (const { id, displayName, householdId } of householdMembers) {
+		if (!householdId) continue;
+		const members = membersByHousehold.get(householdId) ?? [];
+		members.push({ id, displayName });
+		membersByHousehold.set(householdId, members);
+	}
+	const householdsForDashboard = householdRows.map((household) => ({
+		...household,
+		members: membersByHousehold.get(household.id) ?? [],
+		memberCount: membersByHousehold.get(household.id)?.length ?? 0
+	}));
 	const assignmentRows = db
 		.select({
 			giverId: assignments.giverId,
@@ -114,6 +142,7 @@ export const load: PageServerLoad = ({ locals }) => {
 			id: account.id,
 			username: account.username,
 			displayName: account.displayName,
+			householdId: account.householdId,
 			role: account.role,
 			householdName: account.householdName,
 			isActive: account.isActive,
@@ -125,6 +154,10 @@ export const load: PageServerLoad = ({ locals }) => {
 			giftPurchased: Boolean(assignment?.finalizedAt && assignment.giftPurchasedAt)
 		};
 	});
+	const totalParticipants = accountRows.filter(
+		(account) => account.role === 'participant' || account.isParticipating
+	).length;
+	const activeAccounts = accountRows.filter((account) => account.isActive).length;
 	const activeParticipants = accountRows.filter(
 		(account) => account.isActive && (account.role === 'participant' || account.isParticipating)
 	).length;
@@ -143,12 +176,19 @@ export const load: PageServerLoad = ({ locals }) => {
 		event,
 		eventStages,
 		currentStageIndex,
+		currentUserId: organizer.id,
+		households: householdsForDashboard,
+		assignmentsExist: assignmentRows.length > 0,
 		participants,
 		stats: {
 			accountCount: accountRows.length,
+			totalParticipants,
+			activeAccounts,
 			activeParticipants,
+			householdCount: householdRows.length,
 			wishlistIdeaCount,
 			messageCount,
+			assignmentCount: assignmentRows.length,
 			finalizedAssignmentCount,
 			purchasedGiftCount
 		}

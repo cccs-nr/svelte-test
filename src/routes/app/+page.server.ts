@@ -37,6 +37,12 @@ function getIdeaCount(ownerId: string): number {
 
 export const load: PageServerLoad = ({ locals }) => {
 	if (!locals.user) redirect(303, '/login');
+	const user = {
+		id: locals.user.id,
+		displayName: locals.user.displayName,
+		role: locals.user.role,
+		isParticipating: locals.user.isParticipating
+	};
 
 	const event =
 		db
@@ -52,7 +58,7 @@ export const load: PageServerLoad = ({ locals }) => {
 			.get() ?? null;
 
 	if (!isExchangeParticipant(locals.user)) {
-		return { user: locals.user, event, participant: null };
+		return { user, event, participant: null };
 	}
 
 	const outgoingAssignment = db
@@ -89,7 +95,7 @@ export const load: PageServerLoad = ({ locals }) => {
 		: null;
 
 	return {
-		user: locals.user,
+		user,
 		event,
 		participant: {
 			myWishlistCount: getIdeaCount(locals.user.id),

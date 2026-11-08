@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import type { PageProps } from './$types';
 	import { daysUntilExchange, formatEventBudget, type EventStatus } from '#lib/models/event.js';
@@ -15,6 +15,12 @@
 	} from '#lib/components/ui/card/index.js';
 
 	let { data }: PageProps = $props();
+
+	function openConversation(direction: 'asRecipient' | 'asGiver'): void {
+		void goto(resolve('/app/wishlist'), {
+			state: { wishlistTab: 'messages', wishlistMessageDirection: direction }
+		});
+	}
 
 	onMount(() => {
 		const socket = getRealtimeSocket();
@@ -211,18 +217,20 @@
 				</CardHeader>
 				<CardFooter>
 					<div class="flex flex-wrap gap-4">
-						<a
+						<button
+							type="button"
 							class="text-sm font-medium text-emerald-800 hover:underline"
-							href={resolve('/app/wishlist')}
+							onclick={() => openConversation('asRecipient')}
 						>
 							Message my Secret Santa
-						</a>
-						<a
+						</button>
+						<button
+							type="button"
 							class="text-sm font-medium text-emerald-800 hover:underline"
-							href={resolve('/app/gift')}
+							onclick={() => openConversation('asGiver')}
 						>
 							Message my recipient
-						</a>
+						</button>
 					</div>
 				</CardFooter>
 			</Card>
@@ -289,18 +297,20 @@
 				</CardContent>
 				<CardFooter>
 					<div class="flex flex-wrap gap-4">
-						<a
+						<button
+							type="button"
 							class="text-sm font-medium text-emerald-800 hover:underline"
-							href={resolve('/app/wishlist')}
+							onclick={() => openConversation('asRecipient')}
 						>
 							Open Secret Santa conversation
-						</a>
-						<a
+						</button>
+						<button
+							type="button"
 							class="text-sm font-medium text-emerald-800 hover:underline"
-							href={resolve('/app/gift')}
+							onclick={() => openConversation('asGiver')}
 						>
 							Open recipient conversation
-						</a>
+						</button>
 					</div>
 				</CardFooter>
 			</Card>

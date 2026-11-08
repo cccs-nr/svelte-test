@@ -16,7 +16,6 @@
 	import { Input } from '#lib/components/ui/input/index.js';
 	import { trpc } from '#lib/trpc/client.js';
 
-	let username = $state('');
 	let displayName = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
@@ -36,7 +35,7 @@
 		errorMessage = null;
 
 		try {
-			await trpc.auth.register.mutate({ username, displayName, password });
+			await trpc.auth.register.mutate({ displayName, password });
 			await goto(resolve('/app'));
 		} catch (error) {
 			if (error instanceof TRPCClientError && error.data?.code === 'TOO_MANY_REQUESTS') {
@@ -82,28 +81,14 @@
 				</p>
 				<CardTitle class="text-2xl tracking-tight">Create your account</CardTitle>
 				<CardDescription>
-					Choose a username and password. New accounts join as participants.
+					Enter the name your family knows you by and choose a password. New accounts join as
+					participants.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<form class="space-y-5" onsubmit={handleSubmit}>
 					<div class="space-y-2">
-						<label class="text-sm font-medium" for="register-username">Username</label>
-						<Input
-							id="register-username"
-							bind:value={username}
-							autocomplete="username"
-							minlength={3}
-							maxlength={32}
-							required
-							disabled={isSubmitting}
-						/>
-						<p class="text-xs text-stone-500">
-							Use 3–32 letters, numbers, periods, underscores, or hyphens.
-						</p>
-					</div>
-					<div class="space-y-2">
-						<label class="text-sm font-medium" for="register-display-name">Display name</label>
+						<label class="text-sm font-medium" for="register-display-name">Your name</label>
 						<Input
 							id="register-display-name"
 							bind:value={displayName}
@@ -112,6 +97,9 @@
 							required
 							disabled={isSubmitting}
 						/>
+						<p class="text-xs text-stone-500">
+							Use your first name or full name. This is how you’ll appear and sign in.
+						</p>
 					</div>
 					<div class="space-y-2">
 						<label class="text-sm font-medium" for="register-password">Password</label>

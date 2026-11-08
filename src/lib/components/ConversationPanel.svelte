@@ -132,6 +132,14 @@
 			isSending = false;
 		}
 	}
+
+	function handleComposerKeydown(event: KeyboardEvent): void {
+		if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
+		event.preventDefault();
+		if (event.currentTarget instanceof HTMLTextAreaElement) {
+			event.currentTarget.form?.requestSubmit();
+		}
+	}
 </script>
 
 <Card class="border-stone-200 bg-white">
@@ -166,7 +174,7 @@
 			</Button>
 		</div>
 	</CardHeader>
-	<CardContent class="space-y-5">
+	<CardContent class="flex h-[min(70dvh,40rem)] min-h-[18rem] flex-col gap-4">
 		{#if loadError}
 			<p
 				class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
@@ -206,7 +214,7 @@
 				</p>
 			{:else}
 				<ol
-					class="max-h-[28rem] space-y-4 overflow-y-auto"
+					class="min-h-0 flex-1 space-y-4 overflow-y-auto"
 					aria-label={direction === 'asGiver'
 						? `Messages with ${conversations.asGiver?.recipientDisplayName ?? 'your recipient'}`
 						: 'Messages with your Secret Santa'}
@@ -246,7 +254,10 @@
 			{/if}
 
 			{#if direction === 'asGiver' || currentThread.hasConversation}
-				<form class="space-y-3" onsubmit={sendMessage}>
+				<form
+					class="sticky bottom-0 mt-auto space-y-3 border-t border-stone-100 bg-white pt-3"
+					onsubmit={sendMessage}
+				>
 					<label class="block space-y-2" for={`message-${direction}`}>
 						<span class="text-sm font-medium">
 							{direction === 'asGiver' ? 'Your message' : 'Your reply'}
@@ -258,8 +269,10 @@
 							rows="3"
 							required
 							disabled={isSending}
+							onkeydown={handleComposerKeydown}
 							class="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
 						></textarea>
+						<p class="text-xs text-stone-500">Press Enter to send; Shift+Enter for a new line.</p>
 					</label>
 					<Button type="submit" disabled={isSending || !draft.trim()}>
 						{isSending

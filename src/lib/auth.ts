@@ -12,8 +12,21 @@ export const usernameSchema = z
 
 export const passwordSchema = z.string().min(3).max(128);
 export const displayNameSchema = z.string().trim().min(1).max(64);
+
+export function createUsernameCandidate(displayName: string, suffix = 1): string {
+	const slug = displayName
+		.normalize('NFKD')
+		.replace(/\p{M}/gu, '')
+		.toLowerCase()
+		.replace(/[^a-z0-9._-]+/g, '.')
+		.replace(/\.{2,}/g, '.')
+		.replace(/^[._-]+|[._-]+$/g, '');
+	const base = (slug.length >= 3 ? slug : `member${slug}`).slice(0, 32);
+	const suffixText = suffix === 1 ? '' : `.${suffix}`;
+	return `${base.slice(0, 32 - suffixText.length)}${suffixText}`;
+}
+
 export const registrationSchema = z.object({
-	username: usernameSchema,
 	displayName: displayNameSchema,
 	password: passwordSchema
 });

@@ -7,7 +7,10 @@ declare global {
 		}
 
 		// interface PageData {}
-		// interface PageState {}
+		interface PageState {
+			wishlistTab?: 'ideas' | 'recipient' | 'messages';
+			wishlistMessageDirection?: 'asGiver' | 'asRecipient';
+		}
 		// interface Platform {}
 	}
 }
