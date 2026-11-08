@@ -30,7 +30,11 @@
 			'messages:changed',
 			'wishlist:changed',
 			'recipient-wishlist:changed',
-			'gift-status:changed'
+			'gift-status:changed',
+			'family-wishlist:changed',
+			'family-messages:changed',
+			'codenames:changed',
+			'event:changed'
 		] as const;
 		for (const event of liveEvents) socket.on(event, refreshOverview);
 		return () => {

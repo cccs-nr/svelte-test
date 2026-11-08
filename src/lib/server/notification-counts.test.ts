@@ -8,6 +8,10 @@ import {
 	assignments,
 	conversations,
 	events,
+	giftConversationParticipants,
+	giftConversationReads,
+	giftConversations,
+	giftMessages,
 	giftSuggestions,
 	messages,
 	users
@@ -117,6 +121,54 @@ describe('participant notification counts', () => {
 			.where(and(eq(messages.id, 'santa-message'), eq(messages.senderSide, 'giver')))
 			.run();
 
+		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 0, gift: 0 });
+	});
+
+	it('includes unread family conversation messages in the Wishlist badge', () => {
+		db.insert(giftConversations)
+			.values({
+				id: 'family-conversation',
+				eventId: SINGLE_EVENT_ID,
+				recipientId: 'bob',
+				type: 'recipient_visible'
+			})
+			.run();
+		db.insert(giftConversationParticipants)
+			.values([
+				{ conversationId: 'family-conversation', userId: 'alice' },
+				{ conversationId: 'family-conversation', userId: 'bob' }
+			])
+			.run();
+		db.insert(giftConversationReads)
+			.values([
+				{
+					conversationId: 'family-conversation',
+					userId: 'alice',
+					lastReadAt: new Date(0)
+				},
+				{
+					conversationId: 'family-conversation',
+					userId: 'bob',
+					lastReadAt: new Date(0)
+				}
+			])
+			.run();
+		db.insert(giftMessages)
+			.values({
+				id: 'family-message',
+				conversationId: 'family-conversation',
+				senderId: 'bob',
+				content: 'Which color would you like?',
+				createdAt: new Date()
+			})
+			.run();
+
+		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 1, gift: 0 });
+
+		db.update(giftConversationReads)
+			.set({ lastReadAt: new Date(Date.now() + 1000) })
+			.where(eq(giftConversationReads.userId, 'alice'))
+			.run();
 		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 0, gift: 0 });
 	});
 });

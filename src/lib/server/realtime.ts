@@ -3,9 +3,13 @@ import type { Server } from 'socket.io';
 export type RealtimeEventName =
 	| 'messages:changed'
 	| 'wishlist:changed'
+	| 'family-wishlist:changed'
+	| 'family-messages:changed'
 	| 'recipient-wishlist:changed'
 	| 'gift-status:changed'
 	| 'badges:changed'
+	| 'codenames:changed'
+	| 'event:changed'
 	| 'dashboard:changed';
 
 type RealtimeGlobal = typeof globalThis & {

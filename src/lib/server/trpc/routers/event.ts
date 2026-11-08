@@ -1,10 +1,11 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, or } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { eventSettingsInputSchema, SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
-import { assignments, events } from '#lib/server/db/schema.js';
-import { notifyOrganizerDashboard } from '#lib/server/realtime.js';
+import { assignments, events, users } from '#lib/server/db/schema.js';
+import { notifyOrganizerDashboard, notifyUser } from '#lib/server/realtime.js';
 import { organizerProcedure, protectedProcedure, router } from '#lib/server/trpc/init.js';
+import { z } from 'zod';
 
 function getEvent(database: AppDatabase) {
 	return database
@@ -78,5 +79,51 @@ export const eventRouter = router({
 
 		notifyOrganizerDashboard();
 		return event;
+	}),
+	complete: organizerProcedure.input(z.object({ confirm: z.literal(true) })).mutation(({ ctx }) => {
+		const event = getEvent(ctx.db);
+		if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found.' });
+		if (event.status === 'completed') return { completed: true };
+		if (event.status !== 'assignments_generated') {
+			throw new TRPCError({
+				code: 'PRECONDITION_FAILED',
+				message: 'Generate and finalize assignments before completing the event.'
+			});
+		}
+
+		const assignmentsForEvent = ctx.db
+			.select({ finalizedAt: assignments.finalizedAt })
+			.from(assignments)
+			.where(eq(assignments.eventId, SINGLE_EVENT_ID))
+			.all();
+		if (
+			assignmentsForEvent.length === 0 ||
+			assignmentsForEvent.some((assignment) => assignment.finalizedAt === null)
+		) {
+			throw new TRPCError({
+				code: 'PRECONDITION_FAILED',
+				message: 'Every assignment must be finalized before completing the event.'
+			});
+		}
+
+		const completedAt = new Date();
+		ctx.db
+			.update(events)
+			.set({ status: 'completed', updatedAt: completedAt })
+			.where(and(eq(events.id, SINGLE_EVENT_ID), eq(events.status, 'assignments_generated')))
+			.run();
+		const participants = ctx.db
+			.select({ id: users.id })
+			.from(users)
+			.where(
+				and(
+					eq(users.isActive, true),
+					or(eq(users.role, 'participant'), eq(users.isParticipating, true))
+				)
+			)
+			.all();
+		for (const { id } of participants) notifyUser(id, 'event:changed');
+		notifyOrganizerDashboard();
+		return { completed: true };
 	})
 });

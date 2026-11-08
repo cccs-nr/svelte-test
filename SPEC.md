@@ -801,3 +801,282 @@ The main objectives are:
 When multiple implementation approaches are available, prefer the simplest maintainable solution that satisfies the requirements.
 
 The result should be a complete, functional application that can be deployed on a single computer and used by approximately 12 family members for their Christmas gift exchange.
+
+## 20. Family-Wide Gift Coordination Expansion
+
+This section defines the proposed expansion from an assignment-centered Secret Santa app into a family-wide gift coordination app. The existing Secret Santa draw, assigned recipient wishlist, anonymous Secret Santa conversation, event dashboard, and deployment model remain in place.
+
+Where this section broadens or changes an earlier requirement, this section takes precedence for the expansion. In particular, wishlist ideas become discoverable by active event participants, and the messaging model gains separate conversation types. The existing Secret Santa conversation must remain isolated and retain its current anonymity guarantees.
+
+### 20.1 Goals
+
+The expanded application should let active participants:
+
+- Browse gift ideas for other family members, not only their assigned recipient.
+- Search for a family member and review that person's wishlist.
+- Reserve an available idea, release a reservation before purchase, and mark a reserved idea as purchased.
+- See whether an idea is available, reserved, or purchased without learning the buyer's real identity.
+- Coordinate purchases without including the gift recipient in private discussions.
+- Ask the recipient questions in a separate conversation that the recipient can read and answer.
+- Continue using the existing private Secret Santa conversation.
+- Use randomly assigned Christmas-themed codenames in family gift coordination.
+- Participate in a deliberate, organizer-controlled identity reveal after the event.
+
+The application remains a single-event, self-hosted application using SvelteKit, tRPC, SQLite, Drizzle ORM, and the existing realtime implementation. No cloud service, external messaging provider, or separate database service is required.
+
+### 20.2 Codenames
+
+When assignments are generated, every active participant must have one unique, randomly assigned, Christmas-themed codename. Codenames must be gender-neutral, memorable, and unrelated to the participant's name, gender, household, or other identifying attributes.
+
+The suggested codename list in the family-wide scope is the initial vocabulary, not a hard participant limit. If the event has more participants than available names, generate additional Christmas-themed combinations and check them for uniqueness before storing them.
+
+Codename assignment requirements:
+
+- Store each codename with its event and participant association.
+- Enforce uniqueness for both the participant and codename within the event.
+- Create missing codenames transactionally with the assignment draw.
+- Keep each participant's codename stable if the organizer reloads the page or regenerates an unfinalized draw.
+- Do not silently reassign existing codenames when a participant is added, removed, or becomes inactive.
+- Do not return participant-to-codename mappings in ordinary participant API responses before reveal.
+- Preserve the mapping after the event so the reveal and historical event views remain possible.
+
+Before the reveal, use codenames in family gift discussions and in buyer-facing reservation information. The recipient of a Secret Santa message must continue to see the sender as **Your Secret Santa**, not as a codename or real name. A Secret Santa should continue to see the assigned recipient's display name so they know who they are buying for.
+
+### 20.3 Family Wishlists
+
+Every active participant's wishlist should be browsable by other active participants. The family wishlist interface should support:
+
+- Selecting or searching for a participant by display name.
+- Viewing that participant's gift suggestion titles, descriptions, URLs, images, estimated prices, notes, and modification dates.
+- Searching or filtering gift suggestions.
+- Viewing an idea's availability to eligible gift buyers.
+- Opening external product links and viewing uploaded images.
+- Responsive layouts that use tables for compact lists and cards when images or descriptions benefit from a visual layout.
+
+Participants can create, edit, and delete their own suggestions as they can today. A wishlist owner must not learn which ideas are reserved or purchased, who reserved or purchased them, who is coordinating a purchase, or what is said in private coordination conversations. The backend must omit private reservation data from the owner's responses; hiding it in the frontend alone is insufficient.
+
+The participant directory may show real display names to help a family member select the intended gift recipient. Real names must not be used to identify other participants in gift coordination conversations or buyer-facing reservation activity before reveal.
+
+### 20.4 Gift Reservations and Purchases
+
+Each suggestion has one of three buyer-facing states:
+
+- **Available**: no active reservation or completed purchase exists; an eligible participant may reserve it.
+- **Reserved**: one participant has reserved the idea; other participants must not be encouraged to purchase the same item.
+- **Purchased**: the reserver has confirmed the purchase; the idea stays unavailable for the remainder of the event unless an organizer explicitly corrects the record.
+
+Participants may reserve another person's idea, view and release their own reservations before purchase, and mark their own reservations as purchased. They may not reserve their own suggestions or modify another participant's reservation. The recipient sees the suggestion but not its reservation or purchase state.
+
+Enforce these rules in both the API and database. Concurrent attempts to reserve the same suggestion must result in at most one active reservation. Releasing a reservation makes the idea available again but does not erase its history. A purchased reservation is not automatically released. The initial scope supports one primary reserver per idea; participants who want to share a purchase can coordinate in the private conversation.
+
+Organizers need a controlled way to correct reservation records when necessary. Organizer actions must be authorized and reflected in the event's aggregate statistics without disclosing buyer identities to the recipient.
+
+### 20.5 Conversation Types and Access
+
+The application must support three distinct conversation types. Conversation type and membership are server-enforced; clients must not gain access by guessing an identifier or changing frontend state.
+
+**Secret Santa**
+
+- Retain the existing one-to-one conversation between an assignment's giver and recipient.
+- Preserve current assignment confidentiality and unread-message behavior.
+- Continue labeling the giver as **Your Secret Santa** to the recipient.
+- Do not merge this conversation with either family-wide conversation type.
+
+**Gift Discussion**
+
+- Associate the conversation with one wishlist owner.
+- Include the wishlist owner so they can answer questions about their gift preferences.
+- Allow eligible family members to ask about suggestions and preferences.
+- Display other participants using codenames before reveal.
+- Never show reservation-only coordination or private buyer discussions in this conversation.
+
+**Gift Coordination**
+
+- Associate the conversation with one wishlist owner but exclude that owner from membership and access.
+- Allow eligible family members to coordinate reservations, purchases, shared costs, and gifts not listed on the wishlist.
+- Display other participants using codenames before reveal.
+- Enforce membership on conversation retrieval, message retrieval, sending, read markers, and realtime subscriptions.
+
+The proposed default is explicit membership for Gift Coordination: participants join or are invited, and the recipient is always excluded. Gift Discussion is available to the recipient and participating family members. The organizer does not receive automatic access to private conversation content merely by being an organizer. Any exceptional support access must be deliberately specified and audited before implementation.
+
+Messages should remain chronological, support multiline text and timestamps, and expose unread indicators. Realtime notifications may signal that a conversation changed, but must not broadcast message content, assignment pairs, or private reservation details to unauthorized users.
+
+### 20.6 Organizer Dashboard and Event Reveal
+
+Keep the existing consolidated organizer Dashboard. Extend its existing statistics area rather than adding one card per statistic. The expanded statistics should include:
+
+- Total wishlist suggestions.
+- Total active reservations.
+- Total purchased gifts.
+- Number of participants with completed gift purchases.
+- Number of active Gift Coordination conversations.
+
+The organizer should also be able to review and, where authorized, correct reservation states; manage codename assignments; see event progress; and deliberately initiate the reveal after the event. The reveal should publish the codename-to-participant mapping to participants and retain that mapping as event history.
+
+The current event statuses can continue to represent setup, wishlist preparation, assignment generation, and event completion. Track reveal as a separate, explicit event action so that completing the gift exchange and revealing identities are not conflated. The Dashboard should communicate the progression through setup, wishlist preparation, assignments, gift coordination, exchange completion, reveal, and final completion.
+
+### 20.7 Privacy Defaults Used for Implementation
+
+The expansion requirements contain two different expectations for organizer visibility: the organizer should be able to view and manage codenames, but should not casually see the participant-to-codename mapping in normal administration. The proposed default is:
+
+- Do not show the mapping in ordinary Dashboard tables or aggregate statistics.
+- Provide any necessary pre-reveal codename management through a separate, explicit organizer workflow with a clear warning and an audit record.
+- Make the mapping visible to all participants only after the organizer initiates reveal.
+
+The implementation follows these defaults. Gift Discussion is available to active participants and includes its wishlist owner. Gift Coordination requires an explicit join, allows active participants to join, and always excludes its wishlist owner. Organizer privileges do not grant access to conversation contents; an organizer may participate only when otherwise eligible. Reveal is permitted only after the event is complete and every assignment is finalized.
+
+## 21. Proposed Expansion Implementation Roadmap
+
+Phases 1–6 above describe the existing application and remain complete as recorded. The following phases are proposed work; they are not marked complete until implemented and verified. Each phase should preserve the existing user experience and add targeted tests before the next dependent phase begins.
+
+### Phase 7 — Confirm Requirements and Authorization Boundaries (complete)
+
+**Purpose:** Resolve privacy and lifecycle decisions before changing the schema or exposing new data.
+
+**Work completed:**
+
+- Keep the mapping out of normal Dashboard data and require an explicit, audited organizer action to manage it.
+- Use explicit Gift Coordination membership; the wishlist owner is always excluded.
+- Include all active participants, including the owner, in Gift Discussion.
+- Allow reservation corrections only through organizer procedures with a required reason and audit record.
+- Represent reveal separately from event completion and allow it only after completed, finalized assignments.
+
+**Exit criteria:** The authorization matrix clearly identifies who can list, read, create, update, and delete each class of wishlist data, reservation, conversation, message, and reveal record.
+
+### Phase 8 — Database Model and Backward-Compatible Migrations (complete)
+
+**Purpose:** Introduce the minimum persistence model needed by the expansion without losing existing event data.
+
+**Work:**
+
+- Add event-scoped participant codename records with unique participant and codename constraints.
+- Add reservation records with lifecycle timestamps and states for reserved, released, and purchased.
+- Add database-level protection against multiple active or purchased reservations for the same suggestion.
+- Keep the existing assignment-scoped conversation and message tables unchanged for Secret Santa messaging.
+- Add separate group-conversation, participant, message, and read-marker tables for Gift Discussion and Gift Coordination. This additive approach preserves existing sender-side anonymity and message history without rebuilding the legacy tables.
+- Add reveal metadata to the event while retaining the existing event and assignment lifecycle.
+- Add indexes and foreign keys for common reads, membership checks, and deletion behavior.
+- Add a versioned Drizzle migration that creates the new tables, backfills stable codenames for existing active participants, and does not rely on schema push or a manual change to the user's database.
+
+**Exit criteria:** Migrations apply to a fresh database and a copy of the current schema, retain existing messages and assignments, and leave the existing application tests passing.
+
+### Phase 9 — Stable Codenames and Assignment Lifecycle (complete)
+
+**Purpose:** Generate and persist codenames without weakening assignment correctness or anonymity.
+
+**Work:**
+
+- Assign a unique codename to every active participant as part of assignment generation.
+- Use a transaction so an assignment draw cannot persist without the corresponding codename records.
+- Retain codes across page refreshes and draw regeneration; only add codes for newly participating accounts.
+- Use collision-checked, Christmas-themed fallback names when the initial list is exhausted.
+- Add organizer-guarded operations for any approved codename management workflow.
+- Add an explicit reveal action that records who initiated it and when, and makes the mapping available only according to the confirmed policy.
+
+**Exit criteria:** Tests demonstrate one stable, unique codename per active participant; failed or retried draws do not create partial or duplicate records; pre-reveal participant procedures cannot retrieve the mapping.
+
+### Phase 10 — Family Wishlist Directory and Access (complete)
+
+**Purpose:** Make gift suggestions useful to the whole family while protecting owner-only and buyer-only information.
+
+**Work:**
+
+- Add a participant directory and a family-wishlist query with search and filtering.
+- Expose suggestion content and owner display names needed to choose the intended recipient.
+- Keep private reservation identity and status out of the owner's wishlist response.
+- Retain existing own-wishlist create, update, image, and delete flows.
+- Retain the assigned-recipient Secret Santa flow and its display-name behavior.
+- Add pagination or bounded result sizes if needed to keep the family list usable as it grows.
+
+**Exit criteria:** Active participants can browse active members' suggestions; inactive or unauthorized accounts cannot use the new endpoints; owner responses contain no reservation or coordination data.
+
+### Phase 11 — Transaction-Safe Reservations (complete)
+
+**Purpose:** Prevent duplicate purchases while keeping buyers anonymous to recipients.
+
+**Work:**
+
+- Add reserve, release, mark-purchased, and own-reservations API procedures.
+- Validate suggestion ownership, active event participation, current reservation state, and authorization on the server.
+- Use a transaction and database uniqueness constraint so simultaneous reservation requests cannot both succeed.
+- Return only the status and codename information authorized for the current viewer.
+- Add an organizer correction operation with an audit trail if approved in Phase 7.
+- Notify affected buyers and refresh organizer aggregate statistics without sending buyer identity or private details to the recipient.
+
+**Exit criteria:** Tests cover duplicate and concurrent reservation attempts, unauthorized changes, release and re-reservation, purchase finality, and recipient responses that reveal no reservation state.
+
+### Phase 12 — Separate Group Conversations and Realtime Messaging (complete)
+
+**Purpose:** Add family communication without exposing recipients to surprise-planning content or breaking Secret Santa anonymity.
+
+**Work:**
+
+- Keep Secret Santa messages in their existing, separate conversation.
+- Add Gift Discussion and Gift Coordination creation, membership, retrieval, sending, and read-state procedures.
+- Enforce membership and recipient exclusion on every server operation; derive realtime recipients from authorized membership records and send content-free events only to those user rooms.
+- Use codenames for group-conversation identities before reveal; use the assigned Secret Santa label for the existing anonymous exchange.
+- Add conversation lists, timestamps, multiline message display, and unread indicators.
+- Emit content-free realtime change notifications only to authorized conversation members.
+
+**Exit criteria:** Authorization tests prove the recipient cannot read, join, receive events from, or mark messages read in their Gift Coordination conversation; non-members cannot access group conversations; Secret Santa tests remain green.
+
+### Phase 13 — Organizer Statistics, Reservation Tools, and Reveal (complete)
+
+**Purpose:** Expose event progress and support organizer actions in the existing Dashboard.
+
+**Work:**
+
+- Add the expansion statistics to the consolidated statistics area.
+- Add reservation review and correction controls according to the confirmed authorization policy.
+- Add the explicit event reveal action, its confirmation step, and post-reveal participant mapping display.
+- Show progress through wishlist preparation, assignment, gift coordination, exchange completion, and reveal.
+- Retain useful event history after completion and avoid deleting assignments, reservations, or message history as a side effect of reveal.
+
+**Exit criteria:** Dashboard totals match authoritative database queries; only authorized organizers can manage event state; participants see identity mappings only after reveal.
+
+### Phase 14 — Participant Experience and Responsive Integration (complete)
+
+**Purpose:** Make the new capabilities discoverable and usable across desktop and mobile layouts.
+
+**Work:**
+
+- Add family wishlist browsing, recipient selection, and suggestion filters to the existing Wishlist experience.
+- Add clear Available, Reserved, and Purchased states to eligible viewers, with reservation actions and the participant's own reservation list.
+- Provide separate, clearly labeled Gift Discussion and Gift Coordination conversations.
+- Use codename labels consistently wherever participants coordinate or discuss purchases.
+- Preserve existing navigation, badges, dark mode, dialogs, image viewing, and mobile behavior.
+- Provide useful loading, empty, conflict, and permission-denied states.
+
+**Exit criteria:** Main participant workflows can be completed on mobile and desktop without confusing the three conversation types or exposing private purchase data.
+
+### Phase 15 — Security, Regression, and Deployment Verification (implementation complete; browser E2E pending)
+
+**Purpose:** Verify the complete feature set before treating the expansion as complete.
+
+**Work:**
+
+- Add unit tests for codename generation, uniqueness, stability, and reveal behavior.
+- Add API tests for wishlist access, reservation authorization, owner privacy, conversation membership, and organizer permissions.
+- Add concurrency tests for reservation conflicts and migration tests for existing data.
+- Verify Socket.IO events do not contain sensitive message content, assignment pairs, or unauthorized reservation data.
+- Run formatting, lint, type checks, the complete test suite, and a production build.
+- Update README instructions for migrations, backups, organizer workflows, and event completion.
+
+**Verification completed:** `pnpm check` passed with no diagnostics; `pnpm test` passed all 88 tests across 24 files; `pnpm lint` passed; and the production build completed with isolated environment loading. A dedicated browser end-to-end test harness is not currently configured, so automated UI E2E coverage remains a follow-up.
+
+## 22. Expansion Acceptance Criteria
+
+The expansion is complete when:
+
+- Every active participant has one unique, stable, randomly assigned event codename.
+- Participants can browse and search other active participants' wishlists.
+- Wishlist owners cannot see reservation or purchase status, buyer identities, or private gift coordination messages.
+- A suggestion cannot have more than one active or purchased reservation, including under concurrent requests.
+- Participants can reserve, release, and purchase eligible suggestions with the required authorization.
+- Buyer identities remain hidden from recipients until the event reveal.
+- Gift Discussion includes its recipient; Gift Coordination always excludes its recipient; the backend enforces both rules.
+- Existing Secret Santa messaging remains separate and continues to present the assigned giver anonymously.
+- Group conversations use codenames before reveal, have unread indicators, and receive scoped realtime updates.
+- Organizers can review aggregate statistics, manage authorized reservation corrections, and deliberately initiate reveal.
+- Reveal publishes the mapping according to the approved policy and preserves event history.
+- The application remains responsive, self-hosted, SQLite-backed, and compatible with the existing Docker deployment.

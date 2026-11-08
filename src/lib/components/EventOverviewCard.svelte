@@ -26,11 +26,12 @@
 
 	type Props = {
 		event: EventSummary | null;
-		stages: { value: EventStatus; label: string }[];
+		stages: { value: EventStatus | 'revealed'; label: string }[];
 		currentStageIndex: number;
+		canComplete: boolean;
 	};
 
-	let { event, stages, currentStageIndex }: Props = $props();
+	let { event, stages, currentStageIndex, canComplete }: Props = $props();
 	let dialog = $state<HTMLDialogElement>();
 	let name = $state('');
 	let description = $state('');
@@ -39,6 +40,7 @@
 	let instructions = $state('');
 	let status = $state<'setup' | 'open'>('setup');
 	let isSaving = $state(false);
+	let isCompleting = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let progressPercent = $derived((currentStageIndex / Math.max(stages.length - 1, 1)) * 100);
 
@@ -103,6 +105,31 @@
 			isSaving = false;
 		}
 	}
+
+	async function completeEvent(): Promise<void> {
+		if (!canComplete || isCompleting || event?.status === 'completed') return;
+		if (
+			!globalThis.confirm(
+				'Complete this exchange? Participants will be able to read existing conversations but cannot send new family messages.'
+			)
+		) {
+			return;
+		}
+
+		isCompleting = true;
+		errorMessage = null;
+		try {
+			await trpc.event.complete.mutate({ confirm: true });
+			await invalidateAll();
+		} catch (error) {
+			errorMessage =
+				error instanceof TRPCClientError
+					? error.message
+					: 'Unable to complete the event. Please try again.';
+		} finally {
+			isCompleting = false;
+		}
+	}
 </script>
 
 <Card id="event" class="border-stone-200 bg-white">
@@ -118,10 +145,38 @@
 				{/if}
 			</CardDescription>
 		</div>
-		<Button type="button" onclick={openDialog}>
-			{event ? 'Edit event' : 'Set up event'}
-		</Button>
+		<div class="flex flex-wrap gap-2">
+			{#if event?.status === 'assignments_generated' || event?.status === 'completed'}
+				<Button
+					type="button"
+					variant={event.status === 'completed' ? 'outline' : 'destructive'}
+					onclick={() => void completeEvent()}
+					disabled={!canComplete || isCompleting || event.status === 'completed'}
+				>
+					{event.status === 'completed'
+						? 'Event completed'
+						: isCompleting
+							? 'Completing…'
+							: canComplete
+								? 'Complete event'
+								: 'Finalize assignments first'}
+				</Button>
+			{/if}
+			<Button type="button" onclick={openDialog}>
+				{event ? 'Edit event' : 'Set up event'}
+			</Button>
+		</div>
 	</CardHeader>
+	{#if errorMessage}
+		<div class="px-6">
+			<p
+				class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
+				role="alert"
+			>
+				{errorMessage}
+			</p>
+		</div>
+	{/if}
 	<CardContent class="space-y-5">
 		{#if event}
 			<dl class="grid gap-4 sm:grid-cols-3">

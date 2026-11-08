@@ -8,10 +8,12 @@ import type { TRPCContext } from '#lib/server/trpc/context.js';
 import { createDatabase } from '#lib/server/db/connection.js';
 import {
 	assignments,
+	codenameAuditLog,
 	conversations,
 	events,
 	households,
 	messages,
+	participantCodenames,
 	users
 } from '#lib/server/db/schema.js';
 import type { SessionCookieStore } from '#lib/server/auth/session.js';
@@ -132,6 +134,9 @@ describe('assignment router', () => {
 		const rows = db.select().from(assignments).all();
 		expect(rows).toHaveLength(participants.length);
 		expect(rows.every((row) => row.finalizedAt === null)).toBe(true);
+		const codenames = db.select().from(participantCodenames).all();
+		expect(codenames).toHaveLength(participants.length);
+		expect(new Set(codenames.map((row) => row.codename)).size).toBe(participants.length);
 
 		const status = await caller.assignments.status();
 		expect(status).toMatchObject({
@@ -324,6 +329,90 @@ describe('assignment router', () => {
 		expect(db.select().from(assignments).all()).toHaveLength(0);
 		expect(db.select().from(conversations).all()).toHaveLength(0);
 		expect(db.select().from(messages).all()).toHaveLength(0);
+	});
+
+	it('keeps participant codenames stable across draw resets and reveals identities only after completion', async () => {
+		seedEventAndParticipants(['home-a', 'home-a', 'home-b', 'home-b']);
+		db.insert(users)
+			.values({
+				id: organizer.id,
+				username: organizer.username,
+				displayName: organizer.displayName,
+				passwordHash: 'not-used-by-assignment-test',
+				role: 'organizer',
+				isParticipating: false
+			})
+			.run();
+		const organizerCaller = appRouter.createCaller(createContext(organizer));
+		const aliceCaller = appRouter.createCaller(createContext(participants[0]));
+
+		await organizerCaller.assignments.generate();
+		const originalCodenames = db
+			.select()
+			.from(participantCodenames)
+			.orderBy(participantCodenames.userId)
+			.all()
+			.map(({ userId, codename }) => ({ userId, codename }));
+
+		await organizerCaller.assignments.reset({ confirm: false });
+		await organizerCaller.assignments.generate();
+		const regeneratedCodenames = db
+			.select()
+			.from(participantCodenames)
+			.orderBy(participantCodenames.userId)
+			.all()
+			.map(({ userId, codename }) => ({ userId, codename }));
+		expect(regeneratedCodenames).toEqual(originalCodenames);
+
+		await expect(aliceCaller.codenames.mine()).resolves.toMatchObject({
+			codename: expect.any(String),
+			revealed: false
+		});
+		await expect(aliceCaller.codenames.revealMapping()).resolves.toBeNull();
+		await expect(organizerCaller.codenames.reveal()).rejects.toMatchObject({
+			code: 'PRECONDITION_FAILED'
+		});
+
+		await organizerCaller.assignments.finalize();
+		db.update(events).set({ status: 'completed' }).where(eq(events.id, SINGLE_EVENT_ID)).run();
+		await expect(organizerCaller.codenames.reveal()).resolves.toMatchObject({
+			revealed: true,
+			revealedAt: expect.any(String)
+		});
+
+		const reveal = await aliceCaller.codenames.revealMapping();
+		expect(reveal).toHaveLength(participants.length);
+		expect(reveal?.every(({ displayName, codename }) => Boolean(displayName && codename))).toBe(
+			true
+		);
+		await expect(
+			organizerCaller.codenames.update({ userId: 'alice', codename: 'New Frost' })
+		).rejects.toMatchObject({ code: 'CONFLICT' });
+		expect(db.select().from(codenameAuditLog).all()).toHaveLength(1);
+	});
+
+	it('requires an explicit audited organizer action to view the codename mapping', async () => {
+		seedEventAndParticipants(['home-a', 'home-a', 'home-b', 'home-b']);
+		db.insert(users)
+			.values({
+				id: organizer.id,
+				username: organizer.username,
+				displayName: organizer.displayName,
+				passwordHash: 'not-used-by-assignment-test',
+				role: 'organizer',
+				isParticipating: false
+			})
+			.run();
+		const organizerCaller = appRouter.createCaller(createContext(organizer));
+		await organizerCaller.assignments.generate();
+
+		const mapping = await organizerCaller.codenames.adminMapping({ confirm: true });
+		expect(mapping).toHaveLength(participants.length);
+		expect(db.select().from(codenameAuditLog).all()[0]?.action).toBe('mapping_accessed');
+		await organizerCaller.codenames.update({ userId: 'alice', codename: 'Cocoa' });
+		await expect(
+			organizerCaller.codenames.update({ userId: 'bob', codename: 'Cocoa' })
+		).rejects.toMatchObject({ code: 'CONFLICT' });
 	});
 
 	it('prevents account access to organizer-only assignment controls', async () => {

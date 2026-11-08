@@ -4,7 +4,7 @@ import { TRPCError } from '@trpc/server';
 import type { MessageDirection } from '#lib/models/messaging.js';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
-import { assignments, conversations, messages, users } from '#lib/server/db/schema.js';
+import { assignments, conversations, events, messages, users } from '#lib/server/db/schema.js';
 import { notifyOrganizerDashboard, notifyUser } from '#lib/server/realtime.js';
 
 type GiverThreadContext = {
@@ -27,6 +27,7 @@ type MessageView = {
 
 type GiverThreadView = {
 	hasConversation: boolean;
+	canSend: boolean;
 	recipientDisplayName: string;
 	recipientHasAvatar: boolean;
 	recipientAvatarVersion: number;
@@ -35,6 +36,7 @@ type GiverThreadView = {
 
 type RecipientThreadView = {
 	hasConversation: boolean;
+	canSend: boolean;
 	messages: MessageView[];
 };
 
@@ -149,6 +151,12 @@ function getThread(
 		.from(conversations)
 		.where(eq(conversations.assignmentId, context.assignmentId))
 		.get();
+	const event = database
+		.select({ status: events.status })
+		.from(events)
+		.where(eq(events.id, SINGLE_EVENT_ID))
+		.get();
+	const canSend = Boolean(event && event.status !== 'completed');
 	const messages = conversation
 		? getThreadMessages(
 				database,
@@ -163,6 +171,7 @@ function getThread(
 	if (direction === 'asGiver') {
 		return {
 			hasConversation: Boolean(conversation),
+			canSend,
 			recipientDisplayName: 'recipientDisplayName' in context ? context.recipientDisplayName : '',
 			recipientHasAvatar: 'recipientHasAvatar' in context ? context.recipientHasAvatar : false,
 			recipientAvatarVersion:
@@ -171,7 +180,7 @@ function getThread(
 		};
 	}
 
-	return { hasConversation: Boolean(conversation), messages };
+	return { hasConversation: Boolean(conversation), canSend, messages };
 }
 
 export function getParticipantConversations(database: AppDatabase, userId: string) {
@@ -303,6 +312,18 @@ export function sendParticipantMessage(
 	}
 
 	const participants = database.transaction((transaction) => {
+		const event = transaction
+			.select({ status: events.status })
+			.from(events)
+			.where(eq(events.id, SINGLE_EVENT_ID))
+			.get();
+		if (!event || event.status === 'completed') {
+			throw new TRPCError({
+				code: 'PRECONDITION_FAILED',
+				message: 'Messages cannot be sent after the event is complete.'
+			});
+		}
+
 		const assignment = transaction
 			.select({
 				id: assignments.id,

@@ -7,6 +7,8 @@
 	import { X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import ConversationPanel from '#lib/components/ConversationPanel.svelte';
+	import FamilyGiftConversationsPanel from '#lib/components/FamilyGiftConversationsPanel.svelte';
+	import FamilyWishlistPanel from '#lib/components/FamilyWishlistPanel.svelte';
 	import RecipientGiftIdeasPanel from '#lib/components/RecipientGiftIdeasPanel.svelte';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { formatEventBudget, formatBudgetInput } from '#lib/models/event.js';
@@ -22,13 +24,13 @@
 	import { Input } from '#lib/components/ui/input/index.js';
 
 	type GiftSuggestion = Awaited<ReturnType<typeof trpc.wishlists.mine.query>>[number];
-	type WishlistTab = 'ideas' | 'recipient' | 'messages';
+	type WishlistTab = 'ideas' | 'recipient' | 'family' | 'messages';
 	type RecipientGiftStatus = Awaited<
 		ReturnType<typeof trpc.assignments.myRecipientGiftStatus.query>
 	>;
 
 	function isWishlistTab(value: unknown): value is WishlistTab {
-		return value === 'ideas' || value === 'recipient' || value === 'messages';
+		return value === 'ideas' || value === 'recipient' || value === 'family' || value === 'messages';
 	}
 
 	let { data }: PageProps = $props();
@@ -37,9 +39,11 @@
 			? 'recipient'
 			: page.url.searchParams.get('tab') === 'messages'
 				? 'messages'
-				: isWishlistTab(page.state.wishlistTab)
-					? page.state.wishlistTab
-					: 'ideas'
+				: page.url.searchParams.get('tab') === 'family'
+					? 'family'
+					: isWishlistTab(page.state.wishlistTab)
+						? page.state.wishlistTab
+						: 'ideas'
 	);
 	let activeMessageDirection = $state<'asRecipient' | 'asGiver'>(
 		page.url.searchParams.get('direction') === 'asGiver'
@@ -77,9 +81,11 @@
 				? 'recipient'
 				: routeTab === 'messages'
 					? 'messages'
-					: isWishlistTab(page.state.wishlistTab)
-						? page.state.wishlistTab
-						: 'ideas';
+					: routeTab === 'family'
+						? 'family'
+						: isWishlistTab(page.state.wishlistTab)
+							? page.state.wishlistTab
+							: 'ideas';
 		activeMessageDirection =
 			page.url.searchParams.get('direction') === 'asGiver'
 				? 'asGiver'
@@ -359,7 +365,7 @@
 	function handleTabKeydown(event: KeyboardEvent, currentTab: WishlistTab): void {
 		if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
 		event.preventDefault();
-		const tabOrder: WishlistTab[] = ['ideas', 'recipient', 'messages'];
+		const tabOrder: WishlistTab[] = ['ideas', 'recipient', 'messages', 'family'];
 		const currentIndex = tabOrder.indexOf(currentTab);
 		const nextIndex =
 			event.key === 'ArrowRight'
@@ -477,6 +483,23 @@
 		>
 			Messages
 		</button>
+		<button
+			id="wishlist-tab-family"
+			type="button"
+			role="tab"
+			aria-controls="wishlist-panel"
+			aria-selected={activeTab === 'family'}
+			tabindex={activeTab === 'family' ? 0 : -1}
+			class={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+				activeTab === 'family'
+					? 'bg-rose-700 text-white'
+					: 'text-stone-600 hover:bg-stone-100 hover:text-stone-950'
+			}`}
+			onclick={() => void selectTab('family')}
+			onkeydown={(event) => handleTabKeydown(event, 'family')}
+		>
+			Family
+		</button>
 	</div>
 
 	<div
@@ -495,7 +518,8 @@
 							{#if data.giftBudgetCents !== null}
 								Event budget: {formatEventBudget(data.giftBudgetCents, data.currency)} (a guideline).
 							{:else}
-								Only you can see your ideas until the organizer finalizes assignments.
+								Family members can browse your gift ideas. Reservation and purchase details remain
+								hidden from you.
 							{/if}
 						</CardDescription>
 					</div>
@@ -624,12 +648,19 @@
 			</Card>
 		{:else if activeTab === 'recipient'}
 			<RecipientGiftIdeasPanel giftBudgetCents={data.giftBudgetCents} currency={data.currency} />
+		{:else if activeTab === 'family'}
+			<FamilyWishlistPanel
+				currentUserId={data.user.id}
+				giftBudgetCents={data.giftBudgetCents}
+				currency={data.currency}
+			/>
 		{:else}
 			<div class="space-y-4">
 				<div>
 					<h2 class="text-lg font-semibold text-stone-950">Messages</h2>
 					<p class="mt-1 text-sm text-stone-600">
-						Choose which private conversation to open. Your Secret Santa remains anonymous.
+						Open your anonymous Secret Santa exchange or a family Gift Discussion or Gift
+						Coordination conversation.
 					</p>
 				</div>
 				<div class="flex flex-wrap gap-2" role="group" aria-label="Choose who to message">
@@ -656,6 +687,7 @@
 					hasAvatar={data.hasAvatar}
 					avatarVersion={data.avatarVersion}
 				/>
+				<FamilyGiftConversationsPanel currentUserId={data.user.id} />
 			</div>
 		{/if}
 	</div>

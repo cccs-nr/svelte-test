@@ -173,7 +173,7 @@ describe('wishlists router', () => {
 		expect(db.select().from(giftSuggestions).all()).toHaveLength(0);
 	});
 
-	it('exposes an assigned recipient wishlist only after assignments are finalized', async () => {
+	it('keeps the assigned gift flow confidential while family wishlists are public to active members', async () => {
 		const alice = appRouter.createCaller(createContext(participants[0]));
 		const bob = appRouter.createCaller(createContext(participants[1]));
 		const carol = appRouter.createCaller(createContext(participants[2]));
@@ -184,7 +184,7 @@ describe('wishlists router', () => {
 			recipient: null,
 			suggestions: []
 		});
-		expect(canViewWishlist(db, participants[0], 'bob')).toBe(false);
+		expect(canViewWishlist(db, participants[0], 'bob')).toBe(true);
 
 		finalizeAssignments();
 		const aliceView = await alice.wishlists.assignedRecipient();
@@ -192,7 +192,7 @@ describe('wishlists router', () => {
 		expect(aliceView.suggestions.map((suggestion) => suggestion.id)).toEqual([bobIdea.id]);
 		expect(aliceView.suggestions[0]).not.toHaveProperty('ownerId');
 		expect(canViewWishlist(db, participants[0], 'bob')).toBe(true);
-		expect(canViewWishlist(db, participants[0], 'carol')).toBe(false);
+		expect(canViewWishlist(db, participants[0], 'carol')).toBe(true);
 		expect(canViewWishlist(db, organizer, organizer.id)).toBe(false);
 		await expect(carol.wishlists.assignedRecipient()).resolves.toMatchObject({
 			recipient: { displayName: 'Dave' },

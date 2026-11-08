@@ -47,11 +47,13 @@
 		const handleMessageUpdate = () => void refreshConversation(true);
 		const handleConnect = () => void refreshConversation(true);
 		socket.on('messages:changed', handleMessageUpdate);
+		socket.on('event:changed', handleMessageUpdate);
 		socket.on('connect', handleConnect);
 		void refreshConversation();
 		return () => {
 			isDisposed = true;
 			socket.off('messages:changed', handleMessageUpdate);
+			socket.off('event:changed', handleMessageUpdate);
 			socket.off('connect', handleConnect);
 		};
 	});
@@ -253,7 +255,7 @@
 				</ol>
 			{/if}
 
-			{#if direction === 'asGiver' || currentThread.hasConversation}
+			{#if currentThread.canSend && (direction === 'asGiver' || currentThread.hasConversation)}
 				<form
 					class="sticky bottom-0 mt-auto space-y-3 border-t border-stone-100 bg-white pt-3"
 					onsubmit={sendMessage}
@@ -284,6 +286,10 @@
 									: 'Send message'}
 					</Button>
 				</form>
+			{:else if !currentThread.canSend}
+				<p class="border-t border-stone-100 pt-3 text-sm text-stone-600">
+					The event is complete. This conversation is available to read but cannot be changed.
+				</p>
 			{/if}
 		{/if}
 	</CardContent>

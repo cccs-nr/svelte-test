@@ -1,5 +1,13 @@
 import { sql } from 'drizzle-orm';
-import { check, index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import {
+	check,
+	index,
+	integer,
+	primaryKey,
+	sqliteTable,
+	text,
+	uniqueIndex
+} from 'drizzle-orm/sqlite-core';
 import type { UserRole } from '#lib/auth.js';
 import type { EventStatus } from '#lib/models/event.js';
 
@@ -39,6 +47,8 @@ export const events = sqliteTable(
 			.$type<EventStatus>()
 			.notNull()
 			.default('setup'),
+		revealedAt: integer('revealed_at', { mode: 'timestamp_ms' }),
+		revealedBy: text('revealed_by').references(() => users.id, { onDelete: 'set null' }),
 		createdAt: integer('created_at', { mode: 'timestamp_ms' })
 			.notNull()
 			.default(sql`(unixepoch() * 1000)`),
@@ -91,6 +101,60 @@ export const users = sqliteTable(
 		uniqueIndex('users_avatar_key_unique').on(table.avatarKey),
 		index('users_household_id_idx').on(table.householdId),
 		check('users_role_check', sql`${table.role} in ('organizer', 'participant')`)
+	]
+);
+
+export const participantCodenames = sqliteTable(
+	'participant_codenames',
+	{
+		id: text('id').primaryKey(),
+		eventId: text('event_id')
+			.notNull()
+			.references(() => events.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		codename: text('codename').notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`)
+	},
+	(table) => [
+		uniqueIndex('participant_codenames_event_user_unique').on(table.eventId, table.userId),
+		uniqueIndex('participant_codenames_event_codename_unique').on(table.eventId, table.codename),
+		check('participant_codenames_codename_not_blank', sql`length(trim(${table.codename})) > 0`)
+	]
+);
+
+export const codenameAuditLog = sqliteTable(
+	'codename_audit_log',
+	{
+		id: text('id').primaryKey(),
+		eventId: text('event_id')
+			.notNull()
+			.references(() => events.id, { onDelete: 'cascade' }),
+		actorId: text('actor_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		targetUserId: text('target_user_id').references(() => users.id, { onDelete: 'set null' }),
+		action: text('action', {
+			enum: ['mapping_accessed', 'codename_updated', 'reveal_started']
+		})
+			.$type<'mapping_accessed' | 'codename_updated' | 'reveal_started'>()
+			.notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`)
+	},
+	(table) => [
+		index('codename_audit_log_event_created_idx').on(table.eventId, table.createdAt),
+		check(
+			'codename_audit_log_action_check',
+			sql`${table.action} in ('mapping_accessed', 'codename_updated', 'reveal_started')`
+		)
 	]
 );
 
@@ -217,6 +281,169 @@ export const messages = sqliteTable(
 	]
 );
 
+export const giftReservations = sqliteTable(
+	'gift_reservations',
+	{
+		id: text('id').primaryKey(),
+		giftSuggestionId: text('gift_suggestion_id')
+			.notNull()
+			.references(() => giftSuggestions.id, { onDelete: 'restrict' }),
+		reserverId: text('reserver_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		status: text('status', { enum: ['reserved', 'released', 'purchased'] })
+			.$type<'reserved' | 'released' | 'purchased'>()
+			.notNull()
+			.default('reserved'),
+		reservedAt: integer('reserved_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		releasedAt: integer('released_at', { mode: 'timestamp_ms' }),
+		purchasedAt: integer('purchased_at', { mode: 'timestamp_ms' }),
+		updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`)
+	},
+	(table) => [
+		uniqueIndex('gift_reservations_active_suggestion_unique')
+			.on(table.giftSuggestionId)
+			.where(sql`${table.status} in ('reserved', 'purchased')`),
+		index('gift_reservations_reserver_status_idx').on(table.reserverId, table.status),
+		check(
+			'gift_reservations_status_check',
+			sql`${table.status} in ('reserved', 'released', 'purchased')`
+		),
+		check(
+			'gift_reservations_timestamps_check',
+			sql`(${table.status} = 'reserved' and ${table.releasedAt} is null and ${table.purchasedAt} is null) or (${table.status} = 'released' and ${table.releasedAt} is not null and ${table.purchasedAt} is null) or (${table.status} = 'purchased' and ${table.releasedAt} is null and ${table.purchasedAt} is not null)`
+		)
+	]
+);
+
+export const giftReservationAuditLog = sqliteTable(
+	'gift_reservation_audit_log',
+	{
+		id: text('id').primaryKey(),
+		reservationId: text('reservation_id')
+			.notNull()
+			.references(() => giftReservations.id, { onDelete: 'cascade' }),
+		actorId: text('actor_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		fromStatus: text('from_status', { enum: ['reserved', 'released', 'purchased'] })
+			.$type<'reserved' | 'released' | 'purchased'>()
+			.notNull(),
+		toStatus: text('to_status', { enum: ['reserved', 'released', 'purchased'] })
+			.$type<'reserved' | 'released' | 'purchased'>()
+			.notNull(),
+		reason: text('reason').notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`)
+	},
+	(table) => [
+		index('gift_reservation_audit_log_reservation_idx').on(table.reservationId, table.createdAt),
+		check(
+			'gift_reservation_audit_log_status_check',
+			sql`${table.fromStatus} in ('reserved', 'released', 'purchased') and ${table.toStatus} in ('reserved', 'released', 'purchased')`
+		)
+	]
+);
+
+export const giftConversations = sqliteTable(
+	'gift_conversations',
+	{
+		id: text('id').primaryKey(),
+		eventId: text('event_id')
+			.notNull()
+			.references(() => events.id, { onDelete: 'cascade' }),
+		recipientId: text('recipient_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		type: text('type', { enum: ['recipient_visible', 'private_coordination'] })
+			.$type<'recipient_visible' | 'private_coordination'>()
+			.notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`)
+	},
+	(table) => [
+		uniqueIndex('gift_conversations_event_recipient_type_unique').on(
+			table.eventId,
+			table.recipientId,
+			table.type
+		),
+		index('gift_conversations_event_type_idx').on(table.eventId, table.type),
+		check(
+			'gift_conversations_type_check',
+			sql`${table.type} in ('recipient_visible', 'private_coordination')`
+		)
+	]
+);
+
+export const giftConversationParticipants = sqliteTable(
+	'gift_conversation_participants',
+	{
+		conversationId: text('conversation_id')
+			.notNull()
+			.references(() => giftConversations.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		joinedAt: integer('joined_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`)
+	},
+	(table) => [
+		primaryKey({ columns: [table.conversationId, table.userId] }),
+		index('gift_conversation_participants_user_idx').on(table.userId, table.conversationId)
+	]
+);
+
+export const giftMessages = sqliteTable(
+	'gift_messages',
+	{
+		id: text('id').primaryKey(),
+		conversationId: text('conversation_id')
+			.notNull()
+			.references(() => giftConversations.id, { onDelete: 'cascade' }),
+		senderId: text('sender_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		content: text('content').notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`)
+	},
+	(table) => [
+		index('gift_messages_conversation_created_idx').on(table.conversationId, table.createdAt),
+		check(
+			'gift_messages_content_valid',
+			sql`length(trim(${table.content})) > 0 and length(${table.content}) <= 2000`
+		)
+	]
+);
+
+export const giftConversationReads = sqliteTable(
+	'gift_conversation_reads',
+	{
+		conversationId: text('conversation_id')
+			.notNull()
+			.references(() => giftConversations.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		lastReadAt: integer('last_read_at', { mode: 'timestamp_ms' }).notNull()
+	},
+	(table) => [
+		primaryKey({ columns: [table.conversationId, table.userId] }),
+		index('gift_conversation_reads_user_idx').on(table.userId)
+	]
+);
+
 export const sessions = sqliteTable(
 	'sessions',
 	{
@@ -244,3 +471,9 @@ export type AssignmentRecord = typeof assignments.$inferSelect;
 export type GiftSuggestionRecord = typeof giftSuggestions.$inferSelect;
 export type ConversationRecord = typeof conversations.$inferSelect;
 export type MessageRecord = typeof messages.$inferSelect;
+export type ParticipantCodenameRecord = typeof participantCodenames.$inferSelect;
+export type CodenameAuditRecord = typeof codenameAuditLog.$inferSelect;
+export type GiftReservationRecord = typeof giftReservations.$inferSelect;
+export type GiftReservationAuditRecord = typeof giftReservationAuditLog.$inferSelect;
+export type GiftConversationRecord = typeof giftConversations.$inferSelect;
+export type GiftMessageRecord = typeof giftMessages.$inferSelect;

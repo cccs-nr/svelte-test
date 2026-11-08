@@ -3,6 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import type { PageProps } from './$types';
 	import EventOverviewCard from '#lib/components/EventOverviewCard.svelte';
+	import OrganizerFamilyCoordinationCard from '#lib/components/OrganizerFamilyCoordinationCard.svelte';
 	import OrganizerHouseholdsCard from '#lib/components/OrganizerHouseholdsCard.svelte';
 	import OrganizerParticipantsTable from '#lib/components/OrganizerParticipantsTable.svelte';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
@@ -42,6 +43,7 @@
 		event={data.event}
 		stages={data.eventStages}
 		currentStageIndex={data.currentStageIndex}
+		canComplete={data.assignmentsFinalized}
 	/>
 
 	<Card id="event-stats" class="border-stone-200 bg-white">
@@ -90,6 +92,30 @@
 					</dd>
 					<p class="mt-1 text-[0.65rem] text-stone-500">Count only</p>
 				</div>
+				<div class="rounded-xl bg-stone-50 p-3">
+					<dt class="text-xs text-stone-500">Active reservations</dt>
+					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
+						{data.stats.totalReservations}
+					</dd>
+				</div>
+				<div class="rounded-xl bg-stone-50 p-3">
+					<dt class="text-xs text-stone-500">Purchased ideas</dt>
+					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
+						{data.stats.purchasedReservationCount}
+					</dd>
+				</div>
+				<div class="rounded-xl bg-stone-50 p-3">
+					<dt class="text-xs text-stone-500">Participants with purchases</dt>
+					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
+						{data.stats.participantsWithCompletedPurchases}
+					</dd>
+				</div>
+				<div class="rounded-xl bg-stone-50 p-3">
+					<dt class="text-xs text-stone-500">Gift coordination chats</dt>
+					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
+						{data.stats.coordinationConversationCount}
+					</dd>
+				</div>
 				<div class="rounded-xl bg-stone-50 p-3 sm:col-span-3 lg:col-span-6">
 					<dt class="text-xs text-stone-500">Participants who marked a gift purchased</dt>
 					<dd class="mt-1 text-xl font-semibold text-stone-950 tabular-nums">
@@ -99,6 +125,11 @@
 			</dl>
 		</CardContent>
 	</Card>
+
+	<OrganizerFamilyCoordinationCard
+		eventStatus={data.event?.status ?? null}
+		revealedAt={data.event?.revealedAt ?? null}
+	/>
 
 	<OrganizerParticipantsTable
 		participants={data.participants}

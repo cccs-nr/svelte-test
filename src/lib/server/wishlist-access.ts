@@ -1,8 +1,8 @@
-import { and, eq, isNotNull } from 'drizzle-orm';
+import { and, eq, isNotNull, or } from 'drizzle-orm';
 import { isExchangeParticipant, type AuthenticatedUser } from '#lib/auth.js';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
-import { assignments } from '#lib/server/db/schema.js';
+import { assignments, users } from '#lib/server/db/schema.js';
 
 export function getFinalizedRecipientId(database: AppDatabase, giverId: string): string | null {
 	const assignment = database
@@ -42,20 +42,39 @@ export function canViewWishlist(
 	ownerId: string
 ): boolean {
 	if (!isExchangeParticipant(viewer)) return false;
-	if (viewer.id === ownerId) return true;
 
 	return (
+		isActiveExchangeParticipant(database, viewer.id) &&
+		isActiveExchangeParticipant(database, ownerId)
+	);
+}
+
+export function isActiveExchangeParticipant(database: AppDatabase, userId: string): boolean {
+	return Boolean(
 		database
-			.select({ id: assignments.id })
-			.from(assignments)
+			.select({ id: users.id })
+			.from(users)
 			.where(
 				and(
-					eq(assignments.eventId, SINGLE_EVENT_ID),
-					eq(assignments.giverId, viewer.id),
-					eq(assignments.receiverId, ownerId),
-					isNotNull(assignments.finalizedAt)
+					eq(users.id, userId),
+					eq(users.isActive, true),
+					or(eq(users.role, 'participant'), eq(users.isParticipating, true))
 				)
 			)
-			.get() !== undefined
+			.get()
 	);
+}
+
+export function getActiveExchangeParticipantIds(database: AppDatabase): string[] {
+	return database
+		.select({ id: users.id })
+		.from(users)
+		.where(
+			and(
+				eq(users.isActive, true),
+				or(eq(users.role, 'participant'), eq(users.isParticipating, true))
+			)
+		)
+		.all()
+		.map(({ id }) => id);
 }

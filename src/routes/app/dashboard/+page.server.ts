@@ -1,4 +1,4 @@
-import { count, eq, sql } from 'drizzle-orm';
+import { and, count, eq, or, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 import { SINGLE_EVENT_ID, type EventStatus } from '#lib/models/event.js';
 import { db } from '#lib/server/db/index.js';
@@ -7,17 +7,22 @@ import {
 	assignments,
 	conversations,
 	events,
+	giftConversationParticipants,
+	giftConversations,
+	giftMessages,
+	giftReservations,
 	giftSuggestions,
 	households,
 	messages,
 	users
 } from '#lib/server/db/schema.js';
 
-const eventStages: { value: EventStatus; label: string }[] = [
+const eventStages: { value: EventStatus | 'revealed'; label: string }[] = [
 	{ value: 'setup', label: 'Setup' },
-	{ value: 'open', label: 'Open' },
-	{ value: 'assignments_generated', label: 'Assignments generated' },
-	{ value: 'completed', label: 'Completed' }
+	{ value: 'open', label: 'Wishlist preparation' },
+	{ value: 'assignments_generated', label: 'Gift coordination' },
+	{ value: 'completed', label: 'Exchange complete' },
+	{ value: 'revealed', label: 'Identity reveal' }
 ];
 
 export const load: PageServerLoad = ({ locals }) => {
@@ -32,7 +37,8 @@ export const load: PageServerLoad = ({ locals }) => {
 				giftBudgetCents: events.giftBudgetCents,
 				currency: events.currency,
 				instructions: events.instructions,
-				status: events.status
+				status: events.status,
+				revealedAt: events.revealedAt
 			})
 			.from(events)
 			.where(eq(events.id, SINGLE_EVENT_ID))
@@ -105,6 +111,15 @@ export const load: PageServerLoad = ({ locals }) => {
 		.where(eq(assignments.eventId, SINGLE_EVENT_ID))
 		.groupBy(assignments.receiverId)
 		.all();
+	const familyMessageCounts = db
+		.select({ userId: giftConversationParticipants.userId, value: count(giftMessages.id) })
+		.from(giftConversationParticipants)
+		.leftJoin(
+			giftMessages,
+			eq(giftMessages.conversationId, giftConversationParticipants.conversationId)
+		)
+		.groupBy(giftConversationParticipants.userId)
+		.all();
 	const messageCount =
 		db
 			.select({ value: count(messages.id) })
@@ -113,9 +128,13 @@ export const load: PageServerLoad = ({ locals }) => {
 			.innerJoin(assignments, eq(assignments.id, conversations.assignmentId))
 			.where(eq(assignments.eventId, SINGLE_EVENT_ID))
 			.get()?.value ?? 0;
+	const familyMessageCount = db.select({ value: count() }).from(giftMessages).get()?.value ?? 0;
 	const wishlistCountByUser = new Map(wishlistCounts.map(({ userId, value }) => [userId, value]));
 	const messageCountByUser = new Map<string, number>();
 	for (const { userId, value } of [...outgoingMessageCounts, ...incomingMessageCounts]) {
+		messageCountByUser.set(userId, (messageCountByUser.get(userId) ?? 0) + value);
+	}
+	for (const { userId, value } of familyMessageCounts) {
 		messageCountByUser.set(userId, (messageCountByUser.get(userId) ?? 0) + value);
 	}
 	const assignmentByGiver = new Map(
@@ -165,11 +184,32 @@ export const load: PageServerLoad = ({ locals }) => {
 	const finalizedAssignmentCount = assignmentRows.filter(
 		(assignment) => assignment.finalizedAt !== null
 	).length;
+	const assignmentsFinalized =
+		assignmentRows.length > 0 && finalizedAssignmentCount === assignmentRows.length;
 	const purchasedGiftCount = assignmentRows.filter(
 		(assignment) => assignment.finalizedAt !== null && assignment.giftPurchasedAt !== null
 	).length;
+	const reservationRows = db
+		.select({ status: giftReservations.status, reserverId: giftReservations.reserverId })
+		.from(giftReservations)
+		.where(or(eq(giftReservations.status, 'reserved'), eq(giftReservations.status, 'purchased')))
+		.all();
+	const purchasedReservationRows = reservationRows.filter((row) => row.status === 'purchased');
+	const coordinationConversationCount =
+		db
+			.select({ value: count() })
+			.from(giftConversations)
+			.where(
+				and(
+					eq(giftConversations.eventId, SINGLE_EVENT_ID),
+					eq(giftConversations.type, 'private_coordination')
+				)
+			)
+			.get()?.value ?? 0;
 	const currentStageIndex = event
-		? eventStages.findIndex((stage) => stage.value === event.status)
+		? event.revealedAt
+			? eventStages.findIndex((stage) => stage.value === 'revealed')
+			: eventStages.findIndex((stage) => stage.value === event.status)
 		: 0;
 
 	return {
@@ -179,6 +219,7 @@ export const load: PageServerLoad = ({ locals }) => {
 		currentUserId: organizer.id,
 		households: householdsForDashboard,
 		assignmentsExist: assignmentRows.length > 0,
+		assignmentsFinalized,
 		participants,
 		stats: {
 			accountCount: accountRows.length,
@@ -187,10 +228,19 @@ export const load: PageServerLoad = ({ locals }) => {
 			activeParticipants,
 			householdCount: householdRows.length,
 			wishlistIdeaCount,
-			messageCount,
+			messageCount: messageCount + familyMessageCount,
 			assignmentCount: assignmentRows.length,
 			finalizedAssignmentCount,
-			purchasedGiftCount
+			purchasedGiftCount,
+			totalReservations: reservationRows.length,
+			purchasedReservationCount: purchasedReservationRows.length,
+			participantsWithCompletedPurchases: new Set([
+				...purchasedReservationRows.map(({ reserverId }) => reserverId),
+				...assignmentRows
+					.filter((assignment) => assignment.giftPurchasedAt !== null)
+					.map(({ giverId }) => giverId)
+			]).size,
+			coordinationConversationCount
 		}
 	};
 };

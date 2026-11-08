@@ -8,6 +8,7 @@ import {
 } from '#lib/server/assignment-algorithm.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { assignments, events, users } from '#lib/server/db/schema.js';
+import { assignMissingCodenames } from '#lib/server/codenames.js';
 import { notifyOrganizerDashboard, notifyUser } from '#lib/server/realtime.js';
 import {
 	organizerProcedure,
@@ -149,6 +150,10 @@ export const assignmentRouter = router({
 					}))
 				)
 				.run();
+			assignMissingCodenames(
+				transaction,
+				participants.map((participant) => participant.id)
+			);
 			transaction
 				.update(events)
 				.set({ status: 'assignments_generated', updatedAt: createdAt })

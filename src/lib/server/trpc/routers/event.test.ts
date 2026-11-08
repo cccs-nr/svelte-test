@@ -2,9 +2,10 @@ import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import type { AuthenticatedUser } from '#lib/auth.js';
+import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { TRPCContext } from '#lib/server/trpc/context.js';
 import { createDatabase } from '#lib/server/db/connection.js';
-import { events } from '#lib/server/db/schema.js';
+import { assignments, events, users } from '#lib/server/db/schema.js';
 import type { SessionCookieStore } from '#lib/server/auth/session.js';
 import { appRouter } from '#lib/server/trpc/router.js';
 
@@ -132,5 +133,54 @@ describe('event router', () => {
 				status: 'setup'
 			})
 		).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+	});
+
+	it('completes an event only after every assignment is finalized', async () => {
+		db.insert(events)
+			.values({
+				id: SINGLE_EVENT_ID,
+				name: 'Family Gift Exchange',
+				exchangeDate: '2026-12-24',
+				giftBudgetCents: 5000,
+				status: 'assignments_generated'
+			})
+			.run();
+		db.insert(users)
+			.values(
+				['alice', 'bob'].map((id) => ({
+					id,
+					username: id,
+					displayName: id,
+					passwordHash: 'not-used-by-event-test',
+					role: 'participant' as const,
+					isParticipating: true
+				}))
+			)
+			.run();
+		db.insert(assignments)
+			.values([
+				{
+					id: 'alice-assignment',
+					eventId: SINGLE_EVENT_ID,
+					giverId: 'alice',
+					receiverId: 'bob'
+				},
+				{
+					id: 'bob-assignment',
+					eventId: SINGLE_EVENT_ID,
+					giverId: 'bob',
+					receiverId: 'alice'
+				}
+			])
+			.run();
+		const caller = appRouter.createCaller(createContext(organizer));
+
+		await expect(caller.event.complete({ confirm: true })).rejects.toMatchObject({
+			code: 'PRECONDITION_FAILED'
+		});
+		db.update(assignments).set({ finalizedAt: new Date() }).run();
+		await expect(caller.event.complete({ confirm: true })).resolves.toEqual({ completed: true });
+		await expect(caller.event.complete({ confirm: true })).resolves.toEqual({ completed: true });
+		expect(db.select().from(events).all()[0]?.status).toBe('completed');
 	});
 });

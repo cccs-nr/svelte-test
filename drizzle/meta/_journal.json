@@ -64,6 +64,13 @@
       "when": 1794160682171,
       "tag": "0008_bitter_oracle",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1794165852000,
+      "tag": "0009_family_gift_coordination",
+      "breakpoints": true
     }
   ]
 }

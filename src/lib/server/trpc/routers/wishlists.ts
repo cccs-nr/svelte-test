@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { and, desc, eq, isNotNull } from 'drizzle-orm';
+import { and, desc, eq, isNotNull, like, or } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import {
 	createGiftSuggestionInputSchema,
@@ -8,11 +8,23 @@ import {
 } from '#lib/models/wishlist.js';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
-import { assignments, giftSuggestions, users } from '#lib/server/db/schema.js';
+import {
+	assignments,
+	events,
+	giftReservations,
+	giftSuggestions,
+	participantCodenames,
+	users
+} from '#lib/server/db/schema.js';
 import { getFinalizedGiverId, getFinalizedRecipientId } from '#lib/server/wishlist-access.js';
+import {
+	getActiveExchangeParticipantIds,
+	isActiveExchangeParticipant
+} from '#lib/server/wishlist-access.js';
 import { removeImage } from '#lib/server/image-storage.js';
 import { notifyOrganizerDashboard, notifyUser } from '#lib/server/realtime.js';
 import { participantProcedure, router } from '#lib/server/trpc/init.js';
+import { z } from 'zod';
 
 const suggestionColumns = {
 	id: giftSuggestions.id,
@@ -40,6 +52,18 @@ function listSuggestions(database: AppDatabase, ownerId: string) {
 		}));
 }
 
+function notifyFamilyWishlistChanged(database: AppDatabase): void {
+	for (const userId of getActiveExchangeParticipantIds(database)) {
+		notifyUser(userId, 'family-wishlist:changed');
+	}
+}
+
+function requireActiveParticipant(database: AppDatabase, userId: string): void {
+	if (!isActiveExchangeParticipant(database, userId)) {
+		throw new TRPCError({ code: 'FORBIDDEN', message: 'Active participant access is required.' });
+	}
+}
+
 function getOwnedSuggestion(database: AppDatabase, id: string, ownerId: string) {
 	const suggestion = database
 		.select(suggestionColumns)
@@ -58,6 +82,115 @@ function getOwnedSuggestion(database: AppDatabase, id: string, ownerId: string) 
 
 export const wishlistsRouter = router({
 	mine: participantProcedure.query(({ ctx }) => listSuggestions(ctx.db, ctx.user.id)),
+
+	familyDirectory: participantProcedure
+		.input(z.object({ search: z.string().trim().max(80).default('') }))
+		.query(({ ctx, input }) => {
+			requireActiveParticipant(ctx.db, ctx.user.id);
+			const condition = and(
+				eq(users.isActive, true),
+				or(eq(users.role, 'participant'), eq(users.isParticipating, true)),
+				input.search ? like(users.displayName, `%${input.search}%`) : undefined
+			);
+			return ctx.db
+				.select({ id: users.id, displayName: users.displayName })
+				.from(users)
+				.where(condition)
+				.orderBy(users.displayName, users.id)
+				.all();
+		}),
+
+	familyWishlist: participantProcedure
+		.input(z.object({ recipientId: z.string().min(1) }))
+		.query(({ ctx, input }) => {
+			requireActiveParticipant(ctx.db, ctx.user.id);
+			const recipient = ctx.db
+				.select({ id: users.id, displayName: users.displayName })
+				.from(users)
+				.where(
+					and(
+						eq(users.id, input.recipientId),
+						eq(users.isActive, true),
+						or(eq(users.role, 'participant'), eq(users.isParticipating, true))
+					)
+				)
+				.get();
+			if (!recipient) {
+				throw new TRPCError({ code: 'NOT_FOUND', message: 'Family member not found.' });
+			}
+
+			const suggestions = ctx.db
+				.select({
+					...suggestionColumns,
+					reservationId: giftReservations.id,
+					reservationStatus: giftReservations.status,
+					reserverId: giftReservations.reserverId,
+					reserverCodename: participantCodenames.codename,
+					reserverDisplayName: users.displayName
+				})
+				.from(giftSuggestions)
+				.leftJoin(
+					giftReservations,
+					and(
+						eq(giftReservations.giftSuggestionId, giftSuggestions.id),
+						or(eq(giftReservations.status, 'reserved'), eq(giftReservations.status, 'purchased'))
+					)
+				)
+				.leftJoin(
+					participantCodenames,
+					and(
+						eq(participantCodenames.userId, giftReservations.reserverId),
+						eq(participantCodenames.eventId, SINGLE_EVENT_ID)
+					)
+				)
+				.leftJoin(users, eq(users.id, giftReservations.reserverId))
+				.where(eq(giftSuggestions.ownerId, recipient.id))
+				.orderBy(desc(giftSuggestions.updatedAt), desc(giftSuggestions.createdAt))
+				.all();
+			const event = ctx.db
+				.select({ revealedAt: events.revealedAt })
+				.from(events)
+				.where(eq(events.id, SINGLE_EVENT_ID))
+				.get();
+			const isOwner = recipient.id === ctx.user.id;
+
+			return {
+				recipient,
+				suggestions: suggestions.map((suggestion) => {
+					const { reserverId, reserverCodename, reserverDisplayName, ...idea } = suggestion;
+					if (isOwner) {
+						return {
+							...idea,
+							reservationId: null,
+							reservationStatus: null,
+							reservedBy: null,
+							reservedByMe: false
+						};
+					}
+
+					const reservedBy =
+						reserverId && suggestion.reservationStatus
+							? event?.revealedAt
+								? reserverDisplayName
+								: reserverCodename
+							: null;
+					if (suggestion.reservationStatus && !reservedBy) {
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'A reserved idea is missing its participant label.'
+						});
+					}
+
+					return {
+						...idea,
+						reservationId: reserverId === ctx.user.id ? suggestion.reservationId : null,
+						reservationStatus: suggestion.reservationStatus ?? 'available',
+						reservedBy,
+						reservedByMe: reserverId === ctx.user.id
+					};
+				})
+			};
+		}),
 
 	assignedRecipient: participantProcedure.query(({ ctx }) => {
 		const recipientId = getFinalizedRecipientId(ctx.db, ctx.user.id);
@@ -102,6 +235,7 @@ export const wishlistsRouter = router({
 		notifyUser(ctx.user.id, 'wishlist:changed');
 		const giverId = getFinalizedGiverId(ctx.db, ctx.user.id);
 		if (giverId) notifyUser(giverId, 'recipient-wishlist:changed');
+		notifyFamilyWishlistChanged(ctx.db);
 		notifyOrganizerDashboard();
 		return suggestion;
 	}),
@@ -127,6 +261,7 @@ export const wishlistsRouter = router({
 		notifyUser(ctx.user.id, 'wishlist:changed');
 		const giverId = getFinalizedGiverId(ctx.db, ctx.user.id);
 		if (giverId) notifyUser(giverId, 'recipient-wishlist:changed');
+		notifyFamilyWishlistChanged(ctx.db);
 		notifyOrganizerDashboard();
 		return suggestion;
 	}),
@@ -146,6 +281,17 @@ export const wishlistsRouter = router({
 			if (!existing) {
 				throw new TRPCError({ code: 'NOT_FOUND', message: 'Gift suggestion not found.' });
 			}
+			const reservationHistory = ctx.db
+				.select({ id: giftReservations.id })
+				.from(giftReservations)
+				.where(eq(giftReservations.giftSuggestionId, existing.id))
+				.get();
+			if (reservationHistory) {
+				throw new TRPCError({
+					code: 'CONFLICT',
+					message: 'A gift idea with reservation history cannot be deleted. Edit it instead.'
+				});
+			}
 
 			ctx.db
 				.delete(giftSuggestions)
@@ -154,6 +300,7 @@ export const wishlistsRouter = router({
 			notifyUser(ctx.user.id, 'wishlist:changed');
 			const giverId = getFinalizedGiverId(ctx.db, ctx.user.id);
 			if (giverId) notifyUser(giverId, 'recipient-wishlist:changed');
+			notifyFamilyWishlistChanged(ctx.db);
 			notifyOrganizerDashboard();
 
 			if (existing.imageKey && existing.imageMimeType) {

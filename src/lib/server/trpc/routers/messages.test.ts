@@ -279,6 +279,20 @@ describe('anonymous messaging router', () => {
 		expect(db.select().from(messages).all()).toEqual([]);
 	});
 
+	it('keeps completed Secret Santa conversations readable but prevents new messages', async () => {
+		const alice = appRouter.createCaller(createContext(participants[0]));
+		const bob = appRouter.createCaller(createContext(participants[1]));
+		await alice.messages.send({ direction: 'asGiver', content: 'A final exchange note.' });
+		db.update(events).set({ status: 'completed' }).where(eq(events.id, SINGLE_EVENT_ID)).run();
+
+		await expect(alice.conversations.list()).resolves.toMatchObject({
+			asGiver: { canSend: false, messages: [{ content: 'A final exchange note.' }] }
+		});
+		await expect(
+			bob.messages.send({ direction: 'asRecipient', content: 'A reply after completion.' })
+		).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
+	});
+
 	it('rejects blank and oversized messages', async () => {
 		const alice = appRouter.createCaller(createContext(participants[0]));
 
