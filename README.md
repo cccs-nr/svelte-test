@@ -49,6 +49,12 @@ Organizers can manage the draw from **Assignments** after opening the event. The
 
 Generated assignments remain private until the organizer finalizes the draw. Regenerating a draft requires confirmation; each participant can see only their own recipient after finalization. Resetting a finalized draw also requires confirmation and reopens the event. While assignment rows exist, changes that could invalidate the draw (such as participant registration, activation, role, or household membership changes, and event edits) are blocked until the organizer resets it.
 
+### Wishlists and gift ideas
+
+Participants can add, edit, and remove any number of gift ideas from **Wishlist**, including descriptions, notes, optional external product links, estimated CAD prices, and optional images. The configured gift budget is displayed as a guideline. Wishlists are private to their owner until assignments are finalized; afterward, each participant can view only their assigned recipient’s list.
+
+Wishlist images are validated as JPEG, PNG, or WebP from their file contents and stored outside the source tree. `UPLOADS_DIR` controls local storage and `MAX_IMAGE_BYTES` sets the per-image limit (default 5 MiB, maximum 25 MiB). Docker stores images in the persistent `secret-santa-uploads` volume.
+
 ## Docker deployment
 
 Set `PORT` and `ORIGIN` in `.env`, then build and start the app:

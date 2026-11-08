@@ -114,6 +114,48 @@ export const assignments = sqliteTable(
 	]
 );
 
+export const giftSuggestions = sqliteTable(
+	'gift_suggestions',
+	{
+		id: text('id').primaryKey(),
+		ownerId: text('owner_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		title: text('title').notNull(),
+		description: text('description').notNull().default(''),
+		url: text('url'),
+		imageKey: text('image_key'),
+		imageMimeType: text('image_mime_type', {
+			enum: ['image/jpeg', 'image/png', 'image/webp']
+		}),
+		estimatedPriceCents: integer('estimated_price_cents'),
+		notes: text('notes').notNull().default(''),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`)
+	},
+	(table) => [
+		index('gift_suggestions_owner_updated_idx').on(table.ownerId, table.updatedAt),
+		uniqueIndex('gift_suggestions_image_key_unique').on(table.imageKey),
+		check('gift_suggestions_title_not_blank', sql`length(trim(${table.title})) > 0`),
+		check(
+			'gift_suggestions_price_nonnegative',
+			sql`${table.estimatedPriceCents} is null or ${table.estimatedPriceCents} >= 0`
+		),
+		check(
+			'gift_suggestions_image_pair_check',
+			sql`(${table.imageKey} is null) = (${table.imageMimeType} is null)`
+		),
+		check(
+			'gift_suggestions_image_mime_check',
+			sql`${table.imageMimeType} is null or ${table.imageMimeType} in ('image/jpeg', 'image/png', 'image/webp')`
+		)
+	]
+);
+
 export const sessions = sqliteTable(
 	'sessions',
 	{
@@ -138,3 +180,4 @@ export type UserRecord = typeof users.$inferSelect;
 export type HouseholdRecord = typeof households.$inferSelect;
 export type EventRecord = typeof events.$inferSelect;
 export type AssignmentRecord = typeof assignments.$inferSelect;
+export type GiftSuggestionRecord = typeof giftSuggestions.$inferSelect;

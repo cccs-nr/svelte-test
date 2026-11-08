@@ -3,6 +3,7 @@ import { assignmentRouter } from './routers/assignments.js';
 import { eventRouter } from './routers/event.js';
 import { householdRouter } from './routers/households.js';
 import { participantsRouter } from './routers/participants.js';
+import { wishlistsRouter } from './routers/wishlists.js';
 import { router } from './init.js';
 
 export const appRouter = router({
@@ -10,7 +11,8 @@ export const appRouter = router({
 	event: eventRouter,
 	assignments: assignmentRouter,
 	households: householdRouter,
-	participants: participantsRouter
+	participants: participantsRouter,
+	wishlists: wishlistsRouter
 });
 
 export type AppRouter = typeof appRouter;

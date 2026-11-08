@@ -82,6 +82,14 @@
 						Assignments
 					</a>
 				{/if}
+				{#if data.user.role === 'participant'}
+					<a
+						href={resolve('/app/wishlist')}
+						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+					>
+						Wishlist
+					</a>
+				{/if}
 				<a
 					href={resolve('/app/profile')}
 					class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"

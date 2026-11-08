@@ -13,6 +13,8 @@ services:
       HOST: 0.0.0.0
       PORT: 3000
       DATABASE_URL: /app/data/secret-santa.sqlite
+      UPLOADS_DIR: /app/uploads
+      MAX_IMAGE_BYTES: ${MAX_IMAGE_BYTES:-5242880}
     volumes:
       - secret-santa-data:/app/data
       - secret-santa-uploads:/app/uploads

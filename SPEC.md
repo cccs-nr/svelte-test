@@ -718,11 +718,11 @@ The first objective is a working MVP rather than implementing every possible fea
 
 ### Phase 4 — Wishlists and Gift Suggestions
 
-- Implement wishlist management.
-- Implement text-based suggestions.
-- Implement external URLs.
-- Implement image uploads.
-- Display the recipient's wishlist to their assigned Secret Santa.
+- [x] Implement wishlist management.
+- [x] Implement text-based suggestions.
+- [x] Implement external URLs.
+- [x] Implement image uploads.
+- [x] Display the recipient's wishlist to their assigned Secret Santa.
 
 ### Phase 5 — Anonymous Messaging
 

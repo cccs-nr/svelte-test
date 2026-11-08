@@ -1,0 +1,526 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
+	import { TRPCClientError } from '@trpc/client';
+	import type { PageProps } from './$types';
+	import { formatEventBudget, formatBudgetInput } from '#lib/models/event.js';
+	import { trpc } from '#lib/trpc/client.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle
+	} from '#lib/components/ui/card/index.js';
+	import { Input } from '#lib/components/ui/input/index.js';
+
+	type GiftSuggestion = Awaited<ReturnType<typeof trpc.wishlists.mine.query>>[number];
+	type RecipientWishlist = Awaited<ReturnType<typeof trpc.wishlists.assignedRecipient.query>>;
+
+	let { data }: PageProps = $props();
+	let suggestions = $state<GiftSuggestion[]>([]);
+	let recipientWishlist = $state<RecipientWishlist>({ recipient: null, suggestions: [] });
+	let editingId = $state<string | null>(null);
+	let title = $state('');
+	let description = $state('');
+	let url = $state('');
+	let estimatedPrice = $state('');
+	let notes = $state('');
+	let selectedFiles = $state<FileList>();
+	let removeCurrentImage = $state(false);
+	let isLoading = $state(true);
+	let isSaving = $state(false);
+	let isDeleting = $state<string | null>(null);
+	let errorMessage = $state<string | null>(null);
+	let successMessage = $state<string | null>(null);
+	let isLoadFailed = $state(false);
+	let isFormDisabled = $derived(isSaving || isLoading || isDeleting !== null);
+
+	onMount(() => {
+		void loadWishlists();
+	});
+
+	async function loadWishlists(): Promise<boolean> {
+		isLoading = true;
+		isLoadFailed = false;
+		errorMessage = null;
+		try {
+			[suggestions, recipientWishlist] = await Promise.all([
+				trpc.wishlists.mine.query(),
+				trpc.wishlists.assignedRecipient.query()
+			]);
+			return true;
+		} catch (error) {
+			isLoadFailed = true;
+			errorMessage =
+				error instanceof TRPCClientError
+					? error.message
+					: 'Unable to load your wishlists. Please try again.';
+			return false;
+		} finally {
+			isLoading = false;
+		}
+	}
+
+	function startEditing(suggestion: GiftSuggestion): void {
+		editingId = suggestion.id;
+		title = suggestion.title;
+		description = suggestion.description;
+		url = suggestion.url ?? '';
+		estimatedPrice =
+			suggestion.estimatedPriceCents === null
+				? ''
+				: formatBudgetInput(suggestion.estimatedPriceCents);
+		notes = suggestion.notes;
+		selectedFiles = undefined;
+		removeCurrentImage = false;
+		errorMessage = null;
+		successMessage = null;
+	}
+
+	function resetEditor(): void {
+		editingId = null;
+		title = '';
+		description = '';
+		url = '';
+		estimatedPrice = '';
+		notes = '';
+		selectedFiles = undefined;
+		removeCurrentImage = false;
+	}
+
+	function getErrorMessage(error: unknown, fallback: string): string {
+		if (error instanceof TRPCClientError) return error.message;
+		if (error instanceof Error && error.message) return error.message;
+		return fallback;
+	}
+
+	async function checkImageResponse(response: Response, fallback: string): Promise<void> {
+		if (response.ok) return;
+
+		const responseBody = await response.text();
+		let message = `${fallback} (HTTP ${response.status}).`;
+		if (responseBody) {
+			try {
+				const payload: unknown = JSON.parse(responseBody);
+				if (
+					typeof payload === 'object' &&
+					payload !== null &&
+					'error' in payload &&
+					typeof payload.error === 'string'
+				) {
+					message = payload.error;
+				}
+			} catch (error) {
+				if (!(error instanceof SyntaxError)) throw error;
+			}
+		}
+		throw new Error(message);
+	}
+
+	async function uploadImage(suggestionId: string, file: File): Promise<void> {
+		const formData = new FormData();
+		formData.set('suggestionId', suggestionId);
+		formData.set('image', file, file.name);
+		const response = await fetch(resolve('/api/wishlist-images'), {
+			method: 'POST',
+			body: formData
+		});
+		await checkImageResponse(response, 'Unable to upload the image.');
+	}
+
+	async function deleteImage(suggestionId: string): Promise<void> {
+		const imageEndpoint = new URL(resolve('/api/wishlist-images'), window.location.origin);
+		imageEndpoint.searchParams.set('suggestionId', suggestionId);
+		const response = await fetch(imageEndpoint, { method: 'DELETE' });
+		await checkImageResponse(response, 'Unable to remove the image.');
+	}
+
+	async function saveSuggestion(event: SubmitEvent): Promise<void> {
+		event.preventDefault();
+		if (isFormDisabled) return;
+
+		const file = selectedFiles?.[0];
+		if (file && file.size > data.maxImageBytes) {
+			errorMessage = `Choose an image no larger than ${formatFileSize(data.maxImageBytes)}.`;
+			return;
+		}
+
+		isSaving = true;
+		errorMessage = null;
+		successMessage = null;
+		const wasEditing = editingId !== null;
+
+		try {
+			const input = { title, description, url, estimatedPrice, notes };
+			const saved = editingId
+				? await trpc.wishlists.update.mutate({ ...input, id: editingId })
+				: await trpc.wishlists.create.mutate(input);
+
+			if (file) {
+				try {
+					await uploadImage(saved.id, file);
+				} catch (error) {
+					editingId = saved.id;
+					await loadWishlists();
+					errorMessage = `Suggestion saved, but its image could not be uploaded: ${getErrorMessage(
+						error,
+						'Please try again.'
+					)}`;
+					return;
+				}
+			} else if (removeCurrentImage && saved.imageKey) {
+				await deleteImage(saved.id);
+			}
+
+			const refreshed = await loadWishlists();
+			resetEditor();
+			if (refreshed) successMessage = wasEditing ? 'Suggestion updated.' : 'Suggestion saved.';
+		} catch (error) {
+			errorMessage = getErrorMessage(error, 'Unable to save the gift suggestion.');
+		} finally {
+			isSaving = false;
+		}
+	}
+
+	async function deleteSuggestion(suggestion: GiftSuggestion): Promise<void> {
+		if (isFormDisabled) return;
+		if (!globalThis.confirm(`Delete “${suggestion.title}” from your wishlist?`)) return;
+
+		isDeleting = suggestion.id;
+		errorMessage = null;
+		successMessage = null;
+		try {
+			await trpc.wishlists.delete.mutate({ id: suggestion.id });
+			if (editingId === suggestion.id) resetEditor();
+			if (await loadWishlists()) successMessage = 'Suggestion deleted.';
+		} catch (error) {
+			errorMessage = getErrorMessage(error, 'Unable to delete the gift suggestion.');
+		} finally {
+			isDeleting = null;
+		}
+	}
+
+	function formatTimestamp(value: string): string {
+		return new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium' }).format(new Date(value));
+	}
+
+	function imageUrl(imageKey: string): string {
+		return resolve('/api/wishlist-images/[imageKey]', { imageKey });
+	}
+
+	function formatFileSize(bytes: number): string {
+		const mebibyte = 1024 * 1024;
+		if (bytes >= mebibyte) {
+			const precision = bytes % mebibyte === 0 ? 0 : 1;
+			return `${(bytes / mebibyte).toFixed(precision)} MiB`;
+		}
+		return `${Math.ceil(bytes / 1024)} KiB`;
+	}
+</script>
+
+<svelte:head>
+	<title>Wishlists | Secret Santa</title>
+</svelte:head>
+
+<section class="space-y-8">
+	<div>
+		<p class="text-sm font-medium tracking-[0.18em] text-emerald-800 uppercase">Participant</p>
+		<h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">Wishlists</h1>
+		<p class="mt-3 max-w-2xl text-stone-600">
+			Add a few ideas to help your Secret Santa find something you’ll love. Your gift ideas are only
+			shared with your assigned Secret Santa after the draw is finalized.
+		</p>
+		<div class="mt-4">
+			<Button
+				type="button"
+				variant="outline"
+				onclick={() => void loadWishlists()}
+				disabled={isLoading || isSaving || isDeleting !== null}
+			>
+				Refresh wishlists
+			</Button>
+		</div>
+	</div>
+
+	{#if errorMessage}
+		<p
+			class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
+			role="alert"
+		>
+			{errorMessage}
+		</p>
+	{/if}
+	{#if successMessage}
+		<p class="text-sm text-emerald-800" role="status">{successMessage}</p>
+	{/if}
+
+	<Card class="border-stone-200 bg-white">
+		<CardHeader>
+			<CardTitle>{editingId ? 'Edit a gift idea' : 'Add a gift idea'}</CardTitle>
+			<CardDescription>
+				{#if data.giftBudgetCents !== null}
+					The event budget is {formatEventBudget(data.giftBudgetCents, data.currency)}. It’s a
+					guideline, not a spending limit.
+				{:else}
+					Your event budget will appear here once the organizer sets it.
+				{/if}
+				Add as many ideas as you like.
+			</CardDescription>
+		</CardHeader>
+		<CardContent>
+			<form class="grid gap-5 md:grid-cols-2" onsubmit={saveSuggestion}>
+				<div class="space-y-2 md:col-span-2">
+					<label class="text-sm font-medium" for="wishlist-title">Gift name</label>
+					<Input
+						id="wishlist-title"
+						bind:value={title}
+						maxlength={120}
+						autocomplete="off"
+						required
+						disabled={isFormDisabled}
+					/>
+				</div>
+				<div class="space-y-2 md:col-span-2">
+					<label class="text-sm font-medium" for="wishlist-description">Description</label>
+					<textarea
+						id="wishlist-description"
+						bind:value={description}
+						maxlength={2000}
+						rows="3"
+						disabled={isFormDisabled}
+						class="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
+					></textarea>
+				</div>
+				<div class="space-y-2">
+					<label class="text-sm font-medium" for="wishlist-url">Product or store URL</label>
+					<Input
+						id="wishlist-url"
+						type="url"
+						bind:value={url}
+						maxlength={2048}
+						placeholder="https://example.com/item"
+						disabled={isFormDisabled}
+					/>
+				</div>
+				<div class="space-y-2">
+					<label class="text-sm font-medium" for="wishlist-price">Estimated price (CAD)</label>
+					<Input
+						id="wishlist-price"
+						type="text"
+						inputmode="decimal"
+						bind:value={estimatedPrice}
+						maxlength={12}
+						placeholder="25.00"
+						disabled={isFormDisabled}
+					/>
+					<p class="text-xs text-stone-500">Enter dollars with up to two decimal places.</p>
+				</div>
+				<div class="space-y-2 md:col-span-2">
+					<label class="text-sm font-medium" for="wishlist-notes">Notes</label>
+					<textarea
+						id="wishlist-notes"
+						bind:value={notes}
+						maxlength={2000}
+						rows="2"
+						disabled={isFormDisabled}
+						class="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
+					></textarea>
+				</div>
+				<div class="space-y-2 md:col-span-2">
+					<label class="text-sm font-medium" for="wishlist-image">Optional image</label>
+					<Input
+						id="wishlist-image"
+						type="file"
+						accept="image/jpeg,image/png,image/webp"
+						bind:files={selectedFiles}
+						disabled={isFormDisabled}
+					/>
+					<p class="text-xs text-stone-500">
+						JPEG, PNG, or WebP up to {formatFileSize(data.maxImageBytes)}.
+					</p>
+					{#if editingId && suggestions.find((suggestion) => suggestion.id === editingId)?.imageKey}
+						<label class="flex items-center gap-2 text-sm text-stone-600">
+							<input
+								type="checkbox"
+								bind:checked={removeCurrentImage}
+								disabled={isFormDisabled || Boolean(selectedFiles?.length)}
+							/>
+							Remove the current image
+						</label>
+					{/if}
+				</div>
+				<div class="flex flex-wrap gap-3 md:col-span-2">
+					<Button type="submit" disabled={isFormDisabled}>
+						{isSaving ? 'Saving…' : editingId ? 'Save changes' : 'Add gift idea'}
+					</Button>
+					{#if editingId}
+						<Button type="button" variant="outline" onclick={resetEditor} disabled={isFormDisabled}>
+							Cancel
+						</Button>
+					{/if}
+				</div>
+			</form>
+		</CardContent>
+	</Card>
+
+	<div class="grid gap-6 lg:grid-cols-2">
+		<Card class="border-stone-200 bg-white">
+			<CardHeader>
+				<CardTitle>Your gift ideas</CardTitle>
+				<CardDescription>
+					Only you can see these until the organizer finalizes the assignments.
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				{#if isLoading}
+					<p class="text-sm text-stone-500">Loading your wishlist…</p>
+				{:else if isLoadFailed}
+					<p class="text-sm text-stone-600">Your wishlist could not be loaded. Try refreshing.</p>
+				{:else if suggestions.length === 0}
+					<p class="text-sm text-stone-600">No ideas yet. Add one above to get started.</p>
+				{:else}
+					<ul class="space-y-4">
+						{#each suggestions as suggestion (suggestion.id)}
+							<li class="rounded-xl border border-stone-200 p-4">
+								{#if suggestion.imageKey}
+									<img
+										class="mb-4 max-h-56 w-full rounded-lg object-cover"
+										src={imageUrl(suggestion.imageKey)}
+										alt={`Image for ${suggestion.title}`}
+										loading="lazy"
+									/>
+								{/if}
+								<h3 class="font-semibold text-stone-950">{suggestion.title}</h3>
+								{#if suggestion.description}
+									<p class="mt-2 text-sm whitespace-pre-wrap text-stone-600">
+										{suggestion.description}
+									</p>
+								{/if}
+								{#if suggestion.url}
+									<a
+										class="mt-3 inline-block text-sm font-medium text-emerald-800 underline-offset-4 hover:underline"
+										href={suggestion.url}
+										target="_blank"
+										rel="noopener noreferrer external"
+									>
+										View gift link
+									</a>
+								{/if}
+								{#if suggestion.estimatedPriceCents !== null}
+									<p class="mt-2 text-sm text-stone-600">
+										Estimated price: {formatEventBudget(suggestion.estimatedPriceCents, 'CAD')}
+									</p>
+								{/if}
+								{#if suggestion.notes}
+									<p class="mt-2 text-sm whitespace-pre-wrap text-stone-600">
+										Notes: {suggestion.notes}
+									</p>
+								{/if}
+								<p class="mt-3 text-xs text-stone-500">
+									Added {formatTimestamp(suggestion.createdAt)} · Updated
+									{formatTimestamp(suggestion.updatedAt)}
+								</p>
+								<div class="mt-4 flex flex-wrap gap-2">
+									<Button
+										type="button"
+										size="sm"
+										variant="outline"
+										onclick={() => startEditing(suggestion)}
+										disabled={isSaving || isDeleting !== null}
+									>
+										Edit
+									</Button>
+									<Button
+										type="button"
+										size="sm"
+										variant="destructive"
+										onclick={() => deleteSuggestion(suggestion)}
+										disabled={isSaving || isDeleting !== null}
+									>
+										{isDeleting === suggestion.id ? 'Deleting…' : 'Delete'}
+									</Button>
+								</div>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</CardContent>
+		</Card>
+
+		<Card class="border-stone-200 bg-white">
+			<CardHeader>
+				<CardTitle>
+					{recipientWishlist.recipient
+						? `${recipientWishlist.recipient.displayName}’s wishlist`
+						: 'Your recipient’s wishlist'}
+				</CardTitle>
+				<CardDescription>
+					{recipientWishlist.recipient
+						? 'These ideas are private to you as their assigned Secret Santa.'
+						: 'This will be available after the organizer finalizes the draw.'}
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				{#if isLoading}
+					<p class="text-sm text-stone-500">Checking for your assignment…</p>
+				{:else if isLoadFailed}
+					<p class="text-sm text-stone-600">Your recipient’s wishlist could not be loaded.</p>
+				{:else if !recipientWishlist.recipient}
+					<p class="text-sm text-stone-600">
+						Your assigned recipient and their gift ideas will appear here after the draw is
+						finalized.
+					</p>
+				{:else if recipientWishlist.suggestions.length === 0}
+					<p class="text-sm text-stone-600">They haven’t added any gift ideas yet.</p>
+				{:else}
+					<ul class="space-y-4">
+						{#each recipientWishlist.suggestions as suggestion (suggestion.id)}
+							<li class="rounded-xl border border-stone-200 p-4">
+								{#if suggestion.imageKey}
+									<img
+										class="mb-4 max-h-56 w-full rounded-lg object-cover"
+										src={imageUrl(suggestion.imageKey)}
+										alt={`Image for ${suggestion.title}`}
+										loading="lazy"
+									/>
+								{/if}
+								<h3 class="font-semibold text-stone-950">{suggestion.title}</h3>
+								{#if suggestion.description}
+									<p class="mt-2 text-sm whitespace-pre-wrap text-stone-600">
+										{suggestion.description}
+									</p>
+								{/if}
+								{#if suggestion.url}
+									<a
+										class="mt-3 inline-block text-sm font-medium text-emerald-800 underline-offset-4 hover:underline"
+										href={suggestion.url}
+										target="_blank"
+										rel="noopener noreferrer external"
+									>
+										View gift link
+									</a>
+								{/if}
+								{#if suggestion.estimatedPriceCents !== null}
+									<p class="mt-2 text-sm text-stone-600">
+										Estimated price: {formatEventBudget(suggestion.estimatedPriceCents, 'CAD')}
+									</p>
+								{/if}
+								{#if suggestion.notes}
+									<p class="mt-2 text-sm whitespace-pre-wrap text-stone-600">
+										Notes: {suggestion.notes}
+									</p>
+								{/if}
+								<p class="mt-3 text-xs text-stone-500">
+									Added {formatTimestamp(suggestion.createdAt)} · Updated
+									{formatTimestamp(suggestion.updatedAt)}
+								</p>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</CardContent>
+		</Card>
+	</div>
+</section>

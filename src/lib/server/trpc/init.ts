@@ -56,3 +56,10 @@ export const organizerProcedure = protectedProcedure.use(({ ctx, next }) => {
 	requireOrganizer(ctx.user);
 	return next();
 });
+export const participantProcedure = protectedProcedure.use(({ ctx, next }) => {
+	if (ctx.user.role !== 'participant') {
+		throw new TRPCError({ code: 'FORBIDDEN', message: 'Participant access is required.' });
+	}
+
+	return next();
+});
