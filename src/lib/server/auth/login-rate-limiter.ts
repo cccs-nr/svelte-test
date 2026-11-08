@@ -3,7 +3,7 @@ interface RateLimitEntry {
 	resetAt: number;
 }
 
-export class LoginRateLimiter {
+export class FixedWindowRateLimiter {
 	private readonly entries = new Map<string, RateLimitEntry>();
 	private readonly maxAttempts: number;
 	private readonly windowMs: number;
@@ -48,4 +48,5 @@ export class LoginRateLimiter {
 	}
 }
 
-export const loginRateLimiter = new LoginRateLimiter();
+export const loginRateLimiter = new FixedWindowRateLimiter(10, 15 * 60 * 1000);
+export const registrationRateLimiter = new FixedWindowRateLimiter(20, 60 * 60 * 1000);

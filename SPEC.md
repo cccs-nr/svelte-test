@@ -118,7 +118,9 @@ The application is intended for a small, private group.
 
 ### Account creation
 
-Accounts should be managed by the organizer.
+Participant self-registration is open to anyone who can reach the site. Self-registered accounts always receive the participant role; no invite code or email verification is required.
+
+The organizer should also be able to manage accounts.
 
 The organizer should be able to:
 
@@ -127,7 +129,8 @@ The organizer should be able to:
 - Enable or disable accounts.
 - Reset participant passwords.
 - Change participant roles.
-  Do not require public self-registration.
+
+Participants are not forced to change their password at first sign-in, but can change it from their profile.
 
 ### Roles
 
@@ -690,13 +693,20 @@ The first objective is a working MVP rather than implementing every possible fea
 - [x] Implement authentication and sessions.
 - [x] Implement organizer and participant roles.
 
-### Phase 2 — Event and Participant Management
+### Phase 2 — Event and Participant Management (complete)
 
-- Create event configuration.
-- Implement participant management.
-- Implement household management.
-- Configure gift budget and exchange date.
-- Implement participant dashboard.
+- [x] Create event configuration.
+- [x] Implement participant management.
+- [x] Implement household management.
+- [x] Configure the CAD gift budget and exchange date.
+- [x] Implement participant and organizer dashboards.
+
+### Phase 2 implementation decisions
+
+- Self-registration is open to anyone who can reach the site; new accounts are always participants, with no invite code or email verification.
+- Organizers can still create, update, disable, and manage accounts.
+- Participants are not forced to change their password at first sign-in.
+- The event budget is stored as integer CAD cents to avoid floating-point currency values.
 
 ### Phase 3 — Secret Santa Assignments
 
@@ -745,7 +755,6 @@ To keep the project focused, do not implement the following unless required by a
 - Automated product price tracking.
 - AI-powered gift recommendations.
 - Complex real-time infrastructure.
-- Public user registration.
 - Mobile native applications.
   The application should remain self-contained and easy to maintain.
 

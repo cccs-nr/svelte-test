@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { LoginRateLimiter } from './login-rate-limiter.js';
+import { FixedWindowRateLimiter } from './login-rate-limiter.js';
 
-describe('LoginRateLimiter', () => {
+describe('FixedWindowRateLimiter', () => {
 	it('limits attempts per key until the fixed window expires', () => {
-		const limiter = new LoginRateLimiter(2, 100, 2);
+		const limiter = new FixedWindowRateLimiter(2, 100, 2);
 
 		expect(limiter.allow('user-a', 0)).toBe(true);
 		expect(limiter.allow('user-a', 1)).toBe(true);
@@ -14,7 +14,7 @@ describe('LoginRateLimiter', () => {
 	});
 
 	it('clears a key after a successful sign-in', () => {
-		const limiter = new LoginRateLimiter(1, 100, 1);
+		const limiter = new FixedWindowRateLimiter(1, 100, 1);
 
 		expect(limiter.allow('user-a', 0)).toBe(true);
 		expect(limiter.allow('user-a', 1)).toBe(false);
@@ -23,6 +23,6 @@ describe('LoginRateLimiter', () => {
 	});
 
 	it('rejects invalid limiter settings', () => {
-		expect(() => new LoginRateLimiter(0)).toThrow('Rate-limit settings must be positive.');
+		expect(() => new FixedWindowRateLimiter(0)).toThrow('Rate-limit settings must be positive.');
 	});
 });

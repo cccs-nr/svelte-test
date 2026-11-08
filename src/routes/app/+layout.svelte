@@ -46,6 +46,43 @@
 				<span class="grid size-9 place-items-center rounded-xl bg-emerald-800 text-white">S</span>
 				Secret Santa
 			</a>
+			<nav
+				class="order-3 flex w-full flex-wrap gap-2 text-sm sm:order-none sm:w-auto"
+				aria-label="Main navigation"
+			>
+				<a
+					href={resolve('/app')}
+					class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+				>
+					Overview
+				</a>
+				{#if data.user.role === 'organizer'}
+					<a
+						href={resolve('/app/event')}
+						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+					>
+						Event
+					</a>
+					<a
+						href={resolve('/app/participants')}
+						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+					>
+						Participants
+					</a>
+					<a
+						href={resolve('/app/households')}
+						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+					>
+						Households
+					</a>
+				{/if}
+				<a
+					href={resolve('/app/profile')}
+					class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+				>
+					Profile
+				</a>
+			</nav>
 			<div class="flex items-center gap-4">
 				<div class="hidden text-right sm:block">
 					<p class="text-sm font-medium text-stone-900">{data.user.displayName}</p>

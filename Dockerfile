@@ -1,15 +1,17 @@
 FROM node:22-bookworm-slim AS build
 
 WORKDIR /app
+ARG ORIGIN=http://localhost:3000
+ENV ORIGIN=${ORIGIN}
 RUN corepack enable && corepack prepare pnpm@10.8.1 --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN DATABASE_URL=/tmp/secret-santa.sqlite pnpm check \
-	&& DATABASE_URL=/tmp/secret-santa.sqlite pnpm test \
-	&& DATABASE_URL=/tmp/secret-santa.sqlite pnpm build
+RUN DATABASE_URL=/tmp/secret-santa.sqlite ORIGIN=${ORIGIN} pnpm check \
+	&& DATABASE_URL=/tmp/secret-santa.sqlite ORIGIN=${ORIGIN} pnpm test \
+	&& DATABASE_URL=/tmp/secret-santa.sqlite ORIGIN=${ORIGIN} pnpm build
 RUN pnpm prune --prod
 
 FROM node:22-bookworm-slim AS runtime

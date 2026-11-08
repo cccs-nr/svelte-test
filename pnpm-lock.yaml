@@ -781,7 +781,7 @@ packages:
 
   '@sveltejs/kit@3.1.1':
     resolution: {integrity: sha512-BiEMvekYXE9Gu/YhWJ/yJ0WDLH1PX/dmjuAeFp5rrtdmgdzkjt7DvimlSP+/U4tgposl7pkE20luHpcnc6BgRw==}
-    engines: {node: '>=22.17'}
+    engines: {node: '>=22.14'}
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.0.0

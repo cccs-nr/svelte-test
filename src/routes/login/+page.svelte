@@ -93,14 +93,14 @@
 					Make the giving part feel like magic.
 				</h1>
 				<p class="mt-6 max-w-lg text-lg leading-8 text-stone-600">
-					Your family exchange, thoughtfully organized in one private place. Sign in to see what’s
-					next.
+					Your family exchange, thoughtfully organized in one account-protected place. Sign in to
+					see what’s next.
 				</p>
 
 				<div class="mt-10 flex flex-wrap gap-3 text-sm text-stone-600">
 					<div class="inline-flex items-center gap-2 rounded-full bg-white/75 px-4 py-2 shadow-sm">
 						<ShieldCheck size={16} class="text-emerald-800" aria-hidden="true" />
-						Private by design
+						Account protected
 					</div>
 					<div class="inline-flex items-center gap-2 rounded-full bg-white/75 px-4 py-2 shadow-sm">
 						<Gift size={16} class="text-rose-700" aria-hidden="true" />
@@ -118,7 +118,7 @@
 					</p>
 					<CardTitle class="text-2xl tracking-tight">Welcome back</CardTitle>
 					<CardDescription class="text-base">
-						Sign in with the account your organizer created.
+						Sign in with your account to continue to the family exchange.
 					</CardDescription>
 				</CardHeader>
 				<CardContent class="px-7 pb-6 sm:px-8">
@@ -177,7 +177,15 @@
 				<CardFooter
 					class="justify-center border-t border-stone-100 px-7 py-5 text-center text-xs text-stone-500 sm:px-8"
 				>
-					Only invited participants can access this exchange.
+					<span>
+						New to the exchange?
+						<a
+							class="font-medium text-emerald-800 underline-offset-4 hover:underline"
+							href={resolve('/register')}
+						>
+							Create an account
+						</a>
+					</span>
 				</CardFooter>
 			</Card>
 		</div>

@@ -1,6 +1,6 @@
 # Secret Santa
 
-A private, single-event Secret Santa app for a small family group. The MVP uses SvelteKit, TypeScript, tRPC, SQLite, and Drizzle ORM.
+A single-event Secret Santa app for a family group, using SvelteKit, TypeScript, tRPC, SQLite, and Drizzle ORM.
 
 ## Requirements
 
@@ -20,9 +20,11 @@ pnpm dev
 
 The app is available at <http://localhost:5173>. `DATABASE_URL` must point to a writable SQLite file; the example configuration uses `./data/secret-santa.sqlite`.
 
-### Create the first organizer
+### Registration and first organizer
 
-There is no public registration or default password. After migrations, set `INITIAL_ORGANIZER_USERNAME`, `INITIAL_ORGANIZER_DISPLAY_NAME`, and `INITIAL_ORGANIZER_PASSWORD` in your ignored local `.env`, then run:
+Participant self-registration is open to anyone who can reach the site. New accounts always receive the participant role; no invite code or email verification is required. Registration is rate-limited per network.
+
+There is no default organizer account or password. After migrations, set `INITIAL_ORGANIZER_USERNAME`, `INITIAL_ORGANIZER_DISPLAY_NAME`, and `INITIAL_ORGANIZER_PASSWORD` in your ignored local `.env`, then run:
 
 ```sh
 pnpm db:create-organizer
@@ -43,7 +45,7 @@ Do not use schema push for deployed databases; migrations are versioned in `driz
 
 ## Docker deployment
 
-Set `PORT` and `ORIGIN` in `.env`, then start the app:
+Set `PORT` and `ORIGIN` in `.env`, then build and start the app:
 
 ```sh
 docker compose up --build -d
@@ -52,7 +54,7 @@ docker compose ps
 
 SQLite data and future image uploads persist in named Docker volumes. Container startup applies migrations before starting the Node adapter. The health endpoint is `/api/health`.
 
-For Internet access, terminate TLS at a reverse proxy, set `ORIGIN` to the public HTTPS origin, and configure the host firewall to expose only the required ports. Do not expose the app over plain HTTP to the public Internet.
+`ORIGIN` is embedded during the image build, so rebuild after changing it. For Internet access, terminate TLS at a reverse proxy, set `ORIGIN` to the public HTTPS origin, and configure the host firewall to expose only the required ports. Do not expose the app over plain HTTP to the public Internet. Since registration is open, anyone who can reach the site can create a participant account.
 
 To create the initial organizer in Docker, provide the username and password as environment variables to a one-off container, then remove them from the shell environment:
 
@@ -68,7 +70,7 @@ docker compose run --rm \
 unset INITIAL_ORGANIZER_USERNAME INITIAL_ORGANIZER_PASSWORD
 ```
 
-## Phase 1 checks
+## Development checks
 
 ```sh
 pnpm check

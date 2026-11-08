@@ -1,6 +1,9 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        ORIGIN: '${ORIGIN:-http://localhost:${PORT:-3000}}'
     init: true
     restart: unless-stopped
     ports:
@@ -9,7 +12,6 @@ services:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: 3000
-      ORIGIN: '${ORIGIN:-http://localhost:${PORT:-3000}}'
       DATABASE_URL: /app/data/secret-santa.sqlite
     volumes:
       - secret-santa-data:/app/data

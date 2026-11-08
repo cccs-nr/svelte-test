@@ -1,0 +1,38 @@
+import { z } from 'zod';
+import { displayNameSchema, passwordSchema, userRoleSchema, usernameSchema } from '#lib/auth.js';
+
+export const householdNameSchema = z.string().trim().min(1).max(80);
+
+const householdIdSchema = z.string().min(1).nullable();
+const accountIdSchema = z.string().min(1);
+
+export const createAccountInputSchema = z.object({
+	username: usernameSchema,
+	displayName: displayNameSchema,
+	password: passwordSchema,
+	role: userRoleSchema,
+	householdId: householdIdSchema.default(null)
+});
+
+export const updateAccountInputSchema = z.object({
+	id: accountIdSchema,
+	username: usernameSchema,
+	displayName: displayNameSchema,
+	role: userRoleSchema,
+	isActive: z.boolean(),
+	householdId: householdIdSchema
+});
+
+export const resetPasswordInputSchema = z.object({
+	id: accountIdSchema,
+	password: passwordSchema
+});
+
+export const updateProfileInputSchema = z.object({
+	displayName: displayNameSchema
+});
+
+export const changePasswordInputSchema = z.object({
+	currentPassword: passwordSchema,
+	newPassword: passwordSchema
+});

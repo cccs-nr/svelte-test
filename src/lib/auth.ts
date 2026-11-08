@@ -12,6 +12,11 @@ export const usernameSchema = z
 
 export const passwordSchema = z.string().min(12).max(128);
 export const displayNameSchema = z.string().trim().min(1).max(64);
+export const registrationSchema = z.object({
+	username: usernameSchema,
+	displayName: displayNameSchema,
+	password: passwordSchema
+});
 
 export type UserRole = z.infer<typeof userRoleSchema>;
 
