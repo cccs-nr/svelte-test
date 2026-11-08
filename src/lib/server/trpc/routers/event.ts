@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { eventSettingsInputSchema, SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
-import { events } from '#lib/server/db/schema.js';
+import { assignments, events } from '#lib/server/db/schema.js';
 import { organizerProcedure, protectedProcedure, router } from '#lib/server/trpc/init.js';
 
 function getEvent(database: AppDatabase) {
@@ -27,6 +27,18 @@ export const eventRouter = router({
 		return getEvent(ctx.db) ?? null;
 	}),
 	save: organizerProcedure.input(eventSettingsInputSchema).mutation(({ ctx, input }) => {
+		const assignmentSetExists = ctx.db
+			.select({ id: assignments.id })
+			.from(assignments)
+			.where(eq(assignments.eventId, SINGLE_EVENT_ID))
+			.get();
+		if (assignmentSetExists) {
+			throw new TRPCError({
+				code: 'CONFLICT',
+				message: 'Reset assignments before changing event settings.'
+			});
+		}
+
 		ctx.db
 			.insert(events)
 			.values({

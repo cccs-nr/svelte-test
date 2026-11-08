@@ -6,9 +6,10 @@ import {
 	resetPasswordInputSchema,
 	updateAccountInputSchema
 } from '#lib/models/participants.js';
+import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { hashPassword } from '#lib/server/auth/password.js';
-import { households, sessions, users } from '#lib/server/db/schema.js';
+import { assignments, households, sessions, users } from '#lib/server/db/schema.js';
 import { organizerProcedure, router } from '#lib/server/trpc/init.js';
 
 function getAccount(database: AppDatabase, id: string) {
@@ -60,6 +61,18 @@ export const participantsRouter = router({
 			.all()
 	),
 	create: organizerProcedure.input(createAccountInputSchema).mutation(async ({ ctx, input }) => {
+		const assignmentSetExists = ctx.db
+			.select({ id: assignments.id })
+			.from(assignments)
+			.where(eq(assignments.eventId, SINGLE_EVENT_ID))
+			.get();
+		if (assignmentSetExists) {
+			throw new TRPCError({
+				code: 'CONFLICT',
+				message: 'Reset assignments before adding participants.'
+			});
+		}
+
 		assertHouseholdExists(ctx.db, input.householdId);
 
 		const id = randomUUID();
@@ -96,6 +109,23 @@ export const participantsRouter = router({
 			const current = transaction.select().from(users).where(eq(users.id, input.id)).get();
 			if (!current) {
 				throw new TRPCError({ code: 'NOT_FOUND', message: 'Account not found.' });
+			}
+
+			const assignmentSetExists = transaction
+				.select({ id: assignments.id })
+				.from(assignments)
+				.where(eq(assignments.eventId, SINGLE_EVENT_ID))
+				.get();
+			if (
+				assignmentSetExists &&
+				(current.role !== input.role ||
+					current.isActive !== input.isActive ||
+					current.householdId !== input.householdId)
+			) {
+				throw new TRPCError({
+					code: 'CONFLICT',
+					message: 'Reset assignments before changing participant status, role, or household.'
+				});
 			}
 
 			if (current.id === ctx.user.id && (!input.isActive || input.role !== 'organizer')) {

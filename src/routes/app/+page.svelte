@@ -144,6 +144,48 @@
 				</CardContent>
 			</Card>
 		</div>
+		{#if data.user.role === 'participant'}
+			<Card class="border-stone-200 bg-white">
+				<CardHeader>
+					<CardTitle>Your Secret Santa recipient</CardTitle>
+					<CardDescription>
+						Recipient details stay hidden until the organizer finalizes the assignments.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					{#if data.recipient}
+						<p class="text-lg font-medium text-stone-950">{data.recipient.displayName}</p>
+					{:else if data.event.status === 'assignments_generated'}
+						<p class="text-sm text-stone-600">The organizer is reviewing the draw.</p>
+					{:else}
+						<p class="text-sm text-stone-600">Your recipient has not been assigned yet.</p>
+					{/if}
+				</CardContent>
+			</Card>
+		{:else if data.organizerStats}
+			<Card class="border-stone-200 bg-white">
+				<CardHeader>
+					<CardTitle>Gift assignments</CardTitle>
+					<CardDescription>
+						{#if data.organizerStats.assignmentCount === 0}
+							No assignments have been generated.
+						{:else if data.organizerStats.assignmentsFinalized}
+							The draw is finalized. Participants can now see their own recipient.
+						{:else}
+							{data.organizerStats.assignmentCount} assignments are awaiting finalization.
+						{/if}
+					</CardDescription>
+				</CardHeader>
+				<CardFooter>
+					<a
+						class="text-sm font-medium text-emerald-800 hover:underline"
+						href={resolve('/app/assignments')}
+					>
+						Manage assignments
+					</a>
+				</CardFooter>
+			</Card>
+		{/if}
 	{:else if data.user.role === 'organizer'}
 		<Card class="border-stone-200 bg-white">
 			<CardHeader>

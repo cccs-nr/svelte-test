@@ -710,11 +710,11 @@ The first objective is a working MVP rather than implementing every possible fea
 
 ### Phase 3 — Secret Santa Assignments
 
-- Implement randomized assignment generation.
-- Implement household exclusion constraints.
-- Implement assignment validation.
-- Implement assignment finalization.
-- Implement confidential recipient visibility.
+- [x] Implement randomized assignment generation.
+- [x] Implement household exclusion constraints.
+- [x] Implement assignment validation.
+- [x] Implement assignment finalization.
+- [x] Implement confidential recipient visibility.
 
 ### Phase 4 — Wishlists and Gift Suggestions
 

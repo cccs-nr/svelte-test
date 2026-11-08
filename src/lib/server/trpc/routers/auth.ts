@@ -4,10 +4,11 @@ import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { passwordSchema, registrationSchema, usernameSchema } from '#lib/auth.js';
 import { changePasswordInputSchema, updateProfileInputSchema } from '#lib/models/participants.js';
+import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import { loginRateLimiter, registrationRateLimiter } from '#lib/server/auth/login-rate-limiter.js';
 import { createUserSession, deleteUserSession } from '#lib/server/auth/session.js';
 import { hashPassword, verifyPassword } from '#lib/server/auth/password.js';
-import { sessions, users } from '#lib/server/db/schema.js';
+import { assignments, sessions, users } from '#lib/server/db/schema.js';
 import { protectedProcedure, publicProcedure, router } from '#lib/server/trpc/init.js';
 
 const loginInput = z.object({
@@ -52,6 +53,18 @@ export const authRouter = router({
 			throw new TRPCError({
 				code: 'CONFLICT',
 				message: 'Sign out before creating another account.'
+			});
+		}
+
+		const assignmentSetExists = ctx.db
+			.select({ id: assignments.id })
+			.from(assignments)
+			.where(eq(assignments.eventId, SINGLE_EVENT_ID))
+			.get();
+		if (assignmentSetExists) {
+			throw new TRPCError({
+				code: 'CONFLICT',
+				message: 'Registration is paused while assignments exist. Ask the organizer to reset them.'
 			});
 		}
 

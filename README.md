@@ -43,6 +43,12 @@ pnpm db:migrate
 
 Do not use schema push for deployed databases; migrations are versioned in `drizzle/`.
 
+### Assignment lifecycle
+
+Organizers can manage the draw from **Assignments** after opening the event. The app checks whether a complete draw is possible, assigns every active participant exactly one recipient, and prevents self-assignments and matches within the same household. The organizer sees readiness and validation status, never the full recipient mapping.
+
+Generated assignments remain private until the organizer finalizes the draw. Regenerating a draft requires confirmation; each participant can see only their own recipient after finalization. Resetting a finalized draw also requires confirmation and reopens the event. While assignment rows exist, changes that could invalidate the draw (such as participant registration, activation, role, or household membership changes, and event edits) are blocked until the organizer resets it.
+
 ## Docker deployment
 
 Set `PORT` and `ORIGIN` in `.env`, then build and start the app:

@@ -88,6 +88,32 @@ export const users = sqliteTable(
 	]
 );
 
+export const assignments = sqliteTable(
+	'assignments',
+	{
+		id: text('id').primaryKey(),
+		eventId: text('event_id')
+			.notNull()
+			.references(() => events.id, { onDelete: 'cascade' }),
+		giverId: text('giver_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		receiverId: text('receiver_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		finalizedAt: integer('finalized_at', { mode: 'timestamp_ms' })
+	},
+	(table) => [
+		uniqueIndex('assignments_event_giver_unique').on(table.eventId, table.giverId),
+		uniqueIndex('assignments_event_receiver_unique').on(table.eventId, table.receiverId),
+		index('assignments_giver_id_idx').on(table.giverId),
+		check('assignments_no_self_check', sql`${table.giverId} <> ${table.receiverId}`)
+	]
+);
+
 export const sessions = sqliteTable(
 	'sessions',
 	{
@@ -111,3 +137,4 @@ export const sessions = sqliteTable(
 export type UserRecord = typeof users.$inferSelect;
 export type HouseholdRecord = typeof households.$inferSelect;
 export type EventRecord = typeof events.$inferSelect;
+export type AssignmentRecord = typeof assignments.$inferSelect;

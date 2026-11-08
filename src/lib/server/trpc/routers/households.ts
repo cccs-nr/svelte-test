@@ -1,9 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { and, asc, count, eq, ne, sql } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
+import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import { householdNameSchema } from '#lib/models/participants.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
-import { households, users } from '#lib/server/db/schema.js';
+import { assignments, households, users } from '#lib/server/db/schema.js';
 import { organizerProcedure, router } from '#lib/server/trpc/init.js';
 import { z } from 'zod';
 
@@ -88,6 +89,24 @@ export const householdRouter = router({
 			return { id: input.id, name: input.name, memberCount: memberCount ?? 0 };
 		}),
 	remove: organizerProcedure.input(householdIdSchema).mutation(({ ctx, input: id }) => {
+		const assignmentSetExists = ctx.db
+			.select({ id: assignments.id })
+			.from(assignments)
+			.where(eq(assignments.eventId, SINGLE_EVENT_ID))
+			.get();
+		const householdHasMembers = ctx.db
+			.select({ id: users.id })
+			.from(users)
+			.where(eq(users.householdId, id))
+			.get();
+
+		if (assignmentSetExists && householdHasMembers) {
+			throw new TRPCError({
+				code: 'CONFLICT',
+				message: 'Reset assignments before deleting a household with participants.'
+			});
+		}
+
 		const result = ctx.db.delete(households).where(eq(households.id, id)).run();
 		if (result.changes === 0) {
 			throw new TRPCError({ code: 'NOT_FOUND', message: 'Household not found.' });

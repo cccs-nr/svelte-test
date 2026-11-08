@@ -75,6 +75,12 @@
 					>
 						Households
 					</a>
+					<a
+						href={resolve('/app/assignments')}
+						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+					>
+						Assignments
+					</a>
 				{/if}
 				<a
 					href={resolve('/app/profile')}
