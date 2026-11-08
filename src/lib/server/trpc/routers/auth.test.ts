@@ -86,7 +86,8 @@ describe('auth router', () => {
 			username: 'organizer',
 			displayName: 'Organizer',
 			role: 'organizer',
-			isParticipating: false
+			isParticipating: false,
+			hasAvatar: false
 		});
 		expect(cookies.get(SESSION_COOKIE_NAME)).toBeDefined();
 	});
@@ -105,7 +106,8 @@ describe('auth router', () => {
 			username: 'newmember',
 			displayName: 'New Member',
 			role: 'participant',
-			isParticipating: true
+			isParticipating: true,
+			hasAvatar: false
 		});
 		expect(cookies.get(SESSION_COOKIE_NAME)).toBeDefined();
 

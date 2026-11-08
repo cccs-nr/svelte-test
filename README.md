@@ -57,13 +57,13 @@ After the draw is finalized, each participant can start a private conversation w
 
 Organizer accounts are excluded from the draw by default. An organizer can opt in from **Profile** while keeping organizer access; they will see only their own recipient and assigned wishlist. Regular participant accounts remain in the draw. Participation cannot be changed while assignments exist.
 
-The appearance toggle follows the operating system theme until changed, then saves the selected light or dark mode in the browser. Wishlist images can be opened in an accessible full-size viewer and dismissed with Escape, the close button, or by selecting the backdrop. The app navigation collapses to a menu on narrow screens.
+The top-nav avatar opens a Google-style account menu with profile, theme, and sign-out actions. The appearance toggle follows the operating system theme until changed, then saves the selected light or dark mode in the browser. Wishlist images can be opened in an accessible full-size viewer and dismissed with Escape, the close button, or by selecting the backdrop. The app navigation collapses to a menu on narrow screens.
 
 ### Wishlists and gift ideas
 
 Participants can add, edit, and remove any number of gift ideas from **Wishlist**, including descriptions, notes, optional external product links, estimated CAD prices, and optional images. The configured gift budget is displayed as a guideline. Wishlists are private to their owner until assignments are finalized; afterward, each participant can view only their assigned recipient’s list.
 
-Wishlist images are validated as JPEG, PNG, or WebP from their file contents and stored outside the source tree. `UPLOADS_DIR` controls local storage and `MAX_IMAGE_BYTES` sets the per-image limit (default 5 MiB, maximum 25 MiB). Docker stores images in the persistent `secret-santa-uploads` volume.
+Wishlist and profile images are validated as JPEG, PNG, or WebP from their file contents and stored outside the source tree. `UPLOADS_DIR` controls local storage and `MAX_IMAGE_BYTES` sets the per-image limit (default 5 MiB, maximum 25 MiB). Profile images are private to their owner except that a participant may see their assigned recipient’s avatar in their giver-side message view. A recipient continues to see their Secret Santa as anonymous. Docker stores images in the persistent `secret-santa-uploads` volume.
 
 ## Docker deployment
 

@@ -9,7 +9,7 @@ import {
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { giftSuggestions, users } from '#lib/server/db/schema.js';
 import { getFinalizedRecipientId } from '#lib/server/wishlist-access.js';
-import { removeWishlistImage } from '#lib/server/wishlist-image-storage.js';
+import { removeImage } from '#lib/server/image-storage.js';
 import { participantProcedure, router } from '#lib/server/trpc/init.js';
 
 const suggestionColumns = {
@@ -144,7 +144,7 @@ export const wishlistsRouter = router({
 
 			if (existing.imageKey && existing.imageMimeType) {
 				try {
-					await removeWishlistImage(existing.imageKey, existing.imageMimeType);
+					await removeImage(existing.imageKey, existing.imageMimeType);
 				} catch (error) {
 					console.error('Failed to remove an image after deleting its gift suggestion.', error);
 					throw new TRPCError({

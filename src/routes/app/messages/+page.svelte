@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
+	import type { PageProps } from './$types';
 	import { trpc } from '#lib/trpc/client.js';
+	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import {
 		Card,
@@ -15,6 +18,7 @@
 	type Direction = 'asGiver' | 'asRecipient';
 	type ChatMessage = NonNullable<Conversations['asGiver']>['messages'][number];
 
+	let { data }: PageProps = $props();
 	let conversations = $state<Conversations>({ asGiver: null, asRecipient: null });
 	let drafts = $state<Record<Direction, string>>({ asGiver: '', asRecipient: '' });
 	let isLoading = $state(true);
@@ -220,16 +224,38 @@
 								aria-live="polite"
 							>
 								{#each conversations.asGiver.messages as message (messageKey(message))}
-									<li class="rounded-xl bg-stone-50 p-4">
-										<div class="flex items-baseline justify-between gap-3">
-											<p class="font-medium text-stone-900">{message.senderLabel}</p>
-											<time class="text-xs text-stone-500" datetime={message.sentAt}>
-												{formatTimestamp(message.sentAt)}
-											</time>
+									<li
+										class={`flex items-start gap-3 ${message.senderLabel === 'You' ? 'flex-row-reverse' : ''}`}
+									>
+										{#if message.senderLabel === 'You'}
+											<ProfileAvatar
+												displayName={data.displayName}
+												hasAvatar={data.hasAvatar}
+												imageVersion={data.avatarVersion}
+												size="sm"
+											/>
+										{:else}
+											<ProfileAvatar
+												displayName={conversations.asGiver.recipientDisplayName}
+												hasAvatar={conversations.asGiver.recipientHasAvatar}
+												imageSrc={resolve('/api/message-avatar')}
+												imageVersion={conversations.asGiver.recipientAvatarVersion}
+												size="sm"
+											/>
+										{/if}
+										<div
+											class={`max-w-[85%] min-w-0 flex-1 rounded-2xl p-4 ${message.senderLabel === 'You' ? 'bg-emerald-100' : 'bg-stone-50'}`}
+										>
+											<div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+												<p class="font-medium text-stone-900">{message.senderLabel}</p>
+												<time class="text-xs text-stone-500" datetime={message.sentAt}>
+													{formatTimestamp(message.sentAt)}
+												</time>
+											</div>
+											<p class="mt-2 text-sm whitespace-pre-wrap text-stone-700">
+												{message.content}
+											</p>
 										</div>
-										<p class="mt-2 text-sm whitespace-pre-wrap text-stone-700">
-											{message.content}
-										</p>
 									</li>
 								{/each}
 							</ol>
@@ -283,16 +309,32 @@
 								aria-live="polite"
 							>
 								{#each conversations.asRecipient.messages as message (messageKey(message))}
-									<li class="rounded-xl bg-stone-50 p-4">
-										<div class="flex items-baseline justify-between gap-3">
-											<p class="font-medium text-stone-900">{message.senderLabel}</p>
-											<time class="text-xs text-stone-500" datetime={message.sentAt}>
-												{formatTimestamp(message.sentAt)}
-											</time>
+									<li
+										class={`flex items-start gap-3 ${message.senderLabel === 'You' ? 'flex-row-reverse' : ''}`}
+									>
+										{#if message.senderLabel === 'You'}
+											<ProfileAvatar
+												displayName={data.displayName}
+												hasAvatar={data.hasAvatar}
+												imageVersion={data.avatarVersion}
+												size="sm"
+											/>
+										{:else}
+											<ProfileAvatar displayName="Secret Santa" hasAvatar={false} size="sm" />
+										{/if}
+										<div
+											class={`max-w-[85%] min-w-0 flex-1 rounded-2xl p-4 ${message.senderLabel === 'You' ? 'bg-emerald-100' : 'bg-stone-50'}`}
+										>
+											<div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+												<p class="font-medium text-stone-900">{message.senderLabel}</p>
+												<time class="text-xs text-stone-500" datetime={message.sentAt}>
+													{formatTimestamp(message.sentAt)}
+												</time>
+											</div>
+											<p class="mt-2 text-sm whitespace-pre-wrap text-stone-700">
+												{message.content}
+											</p>
 										</div>
-										<p class="mt-2 text-sm whitespace-pre-wrap text-stone-700">
-											{message.content}
-										</p>
 									</li>
 								{/each}
 							</ol>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
 	import type { PageProps } from './$types';
 	import { Button } from '#lib/components/ui/button/index.js';
@@ -11,6 +12,7 @@
 		CardTitle
 	} from '#lib/components/ui/card/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
+	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 	import { trpc } from '#lib/trpc/client.js';
 
 	let { data }: PageProps = $props();
@@ -19,9 +21,106 @@
 	let currentPassword = $state('');
 	let newPassword = $state('');
 	let confirmPassword = $state('');
+	let avatarFiles = $state<FileList>();
+	let isSavingAvatar = $state(false);
+	let avatarErrorMessage = $state<string | null>(null);
+	let avatarSuccessMessage = $state<string | null>(null);
 	let isSaving = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let successMessage = $state<string | null>(null);
+
+	async function checkAvatarResponse(response: Response, fallback: string): Promise<void> {
+		if (response.ok) return;
+
+		let message = `${fallback} (HTTP ${response.status}).`;
+		const responseBody = await response.text();
+		if (responseBody) {
+			try {
+				const payload: unknown = JSON.parse(responseBody);
+				if (
+					typeof payload === 'object' &&
+					payload !== null &&
+					'error' in payload &&
+					typeof payload.error === 'string'
+				) {
+					message = payload.error;
+				}
+			} catch (error) {
+				if (!(error instanceof SyntaxError)) throw error;
+			}
+		}
+
+		throw new Error(message);
+	}
+
+	async function uploadAvatar(event: SubmitEvent): Promise<void> {
+		event.preventDefault();
+		if (isSavingAvatar) return;
+
+		const image = avatarFiles?.[0];
+		if (!image) {
+			avatarErrorMessage = 'Choose a picture to upload.';
+			return;
+		}
+		if (image.size > data.maxImageBytes) {
+			avatarErrorMessage = `Choose an image no larger than ${Math.ceil(
+				data.maxImageBytes / (1024 * 1024)
+			)} MiB.`;
+			return;
+		}
+
+		isSavingAvatar = true;
+		avatarErrorMessage = null;
+		avatarSuccessMessage = null;
+		try {
+			const formData = new FormData();
+			formData.set('image', image, image.name);
+			const response = await fetch(resolve('/api/profile-image'), {
+				method: 'POST',
+				body: formData
+			});
+			await checkAvatarResponse(response, 'Unable to update your profile picture.');
+			avatarFiles = undefined;
+			await invalidateAll();
+			avatarSuccessMessage = 'Profile picture updated.';
+		} catch (error) {
+			avatarErrorMessage =
+				error instanceof TRPCClientError
+					? error.message
+					: error instanceof Error
+						? error.message
+						: 'Unable to update your profile picture.';
+		} finally {
+			isSavingAvatar = false;
+		}
+	}
+
+	async function removeAvatar(): Promise<void> {
+		if (isSavingAvatar || !data.profile.hasAvatar) return;
+		if (!globalThis.confirm('Remove your profile picture?')) return;
+
+		isSavingAvatar = true;
+		avatarErrorMessage = null;
+		avatarSuccessMessage = null;
+		try {
+			const response = await fetch(resolve('/api/profile-image'), { method: 'DELETE' });
+			await checkAvatarResponse(response, 'Unable to remove your profile picture.');
+			await invalidateAll();
+			avatarSuccessMessage = 'Profile picture removed.';
+		} catch (error) {
+			avatarErrorMessage =
+				error instanceof Error ? error.message : 'Unable to remove your profile picture.';
+		} finally {
+			isSavingAvatar = false;
+		}
+	}
+
+	function formatFileSize(bytes: number): string {
+		const mebibyte = 1024 * 1024;
+		return bytes >= mebibyte
+			? `${(bytes / mebibyte).toFixed(bytes % mebibyte === 0 ? 0 : 1)} MiB`
+			: `${Math.ceil(bytes / 1024)} KiB`;
+	}
 
 	async function saveProfile(event: SubmitEvent): Promise<void> {
 		event.preventDefault();
@@ -101,6 +200,60 @@
 	{#if successMessage}
 		<p class="text-sm text-emerald-800" role="status">{successMessage}</p>
 	{/if}
+
+	<Card class="border-stone-200 bg-white">
+		<CardHeader>
+			<CardTitle>Profile picture</CardTitle>
+			<CardDescription>
+				Your picture appears in your account menu and on your side of messages. Your Secret Santa’s
+				identity stays private.
+			</CardDescription>
+		</CardHeader>
+		<CardContent class="flex flex-col gap-5 sm:flex-row sm:items-center">
+			<ProfileAvatar
+				displayName={data.profile.displayName}
+				hasAvatar={data.profile.hasAvatar}
+				imageVersion={data.profile.avatarVersion}
+				size="lg"
+			/>
+			<div class="min-w-0 flex-1 space-y-4">
+				{#if avatarErrorMessage}
+					<p class="text-sm text-rose-700" role="alert">{avatarErrorMessage}</p>
+				{/if}
+				{#if avatarSuccessMessage}
+					<p class="text-sm text-emerald-800" role="status">{avatarSuccessMessage}</p>
+				{/if}
+				<form class="flex flex-wrap items-end gap-3" onsubmit={uploadAvatar}>
+					<div class="min-w-0 flex-1 space-y-2">
+						<label class="text-sm font-medium" for="profile-picture">Choose a picture</label>
+						<Input
+							id="profile-picture"
+							type="file"
+							accept="image/jpeg,image/png,image/webp"
+							bind:files={avatarFiles}
+							disabled={isSavingAvatar}
+						/>
+						<p class="text-xs text-stone-500">
+							JPEG, PNG, or WebP up to {formatFileSize(data.maxImageBytes)}.
+						</p>
+					</div>
+					<Button type="submit" disabled={isSavingAvatar}>
+						{isSavingAvatar ? 'Uploading…' : 'Upload'}
+					</Button>
+					{#if data.profile.hasAvatar}
+						<Button
+							type="button"
+							variant="outline"
+							onclick={removeAvatar}
+							disabled={isSavingAvatar}
+						>
+							Remove
+						</Button>
+					{/if}
+				</form>
+			</div>
+		</CardContent>
+	</Card>
 
 	<Card class="border-stone-200 bg-white">
 		<CardHeader>

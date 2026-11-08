@@ -3,14 +3,11 @@ import type { RequestHandler } from './$types';
 import { giftSuggestions } from '#lib/server/db/schema.js';
 import { db } from '#lib/server/db/index.js';
 import { canViewWishlist } from '#lib/server/wishlist-access.js';
-import {
-	readWishlistImage,
-	type WishlistImageMimeType
-} from '#lib/server/wishlist-image-storage.js';
+import { readImage, type ImageMimeType } from '#lib/server/image-storage.js';
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function isImageMimeType(value: string): value is WishlistImageMimeType {
+function isImageMimeType(value: string): value is ImageMimeType {
 	return value === 'image/jpeg' || value === 'image/png' || value === 'image/webp';
 }
 
@@ -43,7 +40,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 
 	let image: Buffer;
 	try {
-		image = await readWishlistImage(suggestion.imageKey, suggestion.imageMimeType);
+		image = await readImage(suggestion.imageKey, suggestion.imageMimeType);
 	} catch (error) {
 		if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return notFound();
 		throw error;

@@ -1,5 +1,6 @@
 import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { eq } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import type { AuthenticatedUser } from '#lib/auth.js';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
@@ -133,6 +134,13 @@ describe('anonymous messaging router', () => {
 	it('lets the giver start a private conversation and hides sender identity from the recipient', async () => {
 		const alice = appRouter.createCaller(createContext(participants[0]));
 		const bob = appRouter.createCaller(createContext(participants[1]));
+		db.update(users)
+			.set({
+				avatarKey: '00000000-0000-4000-8000-000000000001',
+				avatarMimeType: 'image/png'
+			})
+			.where(eq(users.id, 'bob'))
+			.run();
 
 		await expect(
 			bob.messages.send({ direction: 'asRecipient', content: 'Hello!' })
@@ -144,7 +152,8 @@ describe('anonymous messaging router', () => {
 		const aliceThreads = await alice.conversations.list();
 		expect(aliceThreads.asGiver).toMatchObject({
 			hasConversation: true,
-			recipientDisplayName: 'Bob'
+			recipientDisplayName: 'Bob',
+			recipientHasAvatar: true
 		});
 		expect(aliceThreads.asGiver?.messages[0]?.senderLabel).toBe('You');
 
@@ -153,6 +162,7 @@ describe('anonymous messaging router', () => {
 			content: 'Do you have a favorite color?',
 			senderLabel: 'Your Secret Santa'
 		});
+		expect(bobThreads.asRecipient).not.toHaveProperty('recipientHasAvatar');
 		expect(Object.keys(bobThreads.asRecipient?.messages[0] ?? {}).sort()).toEqual([
 			'content',
 			'id',

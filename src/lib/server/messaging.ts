@@ -9,6 +9,8 @@ import { assignments, conversations, messages, users } from '#lib/server/db/sche
 type GiverThreadContext = {
 	assignmentId: string;
 	recipientDisplayName: string;
+	recipientHasAvatar: boolean;
+	recipientAvatarVersion: number;
 };
 
 type RecipientThreadContext = {
@@ -25,6 +27,8 @@ type MessageView = {
 type GiverThreadView = {
 	hasConversation: boolean;
 	recipientDisplayName: string;
+	recipientHasAvatar: boolean;
+	recipientAvatarVersion: number;
 	messages: MessageView[];
 };
 
@@ -54,10 +58,12 @@ function getThreadContext(
 	direction: MessageDirection
 ): GiverThreadContext | RecipientThreadContext | undefined {
 	if (direction === 'asGiver') {
-		return database
+		const assignment = database
 			.select({
 				assignmentId: assignments.id,
-				recipientDisplayName: users.displayName
+				recipientDisplayName: users.displayName,
+				avatarKey: users.avatarKey,
+				avatarVersion: users.updatedAt
 			})
 			.from(assignments)
 			.innerJoin(users, eq(users.id, assignments.receiverId))
@@ -69,6 +75,14 @@ function getThreadContext(
 				)
 			)
 			.get();
+		return assignment
+			? {
+					assignmentId: assignment.assignmentId,
+					recipientDisplayName: assignment.recipientDisplayName,
+					recipientHasAvatar: Boolean(assignment.avatarKey),
+					recipientAvatarVersion: assignment.avatarVersion.getTime()
+				}
+			: undefined;
 	}
 
 	return database
@@ -149,6 +163,9 @@ function getThread(
 		return {
 			hasConversation: Boolean(conversation),
 			recipientDisplayName: 'recipientDisplayName' in context ? context.recipientDisplayName : '',
+			recipientHasAvatar: 'recipientHasAvatar' in context ? context.recipientHasAvatar : false,
+			recipientAvatarVersion:
+				'recipientAvatarVersion' in context ? context.recipientAvatarVersion : 0,
 			messages
 		};
 	}

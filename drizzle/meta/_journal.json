@@ -43,6 +43,13 @@
       "when": 1794152847210,
       "tag": "0005_organizer_participation",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1794157624571,
+      "tag": "0006_account_avatars",
+      "breakpoints": true
     }
   ]
 }

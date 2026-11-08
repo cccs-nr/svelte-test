@@ -5,11 +5,11 @@ import { isExchangeParticipant } from '#lib/auth.js';
 import { giftSuggestions } from '#lib/server/db/schema.js';
 import { db } from '#lib/server/db/index.js';
 import {
-	detectWishlistImageMimeType,
-	removeWishlistImage,
-	storeWishlistImage,
-	type WishlistImageMimeType
-} from '#lib/server/wishlist-image-storage.js';
+	detectImageMimeType,
+	removeImage,
+	storeImage,
+	type ImageMimeType
+} from '#lib/server/image-storage.js';
 
 const maxMultipartOverheadBytes = 64 * 1024;
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -29,7 +29,7 @@ function hasSameOrigin(request: Request, requestUrl: URL): boolean {
 	}
 }
 
-function isImageMimeType(value: string): value is WishlistImageMimeType {
+function isImageMimeType(value: string): value is ImageMimeType {
 	return value === 'image/jpeg' || value === 'image/png' || value === 'image/webp';
 }
 
@@ -90,12 +90,12 @@ export const POST: RequestHandler = async ({ request, url, locals }) => {
 	if (!suggestion) return failure(404, 'Gift suggestion not found.');
 
 	const bytes = Buffer.from(await file.arrayBuffer());
-	const mimeType = detectWishlistImageMimeType(bytes);
+	const mimeType = detectImageMimeType(bytes);
 	if (!mimeType) {
 		return failure(415, 'Use a valid JPEG, PNG, or WebP image.');
 	}
 
-	const imageKey = await storeWishlistImage(bytes, mimeType);
+	const imageKey = await storeImage(bytes, mimeType);
 	let updateResult: { changes: number };
 	try {
 		updateResult = db
@@ -113,20 +113,20 @@ export const POST: RequestHandler = async ({ request, url, locals }) => {
 			.run();
 	} catch (error) {
 		try {
-			await removeWishlistImage(imageKey, mimeType);
+			await removeImage(imageKey, mimeType);
 		} catch (cleanupError) {
 			console.error('Failed to remove a new image after its database update failed.', cleanupError);
 		}
 		throw error;
 	}
 	if (updateResult.changes === 0) {
-		await removeWishlistImage(imageKey, mimeType);
+		await removeImage(imageKey, mimeType);
 		return failure(409, 'The suggestion image changed. Refresh your wishlist and try again.');
 	}
 
 	const previousMimeType = suggestion.imageMimeType;
 	if (suggestion.imageKey && previousMimeType && isImageMimeType(previousMimeType)) {
-		await removeWishlistImage(suggestion.imageKey, previousMimeType);
+		await removeImage(suggestion.imageKey, previousMimeType);
 	}
 
 	return Response.json({ imageKey });
@@ -173,6 +173,6 @@ export const DELETE: RequestHandler = async ({ request, url, locals }) => {
 		return failure(409, 'The suggestion image changed. Refresh your wishlist and try again.');
 	}
 
-	await removeWishlistImage(suggestion.imageKey, suggestion.imageMimeType);
+	await removeImage(suggestion.imageKey, suggestion.imageMimeType);
 	return new Response(null, { status: 204 });
 };

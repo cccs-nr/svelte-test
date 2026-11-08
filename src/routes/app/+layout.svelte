@@ -3,14 +3,18 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
-	import { Menu, X } from '@lucide/svelte';
+	import { LogOut, Menu, UserRound, X } from '@lucide/svelte';
 	import type { LayoutProps } from './$types';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import { trpc } from '#lib/trpc/client.js';
 
 	let { children, data }: LayoutProps = $props();
 	let isMobileNavigationOpen = $state(false);
+	let isAccountMenuOpen = $state(false);
+	let accountButton = $state<HTMLButtonElement>();
+	let accountMenu = $state<HTMLDivElement>();
 	let isSigningOut = $state(false);
 	let logoutError = $state<string | null>(null);
 	let clientUnreadMessageCount = $state<number | null>(null);
@@ -53,8 +57,42 @@
 		};
 	});
 
+	onMount(() => {
+		function handleOutsidePointerDown(event: PointerEvent): void {
+			if (!isAccountMenuOpen || !(event.target instanceof Node)) return;
+			if (accountButton?.contains(event.target) || accountMenu?.contains(event.target)) return;
+			isAccountMenuOpen = false;
+		}
+
+		function handleAccountKeyDown(event: KeyboardEvent): void {
+			if (!isAccountMenuOpen || event.key !== 'Escape') return;
+			event.preventDefault();
+			isAccountMenuOpen = false;
+			accountButton?.focus();
+		}
+
+		function handleOutsideFocus(event: FocusEvent): void {
+			if (!isAccountMenuOpen || !(event.target instanceof Node)) return;
+			if (accountButton?.contains(event.target) || accountMenu?.contains(event.target)) return;
+			isAccountMenuOpen = false;
+		}
+
+		document.addEventListener('pointerdown', handleOutsidePointerDown);
+		document.addEventListener('keydown', handleAccountKeyDown);
+		document.addEventListener('focusin', handleOutsideFocus);
+		return () => {
+			document.removeEventListener('pointerdown', handleOutsidePointerDown);
+			document.removeEventListener('keydown', handleAccountKeyDown);
+			document.removeEventListener('focusin', handleOutsideFocus);
+		};
+	});
+
 	function closeMobileNavigation(): void {
 		isMobileNavigationOpen = false;
+	}
+
+	function closeAccountMenu(): void {
+		isAccountMenuOpen = false;
 	}
 
 	async function handleLogout(): Promise<void> {
@@ -62,6 +100,7 @@
 
 		isSigningOut = true;
 		logoutError = null;
+		closeAccountMenu();
 
 		try {
 			await trpc.auth.logout.mutate();
@@ -162,24 +201,8 @@
 						{/if}
 					</a>
 				{/if}
-				<a
-					href={resolve('/app/profile')}
-					onclick={closeMobileNavigation}
-					class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
-				>
-					Profile
-				</a>
 			</nav>
 			<div class="flex items-center gap-4">
-				<div class="hidden text-right sm:block">
-					<p class="text-sm font-medium text-stone-900">{data.user.displayName}</p>
-					<p class="text-xs text-stone-500">
-						{data.user.role === 'organizer' && data.user.isParticipating
-							? 'Organizer · Participant'
-							: data.user.role}
-					</p>
-				</div>
-				<ThemeToggle />
 				<Button
 					type="button"
 					variant="outline"
@@ -195,9 +218,79 @@
 						<Menu size={18} aria-hidden="true" />
 					{/if}
 				</Button>
-				<Button variant="outline" disabled={isSigningOut} onclick={handleLogout}>
-					{isSigningOut ? 'Signing out…' : 'Sign out'}
-				</Button>
+				<div class="relative">
+					<button
+						bind:this={accountButton}
+						id="account-menu-trigger"
+						type="button"
+						class="inline-flex size-10 cursor-pointer items-center justify-center rounded-full transition outline-none hover:ring-2 hover:ring-emerald-700/40 focus-visible:ring-2 focus-visible:ring-emerald-700"
+						aria-label={`Open account menu for ${data.user.displayName}`}
+						aria-haspopup="dialog"
+						aria-expanded={isAccountMenuOpen}
+						aria-controls="account-menu"
+						onclick={() => {
+							isMobileNavigationOpen = false;
+							isAccountMenuOpen = !isAccountMenuOpen;
+						}}
+					>
+						<ProfileAvatar
+							displayName={data.user.displayName}
+							hasAvatar={data.hasAvatar}
+							imageVersion={data.avatarVersion}
+							size="sm"
+						/>
+					</button>
+					<div
+						bind:this={accountMenu}
+						id="account-menu"
+						hidden={!isAccountMenuOpen}
+						class="absolute top-full right-0 z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] rounded-3xl border border-stone-200 bg-white p-3 text-stone-950 shadow-2xl"
+						role="dialog"
+						aria-labelledby="account-menu-title"
+						aria-modal="false"
+					>
+						<div class="flex items-center gap-3 p-3">
+							<ProfileAvatar
+								displayName={data.user.displayName}
+								hasAvatar={data.hasAvatar}
+								imageVersion={data.avatarVersion}
+								size="lg"
+							/>
+							<div class="min-w-0">
+								<p id="account-menu-title" class="truncate font-semibold">
+									{data.user.displayName}
+								</p>
+								<p class="truncate text-sm text-stone-600">@{data.user.username}</p>
+								<p class="mt-1 text-xs text-stone-500">
+									{data.user.role === 'organizer' && data.user.isParticipating
+										? 'Organizer · Participant'
+										: data.user.role}
+								</p>
+							</div>
+						</div>
+						<div class="my-2 border-t border-stone-100"></div>
+						<a
+							href={resolve('/app/profile')}
+							onclick={closeAccountMenu}
+							class="flex h-9 w-full cursor-pointer items-center gap-3 rounded-xl px-3 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 hover:text-stone-950"
+						>
+							<UserRound size={18} aria-hidden="true" />
+							Profile
+						</a>
+						<ThemeToggle menuItem />
+						<Button
+							type="button"
+							variant="ghost"
+							size="lg"
+							class="w-full cursor-pointer justify-start gap-3 rounded-xl px-3 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 hover:text-stone-950"
+							disabled={isSigningOut}
+							onclick={handleLogout}
+						>
+							<LogOut size={18} aria-hidden="true" />
+							{isSigningOut ? 'Signing out…' : 'Sign out'}
+						</Button>
+					</div>
+				</div>
 			</div>
 		</div>
 	</header>

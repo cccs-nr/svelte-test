@@ -69,6 +69,10 @@ export const users = sqliteTable(
 		username: text('username').notNull(),
 		displayName: text('display_name').notNull(),
 		passwordHash: text('password_hash').notNull(),
+		avatarKey: text('avatar_key'),
+		avatarMimeType: text('avatar_mime_type', {
+			enum: ['image/jpeg', 'image/png', 'image/webp']
+		}),
 		role: text('role', { enum: ['organizer', 'participant'] })
 			.$type<UserRole>()
 			.notNull(),
@@ -84,6 +88,7 @@ export const users = sqliteTable(
 	},
 	(table) => [
 		uniqueIndex('users_username_unique').on(table.username),
+		uniqueIndex('users_avatar_key_unique').on(table.avatarKey),
 		index('users_household_id_idx').on(table.householdId),
 		check('users_role_check', sql`${table.role} in ('organizer', 'participant')`)
 	]

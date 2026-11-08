@@ -46,7 +46,8 @@ export const authRouter = router({
 			username: user.username,
 			displayName: user.displayName,
 			role: user.role,
-			isParticipating: user.role === 'participant' || user.isParticipating
+			isParticipating: user.role === 'participant' || user.isParticipating,
+			hasAvatar: user.avatarKey !== null
 		};
 	}),
 	register: publicProcedure.input(registrationSchema).mutation(async ({ ctx, input }) => {
@@ -103,7 +104,8 @@ export const authRouter = router({
 			username: input.username,
 			displayName: input.displayName,
 			role: 'participant' as const,
-			isParticipating: true
+			isParticipating: true,
+			hasAvatar: false
 		};
 	}),
 	logout: publicProcedure.mutation(({ ctx }) => {

@@ -530,8 +530,10 @@ The initial data model should contain the following conceptual entities:
 - id
 - username
 - displayName
+- optional profile avatar image
 - passwordHash
 - role
+- organizer participation preference
 - householdId
 - isActive
 - createdAt
@@ -743,6 +745,7 @@ The first objective is a working MVP rather than implementing every possible fea
 - [x] Add light and dark appearance modes.
 - [x] Allow organizers to opt into participant access.
 - [x] Open wishlist images in a dismissible full-size viewer.
+- [x] Add private profile avatars and a unified account menu.
 
 ## 18. Explicit Non-Goals
 

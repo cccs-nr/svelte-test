@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
+import { MAX_IMAGE_BYTES } from '$app/env/private';
 import type { PageServerLoad } from './$types';
 import { db } from '#lib/server/db/index.js';
 import { assignments, households, users } from '#lib/server/db/schema.js';
@@ -15,6 +16,8 @@ export const load: PageServerLoad = ({ locals }) => {
 			displayName: users.displayName,
 			role: users.role,
 			isParticipating: users.isParticipating,
+			avatarKey: users.avatarKey,
+			avatarVersion: users.updatedAt,
 			householdName: households.name
 		})
 		.from(users)
@@ -23,6 +26,7 @@ export const load: PageServerLoad = ({ locals }) => {
 		.get();
 
 	if (!profile) redirect(303, '/login');
+	const { avatarKey, avatarVersion, ...profileDetails } = profile;
 	const hasAssignments = Boolean(
 		db
 			.select({ id: assignments.id })
@@ -30,5 +34,13 @@ export const load: PageServerLoad = ({ locals }) => {
 			.where(eq(assignments.eventId, SINGLE_EVENT_ID))
 			.get()
 	);
-	return { profile, canChangeParticipation: !hasAssignments };
+	return {
+		profile: {
+			...profileDetails,
+			hasAvatar: Boolean(avatarKey),
+			avatarVersion: avatarVersion.getTime()
+		},
+		maxImageBytes: MAX_IMAGE_BYTES,
+		canChangeParticipation: !hasAssignments
+	};
 };

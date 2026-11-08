@@ -2,12 +2,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import {
-	detectWishlistImageMimeType,
-	readWishlistImage,
-	removeWishlistImage,
-	storeWishlistImage
-} from './wishlist-image-storage.js';
+import { detectImageMimeType, readImage, removeImage, storeImage } from './image-storage.js';
 
 let temporaryDirectory: string | undefined;
 
@@ -35,38 +30,34 @@ function webpBytes(): Uint8Array {
 	return bytes;
 }
 
-describe('wishlist image storage', () => {
+describe('local image storage', () => {
 	it('detects supported image content and rejects extension-only or unsupported content', () => {
-		expect(detectWishlistImageMimeType(pngBytes())).toBe('image/png');
-		expect(detectWishlistImageMimeType(Uint8Array.from([0xff, 0xd8, 0xff, 0x00, 0xff, 0xd9]))).toBe(
+		expect(detectImageMimeType(pngBytes())).toBe('image/png');
+		expect(detectImageMimeType(Uint8Array.from([0xff, 0xd8, 0xff, 0x00, 0xff, 0xd9]))).toBe(
 			'image/jpeg'
 		);
-		expect(detectWishlistImageMimeType(webpBytes())).toBe('image/webp');
+		expect(detectImageMimeType(webpBytes())).toBe('image/webp');
 		expect(
-			detectWishlistImageMimeType(
+			detectImageMimeType(
 				Uint8Array.from([0x52, 0x49, 0x46, 0x46, 0x04, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50])
 			)
 		).toBeNull();
-		expect(detectWishlistImageMimeType(new TextEncoder().encode('<svg></svg>'))).toBeNull();
+		expect(detectImageMimeType(new TextEncoder().encode('<svg></svg>'))).toBeNull();
 	});
 
 	it('stores images under generated names, reads them, and removes them', async () => {
 		temporaryDirectory = await mkdtemp(join(tmpdir(), 'secret-santa-wishlist-'));
 		const bytes = pngBytes();
-		const imageKey = await storeWishlistImage(bytes, 'image/png', temporaryDirectory);
+		const imageKey = await storeImage(bytes, 'image/png', temporaryDirectory);
 
 		expect(imageKey).toMatch(/^[0-9a-f-]{36}$/i);
-		expect(await readWishlistImage(imageKey, 'image/png', temporaryDirectory)).toEqual(
-			Buffer.from(bytes)
-		);
+		expect(await readImage(imageKey, 'image/png', temporaryDirectory)).toEqual(Buffer.from(bytes));
 		expect((await readFile(join(temporaryDirectory, `${imageKey}.png`))).byteLength).toBe(
 			bytes.length
 		);
 
-		await removeWishlistImage(imageKey, 'image/png', temporaryDirectory);
-		await expect(
-			readWishlistImage(imageKey, 'image/png', temporaryDirectory)
-		).rejects.toMatchObject({
+		await removeImage(imageKey, 'image/png', temporaryDirectory);
+		await expect(readImage(imageKey, 'image/png', temporaryDirectory)).rejects.toMatchObject({
 			code: 'ENOENT'
 		});
 	});
@@ -74,7 +65,7 @@ describe('wishlist image storage', () => {
 	it('rejects path traversal identifiers before touching the filesystem', async () => {
 		temporaryDirectory = await mkdtemp(join(tmpdir(), 'secret-santa-wishlist-'));
 
-		await expect(readWishlistImage('../outside', 'image/png', temporaryDirectory)).rejects.toThrow(
+		await expect(readImage('../outside', 'image/png', temporaryDirectory)).rejects.toThrow(
 			'Invalid wishlist image identifier.'
 		);
 	});

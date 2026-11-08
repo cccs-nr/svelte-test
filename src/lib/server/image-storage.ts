@@ -3,9 +3,9 @@ import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { UPLOADS_DIR } from '$app/env/private';
 
-export type WishlistImageMimeType = 'image/jpeg' | 'image/png' | 'image/webp';
+export type ImageMimeType = 'image/jpeg' | 'image/png' | 'image/webp';
 
-const imageExtensions: Record<WishlistImageMimeType, string> = {
+const imageExtensions: Record<ImageMimeType, string> = {
 	'image/jpeg': 'jpg',
 	'image/png': 'png',
 	'image/webp': 'webp'
@@ -15,7 +15,7 @@ const imageKeyPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-
 const pngSignature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const pngEndMarker = [0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82];
 
-export function getWishlistImageDirectory(): string {
+export function getImageDirectory(): string {
 	const directory = isAbsolute(UPLOADS_DIR)
 		? resolve(UPLOADS_DIR)
 		: resolve(process.cwd(), UPLOADS_DIR);
@@ -28,13 +28,13 @@ export function getWishlistImageDirectory(): string {
 			!relativeToSource.startsWith(`..${sep}`) &&
 			!isAbsolute(relativeToSource))
 	) {
-		throw new Error('Wishlist image storage must be outside the application source directory.');
+		throw new Error('Uploaded image storage must be outside the application source directory.');
 	}
 
 	return directory;
 }
 
-export function detectWishlistImageMimeType(bytes: Uint8Array): WishlistImageMimeType | null {
+export function detectImageMimeType(bytes: Uint8Array): ImageMimeType | null {
 	if (
 		bytes.length >= 45 &&
 		pngSignature.every((byte, index) => bytes[index] === byte) &&
@@ -89,11 +89,7 @@ export function detectWishlistImageMimeType(bytes: Uint8Array): WishlistImageMim
 	return null;
 }
 
-function getImagePath(
-	directory: string,
-	imageKey: string,
-	mimeType: WishlistImageMimeType
-): string {
+function getImagePath(directory: string, imageKey: string, mimeType: ImageMimeType): string {
 	if (!imageKeyPattern.test(imageKey)) throw new Error('Invalid wishlist image identifier.');
 	const root = resolve(directory);
 	const path = resolve(root, `${imageKey}.${imageExtensions[mimeType]}`);
@@ -103,10 +99,10 @@ function getImagePath(
 	return path;
 }
 
-export async function storeWishlistImage(
+export async function storeImage(
 	bytes: Uint8Array,
-	mimeType: WishlistImageMimeType,
-	directory = getWishlistImageDirectory()
+	mimeType: ImageMimeType,
+	directory = getImageDirectory()
 ): Promise<string> {
 	const imageKey = randomUUID();
 	await mkdir(directory, { recursive: true, mode: 0o700 });
@@ -117,18 +113,18 @@ export async function storeWishlistImage(
 	return imageKey;
 }
 
-export async function readWishlistImage(
+export async function readImage(
 	imageKey: string,
-	mimeType: WishlistImageMimeType,
-	directory = getWishlistImageDirectory()
+	mimeType: ImageMimeType,
+	directory = getImageDirectory()
 ): Promise<Buffer> {
 	return readFile(getImagePath(directory, imageKey, mimeType));
 }
 
-export async function removeWishlistImage(
+export async function removeImage(
 	imageKey: string,
-	mimeType: WishlistImageMimeType,
-	directory = getWishlistImageDirectory()
+	mimeType: ImageMimeType,
+	directory = getImageDirectory()
 ): Promise<void> {
 	try {
 		await unlink(getImagePath(directory, imageKey, mimeType));

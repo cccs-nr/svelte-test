@@ -3,6 +3,9 @@
 	import { Moon, Sun } from '@lucide/svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 
+	type Props = { menuItem?: boolean };
+
+	let { menuItem = false }: Props = $props();
 	const themeStorageKey = 'secret-santa-theme';
 	let isDark = $state(false);
 	let hasExplicitPreference = false;
@@ -47,8 +50,11 @@
 
 <Button
 	type="button"
-	variant="outline"
-	class="size-10 rounded-full border-stone-200 bg-white/80 p-0 shadow-sm"
+	variant={menuItem ? 'ghost' : 'outline'}
+	size={menuItem ? 'lg' : 'default'}
+	class={menuItem
+		? 'w-full cursor-pointer justify-start gap-3 rounded-xl px-3 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 hover:text-stone-950'
+		: 'size-10 cursor-pointer rounded-full border-stone-200 bg-white/80 p-0 shadow-sm'}
 	aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
 	aria-pressed={isDark}
 	onclick={toggleTheme}
@@ -57,5 +63,8 @@
 		<Sun size={18} aria-hidden="true" />
 	{:else}
 		<Moon size={18} aria-hidden="true" />
+	{/if}
+	{#if menuItem}
+		<span>{isDark ? 'Light mode' : 'Dark mode'}</span>
 	{/if}
 </Button>
