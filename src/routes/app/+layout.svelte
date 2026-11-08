@@ -124,10 +124,8 @@
 	}
 
 	function navigationClass(isActive: boolean): string {
-		return `rounded-lg px-3 py-2 transition-colors ${
-			isActive
-				? 'bg-rose-700 text-white shadow-sm hover:bg-rose-800'
-				: 'text-emerald-50 hover:bg-white/10 hover:text-white'
+		return `holiday-topnav__link rounded-lg px-3 py-2 transition-colors ${
+			isActive ? 'is-current shadow-sm' : ''
 		}`;
 	}
 
@@ -158,16 +156,16 @@
 
 <div class="min-h-screen bg-transparent">
 	<header
-		class="sticky top-0 z-40 border-b-4 border-rose-800 bg-[#123b2b]/95 text-emerald-50 shadow-sm backdrop-blur"
+		class="holiday-topnav sticky top-0 z-40 border-b-4 border-rose-800 bg-[#123b2b]/95 shadow-sm backdrop-blur"
 	>
 		<div
 			class="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-2 sm:px-8"
 		>
 			<a
 				href={resolve('/app')}
-				class="inline-flex items-center gap-3 font-semibold tracking-tight text-white"
+				class="holiday-topnav__brand inline-flex items-center gap-3 font-semibold tracking-tight"
 			>
-				<span class="grid size-9 place-items-center rounded-xl bg-rose-700 text-white">
+				<span class="holiday-topnav__brand-mark grid size-9 place-items-center rounded-xl">
 					<Gift size={18} aria-hidden="true" />
 				</span>
 				Secret Santa
@@ -232,9 +230,7 @@
 						Wishlist
 						{#if badgeCounts.wishlist > 0}
 							<span
-								class={`grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold ${
-									isWishlistActive ? 'bg-white text-rose-800' : 'bg-amber-300 text-emerald-950'
-								}`}
+								class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
 								aria-hidden="true"
 							>
 								{badgeCounts.wishlist}
@@ -251,9 +247,7 @@
 						Gift
 						{#if badgeCounts.gift > 0}
 							<span
-								class={`grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold ${
-									isGiftActive ? 'bg-white text-rose-800' : 'bg-amber-300 text-emerald-950'
-								}`}
+								class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
 								aria-hidden="true"
 							>
 								{badgeCounts.gift}
@@ -266,7 +260,7 @@
 				<Button
 					type="button"
 					variant="outline"
-					class="size-10 border-white/30 bg-white/10 p-0 text-white hover:bg-white/20 sm:hidden"
+					class="holiday-topnav__menu-toggle size-10 p-0 sm:hidden"
 					aria-controls="main-navigation"
 					aria-expanded={isMobileNavigationOpen}
 					aria-label={isMobileNavigationOpen ? 'Close navigation' : 'Open navigation'}

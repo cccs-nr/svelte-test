@@ -107,6 +107,58 @@
 	background-color: #047857;
 }
 
+.holiday-topnav {
+	color: #f1f5f0;
+	border-bottom-color: #871d31;
+}
+
+.holiday-topnav__brand,
+.holiday-topnav__brand-mark,
+.holiday-topnav__menu-toggle {
+	color: #fff;
+}
+
+.holiday-topnav__brand-mark {
+	background-color: #a8263d;
+}
+
+.holiday-topnav__menu-toggle {
+	border-color: rgb(255 255 255 / 30%);
+	background-color: rgb(255 255 255 / 10%);
+}
+
+.holiday-topnav__menu-toggle:hover {
+	background-color: rgb(255 255 255 / 20%);
+}
+
+.holiday-topnav__link {
+	color: #e8f2eb;
+}
+
+.holiday-topnav__link:not(.is-current):hover {
+	background-color: rgb(255 255 255 / 10%);
+	color: #fff;
+}
+
+.holiday-topnav__link.is-current {
+	background-color: #a8263d;
+	color: #fff;
+}
+
+.holiday-topnav__link.is-current:hover {
+	background-color: #871d31;
+}
+
+.holiday-topnav__badge {
+	background-color: #fcd34d;
+	color: #123b2b;
+}
+
+.holiday-topnav__link.is-current .holiday-topnav__badge {
+	background-color: #fff;
+	color: #871d31;
+}
+
 @theme inline {
 	--font-sans: 'Inter Variable', sans-serif;
 	--color-sidebar-ring: var(--sidebar-ring);
