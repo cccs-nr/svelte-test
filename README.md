@@ -51,9 +51,11 @@ Organizers can manage the draw from **Assignments** after opening the event. The
 
 Generated assignments remain private until the organizer finalizes the draw. Regenerating a draft requires confirmation; each participant can see only their own recipient after finalization. Resetting a finalized draw also requires confirmation and reopens the event. While assignment rows exist, changes that could invalidate the draw (such as participant registration, activation, role, or household membership changes, and event edits) are blocked until the organizer resets it.
 
-### Messages on Wishlist and Gift
+### Live messages and notifications
 
-After the draw is finalized, each participant can start a private conversation with their recipient from **Gift** and reply to their own Secret Santa from **Wishlist**. Recipients see giver messages only as **Your Secret Santa**; sender account IDs are not stored with messages or returned by the messaging API. Conversations are scoped to a finalized assignment, and resetting that assignment permanently deletes its conversation and messages. The conversation panels refresh messages periodically; no separate messages page or external messaging service is used.
+After the draw is finalized, each participant can start a private conversation with their recipient from **Gift** and reply to their own Secret Santa from **Wishlist**. Socket.IO updates open conversations and relevant page data live without a refresh. Recipients see giver messages only as **Your Secret Santa**; sender account IDs are not stored with messages or returned by the messaging API. Conversations are scoped to a finalized assignment, and resetting that assignment permanently deletes its conversation and messages.
+
+Socket connections are authenticated with the existing session and same-origin checks. Message events go only to the two participants in that conversation; wishlist changes go to the list owner and their assigned giver; gift-status changes go to the giver and recipient. Organizers receive aggregate dashboard refresh signals only, without private message contents or assignment pairings. The **Wishlist** badge tracks incoming Secret Santa messages and unviewed purchase status; **Gift** tracks recipient replies and new or updated recipient ideas. Opening the corresponding page clears its badge.
 
 ### Organizer participation and appearance
 
@@ -63,11 +65,11 @@ The top-nav avatar opens a Google-style account menu with profile, theme, and si
 
 ### Wishlists and gift ideas
 
-Participants can add, edit, and remove any number of gift ideas from **Wishlist**, including descriptions, notes, optional external product links, estimated CAD prices, and optional images. The configured gift budget is displayed as a guideline. Wishlists are private to their owner until assignments are finalized; afterward, **Gift** shows only the current participant’s assigned recipient’s ideas.
+Participants can add, edit, and remove any number of gift ideas from **Wishlist** using a dialog form and table, including descriptions, notes, optional external product links, estimated CAD prices, and optional images. The configured gift budget is displayed as a guideline. Wishlists are private to their owner until assignments are finalized; afterward, **Gift** shows only the current participant’s assigned recipient’s ideas.
 
 On the **Gift** page, a Secret Santa can mark their gift as purchased or undo that status. The recipient sees a generic update on their wishlist and overview; the status does not reveal the giver’s identity or assignment mapping. Organizers can view per-account purchase indicators and aggregate progress from **Dashboard**, but cannot see recipient pairings or private message contents. The dashboard also summarizes wishlist and message counts and shows progress through setup, open, assignments generated, and completed.
 
-The overview shows the signed-in participant’s wishlist and recipient-idea counts, unread messages, recent messages, and recent gift ideas. The sticky top navigation is 64px high when collapsed and has separate **Wishlist** and **Gift** options for participants; each page includes the matching conversation. The interface uses an original winter-holiday background pattern with evergreen, cranberry, and warm-neutral colors.
+The overview shows the signed-in participant’s wishlist and recipient-idea counts, unread messages, recent messages, and recent gift ideas. The sticky top navigation is 64px high when collapsed and has separate **Wishlist** and **Gift** options for participants; each page includes the matching conversation. The interface uses an original winter-holiday background pattern with evergreen, cranberry, and warm-neutral colors. The Node adapter is served through `server.mjs` so Socket.IO and the SvelteKit app share the same port in production and Docker.
 
 Wishlist and profile images are validated as JPEG, PNG, or WebP from their file contents and stored outside the source tree. `UPLOADS_DIR` controls local storage and `MAX_IMAGE_BYTES` sets the per-image limit (default 5 MiB, maximum 25 MiB). Profile images are private to their owner except that a participant may see their assigned recipient’s avatar in their giver-side message view. A recipient continues to see their Secret Santa as anonymous. Docker stores images in the persistent `secret-santa-uploads` volume.
 

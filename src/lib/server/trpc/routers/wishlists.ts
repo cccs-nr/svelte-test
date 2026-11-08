@@ -1,15 +1,17 @@
 import { randomUUID } from 'node:crypto';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, isNotNull } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import {
 	createGiftSuggestionInputSchema,
 	deleteGiftSuggestionInputSchema,
 	updateGiftSuggestionInputSchema
 } from '#lib/models/wishlist.js';
+import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
-import { giftSuggestions, users } from '#lib/server/db/schema.js';
-import { getFinalizedRecipientId } from '#lib/server/wishlist-access.js';
+import { assignments, giftSuggestions, users } from '#lib/server/db/schema.js';
+import { getFinalizedGiverId, getFinalizedRecipientId } from '#lib/server/wishlist-access.js';
 import { removeImage } from '#lib/server/image-storage.js';
+import { notifyOrganizerDashboard, notifyUser } from '#lib/server/realtime.js';
 import { participantProcedure, router } from '#lib/server/trpc/init.js';
 
 const suggestionColumns = {
@@ -97,6 +99,10 @@ export const wishlistsRouter = router({
 				message: 'The gift suggestion was created but could not be loaded.'
 			});
 		}
+		notifyUser(ctx.user.id, 'wishlist:changed');
+		const giverId = getFinalizedGiverId(ctx.db, ctx.user.id);
+		if (giverId) notifyUser(giverId, 'recipient-wishlist:changed');
+		notifyOrganizerDashboard();
 		return suggestion;
 	}),
 
@@ -118,6 +124,10 @@ export const wishlistsRouter = router({
 				message: 'The updated gift suggestion could not be loaded.'
 			});
 		}
+		notifyUser(ctx.user.id, 'wishlist:changed');
+		const giverId = getFinalizedGiverId(ctx.db, ctx.user.id);
+		if (giverId) notifyUser(giverId, 'recipient-wishlist:changed');
+		notifyOrganizerDashboard();
 		return suggestion;
 	}),
 
@@ -141,6 +151,10 @@ export const wishlistsRouter = router({
 				.delete(giftSuggestions)
 				.where(and(eq(giftSuggestions.id, existing.id), eq(giftSuggestions.ownerId, ctx.user.id)))
 				.run();
+			notifyUser(ctx.user.id, 'wishlist:changed');
+			const giverId = getFinalizedGiverId(ctx.db, ctx.user.id);
+			if (giverId) notifyUser(giverId, 'recipient-wishlist:changed');
+			notifyOrganizerDashboard();
 
 			if (existing.imageKey && existing.imageMimeType) {
 				try {
@@ -155,5 +169,28 @@ export const wishlistsRouter = router({
 			}
 
 			return { success: true };
-		})
+		}),
+
+	markAssignedRecipientWishlistViewed: participantProcedure.mutation(({ ctx }) => {
+		const assignment = ctx.db
+			.select({ id: assignments.id })
+			.from(assignments)
+			.where(
+				and(
+					eq(assignments.eventId, SINGLE_EVENT_ID),
+					eq(assignments.giverId, ctx.user.id),
+					isNotNull(assignments.finalizedAt)
+				)
+			)
+			.get();
+		if (!assignment) return { updated: false };
+
+		ctx.db
+			.update(assignments)
+			.set({ giverWishlistViewedAt: new Date() })
+			.where(eq(assignments.id, assignment.id))
+			.run();
+		notifyUser(ctx.user.id, 'badges:changed');
+		return { updated: true };
+	})
 });

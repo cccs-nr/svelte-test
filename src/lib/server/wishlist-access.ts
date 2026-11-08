@@ -20,6 +20,22 @@ export function getFinalizedRecipientId(database: AppDatabase, giverId: string):
 	return assignment?.receiverId ?? null;
 }
 
+export function getFinalizedGiverId(database: AppDatabase, receiverId: string): string | null {
+	const assignment = database
+		.select({ giverId: assignments.giverId })
+		.from(assignments)
+		.where(
+			and(
+				eq(assignments.eventId, SINGLE_EVENT_ID),
+				eq(assignments.receiverId, receiverId),
+				isNotNull(assignments.finalizedAt)
+			)
+		)
+		.get();
+
+	return assignment?.giverId ?? null;
+}
+
 export function canViewWishlist(
 	database: AppDatabase,
 	viewer: AuthenticatedUser,

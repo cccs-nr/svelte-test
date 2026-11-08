@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import type { PageProps } from './$types';
+	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import {
 		Card,
 		CardContent,
@@ -14,6 +17,17 @@
 	const progressPercent = $derived(
 		(data.currentStageIndex / Math.max(data.eventStages.length - 1, 1)) * 100
 	);
+
+	onMount(() => {
+		const socket = getRealtimeSocket();
+		const refreshDashboard = () => void invalidateAll();
+		socket.on('dashboard:changed', refreshDashboard);
+		socket.on('connect', refreshDashboard);
+		return () => {
+			socket.off('dashboard:changed', refreshDashboard);
+			socket.off('connect', refreshDashboard);
+		};
+	});
 
 	function formatDate(date: string): string {
 		return new Intl.DateTimeFormat('en-CA', { dateStyle: 'long' }).format(

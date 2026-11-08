@@ -3,6 +3,7 @@ import { TRPCError } from '@trpc/server';
 import { eventSettingsInputSchema, SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { assignments, events } from '#lib/server/db/schema.js';
+import { notifyOrganizerDashboard } from '#lib/server/realtime.js';
 import { organizerProcedure, protectedProcedure, router } from '#lib/server/trpc/init.js';
 
 function getEvent(database: AppDatabase) {
@@ -75,6 +76,7 @@ export const eventRouter = router({
 			});
 		}
 
+		notifyOrganizerDashboard();
 		return event;
 	})
 });

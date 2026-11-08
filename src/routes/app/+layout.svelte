@@ -2,12 +2,14 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { TRPCClientError } from '@trpc/client';
 	import { Gift, LogOut, Menu, UserRound, X } from '@lucide/svelte';
 	import type { LayoutProps } from './$types';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
+	import { connectRealtime, disconnectRealtime } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
 
 	let { children, data }: LayoutProps = $props();
@@ -17,6 +19,72 @@
 	let accountMenu = $state<HTMLDivElement>();
 	let isSigningOut = $state(false);
 	let logoutError = $state<string | null>(null);
+	let realtimeError = $state<string | null>(null);
+	let clientBadgeCounts = $state<{ wishlist: number; gift: number } | null>(null);
+	let badgeCounts = $derived(clientBadgeCounts ?? data.badgeCounts);
+	let isDashboardActive = $derived(page.url.pathname === resolve('/app/dashboard'));
+	let isEventActive = $derived(page.url.pathname === resolve('/app/event'));
+	let isParticipantsActive = $derived(page.url.pathname === resolve('/app/participants'));
+	let isHouseholdsActive = $derived(page.url.pathname === resolve('/app/households'));
+	let isAssignmentsActive = $derived(page.url.pathname === resolve('/app/assignments'));
+	let isWishlistActive = $derived(page.url.pathname === resolve('/app/wishlist'));
+	let isGiftActive = $derived(page.url.pathname === resolve('/app/gift'));
+
+	onMount(() => {
+		const socket = connectRealtime();
+		const hasParticipantAccess = data.user.role === 'participant' || data.user.isParticipating;
+		let isDisposed = false;
+		let isRefreshing = false;
+		let reconnectTimer: number | undefined;
+
+		async function refreshBadgeCounts(): Promise<void> {
+			if (!hasParticipantAccess || isRefreshing) return;
+			isRefreshing = true;
+			try {
+				clientBadgeCounts = await trpc.notifications.badges.query();
+			} catch (error) {
+				realtimeError =
+					error instanceof TRPCClientError
+						? 'Live updates are connected, but notification badges could not be refreshed.'
+						: 'Unable to refresh notification badges.';
+			} finally {
+				isRefreshing = false;
+			}
+		}
+
+		function handleConnect(): void {
+			realtimeError = null;
+			void refreshBadgeCounts();
+		}
+
+		function handleConnectError(): void {
+			realtimeError = 'Live updates are unavailable. The displayed badges may be out of date.';
+		}
+
+		function handleDisconnect(reason: string): void {
+			if (isDisposed || reason === 'io client disconnect') return;
+			realtimeError = 'Live updates disconnected. Reconnecting…';
+			if (reason === 'io server disconnect') {
+				reconnectTimer = window.setTimeout(() => socket.connect(), 500);
+			}
+		}
+
+		socket.on('connect', handleConnect);
+		socket.on('connect_error', handleConnectError);
+		socket.on('disconnect', handleDisconnect);
+		socket.on('badges:changed', refreshBadgeCounts);
+
+		return () => {
+			isDisposed = true;
+			if (reconnectTimer !== undefined) window.clearTimeout(reconnectTimer);
+			socket.off('connect', handleConnect);
+			socket.off('connect_error', handleConnectError);
+			socket.off('disconnect', handleDisconnect);
+			socket.off('badges:changed', refreshBadgeCounts);
+			disconnectRealtime();
+		};
+	});
+
 	onMount(() => {
 		function handleOutsidePointerDown(event: PointerEvent): void {
 			if (!isAccountMenuOpen || !(event.target instanceof Node)) return;
@@ -53,6 +121,14 @@
 
 	function closeAccountMenu(): void {
 		isAccountMenuOpen = false;
+	}
+
+	function navigationClass(isActive: boolean): string {
+		return `rounded-lg px-3 py-2 transition-colors ${
+			isActive
+				? 'bg-rose-700 text-white shadow-sm hover:bg-rose-800'
+				: 'text-emerald-50 hover:bg-white/10 hover:text-white'
+		}`;
 	}
 
 	async function handleLogout(): Promise<void> {
@@ -105,35 +181,40 @@
 					<a
 						href={resolve('/app/dashboard')}
 						onclick={closeMobileNavigation}
-						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
+						class={navigationClass(isDashboardActive)}
+						aria-current={isDashboardActive ? 'page' : undefined}
 					>
 						Dashboard
 					</a>
 					<a
 						href={resolve('/app/event')}
 						onclick={closeMobileNavigation}
-						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
+						class={navigationClass(isEventActive)}
+						aria-current={isEventActive ? 'page' : undefined}
 					>
 						Event
 					</a>
 					<a
 						href={resolve('/app/participants')}
 						onclick={closeMobileNavigation}
-						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
+						class={navigationClass(isParticipantsActive)}
+						aria-current={isParticipantsActive ? 'page' : undefined}
 					>
 						Participants
 					</a>
 					<a
 						href={resolve('/app/households')}
 						onclick={closeMobileNavigation}
-						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
+						class={navigationClass(isHouseholdsActive)}
+						aria-current={isHouseholdsActive ? 'page' : undefined}
 					>
 						Households
 					</a>
 					<a
 						href={resolve('/app/assignments')}
 						onclick={closeMobileNavigation}
-						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
+						class={navigationClass(isAssignmentsActive)}
+						aria-current={isAssignmentsActive ? 'page' : undefined}
 					>
 						Assignments
 					</a>
@@ -142,16 +223,42 @@
 					<a
 						href={resolve('/app/wishlist')}
 						onclick={closeMobileNavigation}
-						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
+						class={`${navigationClass(isWishlistActive)} inline-flex items-center gap-2`}
+						aria-current={isWishlistActive ? 'page' : undefined}
+						aria-label={badgeCounts.wishlist > 0
+							? `Wishlist, ${badgeCounts.wishlist} new updates`
+							: 'Wishlist'}
 					>
 						Wishlist
+						{#if badgeCounts.wishlist > 0}
+							<span
+								class={`grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold ${
+									isWishlistActive ? 'bg-white text-rose-800' : 'bg-amber-300 text-emerald-950'
+								}`}
+								aria-hidden="true"
+							>
+								{badgeCounts.wishlist}
+							</span>
+						{/if}
 					</a>
 					<a
 						href={resolve('/app/gift')}
 						onclick={closeMobileNavigation}
-						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
+						class={`${navigationClass(isGiftActive)} inline-flex items-center gap-2`}
+						aria-current={isGiftActive ? 'page' : undefined}
+						aria-label={badgeCounts.gift > 0 ? `Gift, ${badgeCounts.gift} new updates` : 'Gift'}
 					>
 						Gift
+						{#if badgeCounts.gift > 0}
+							<span
+								class={`grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold ${
+									isGiftActive ? 'bg-white text-rose-800' : 'bg-amber-300 text-emerald-950'
+								}`}
+								aria-hidden="true"
+							>
+								{badgeCounts.gift}
+							</span>
+						{/if}
 					</a>
 				{/if}
 			</nav>
@@ -254,6 +361,11 @@
 	{#if logoutError}
 		<p class="mx-auto mt-4 max-w-6xl px-4 text-sm text-rose-700 sm:px-8" role="alert">
 			{logoutError}
+		</p>
+	{/if}
+	{#if realtimeError}
+		<p class="mx-auto mt-2 max-w-6xl px-4 text-sm text-amber-800" role="status">
+			{realtimeError}
 		</p>
 	{/if}
 	<main class="mx-auto max-w-6xl px-4 py-10 sm:px-8">

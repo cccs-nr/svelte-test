@@ -5,6 +5,7 @@ import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import { householdNameSchema } from '#lib/models/participants.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { assignments, households, users } from '#lib/server/db/schema.js';
+import { notifyOrganizerDashboard } from '#lib/server/realtime.js';
 import { organizerProcedure, router } from '#lib/server/trpc/init.js';
 import { z } from 'zod';
 
@@ -59,6 +60,7 @@ export const householdRouter = router({
 			name: input.name
 		};
 		ctx.db.insert(households).values(household).run();
+		notifyOrganizerDashboard();
 		return { ...household, memberCount: 0 };
 	}),
 	update: organizerProcedure
@@ -86,6 +88,7 @@ export const householdRouter = router({
 				.where(eq(users.householdId, input.id))
 				.get()?.value;
 
+			notifyOrganizerDashboard();
 			return { id: input.id, name: input.name, memberCount: memberCount ?? 0 };
 		}),
 	remove: organizerProcedure.input(householdIdSchema).mutation(({ ctx, input: id }) => {
@@ -112,6 +115,7 @@ export const householdRouter = router({
 			throw new TRPCError({ code: 'NOT_FOUND', message: 'Household not found.' });
 		}
 
+		notifyOrganizerDashboard();
 		return { success: true };
 	})
 });

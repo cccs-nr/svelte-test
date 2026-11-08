@@ -10,6 +10,7 @@ import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { hashPassword } from '#lib/server/auth/password.js';
 import { assignments, households, sessions, users } from '#lib/server/db/schema.js';
+import { disconnectUserRealtime, notifyOrganizerDashboard } from '#lib/server/realtime.js';
 import { organizerProcedure, router } from '#lib/server/trpc/init.js';
 
 function getAccount(database: AppDatabase, id: string) {
@@ -105,6 +106,7 @@ export const participantsRouter = router({
 			});
 		}
 
+		notifyOrganizerDashboard();
 		return account;
 	}),
 	update: organizerProcedure.input(updateAccountInputSchema).mutation(({ ctx, input }) => {
@@ -206,6 +208,7 @@ export const participantsRouter = router({
 			}
 		});
 
+		disconnectUserRealtime(input.id);
 		const account = getAccount(ctx.db, input.id);
 		if (!account) {
 			throw new TRPCError({
@@ -214,6 +217,7 @@ export const participantsRouter = router({
 			});
 		}
 
+		notifyOrganizerDashboard();
 		return account;
 	}),
 	resetPassword: organizerProcedure
@@ -241,6 +245,7 @@ export const participantsRouter = router({
 				transaction.delete(sessions).where(eq(sessions.userId, input.id)).run();
 			});
 
+			disconnectUserRealtime(input.id);
 			return { success: true };
 		})
 });

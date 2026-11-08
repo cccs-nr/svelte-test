@@ -111,7 +111,9 @@ export const assignments = sqliteTable(
 			.notNull()
 			.default(sql`(unixepoch() * 1000)`),
 		finalizedAt: integer('finalized_at', { mode: 'timestamp_ms' }),
-		giftPurchasedAt: integer('gift_purchased_at', { mode: 'timestamp_ms' })
+		giftPurchasedAt: integer('gift_purchased_at', { mode: 'timestamp_ms' }),
+		giverWishlistViewedAt: integer('giver_wishlist_viewed_at', { mode: 'timestamp_ms' }),
+		receiverGiftStatusSeenAt: integer('receiver_gift_status_seen_at', { mode: 'timestamp_ms' })
 	},
 	(table) => [
 		uniqueIndex('assignments_event_giver_unique').on(table.eventId, table.giverId),

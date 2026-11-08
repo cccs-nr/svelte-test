@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
+	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
@@ -42,11 +43,16 @@
 
 	onMount(() => {
 		isDisposed = false;
+		const socket = getRealtimeSocket();
+		const handleMessageUpdate = () => void refreshConversation(true);
+		const handleConnect = () => void refreshConversation(true);
+		socket.on('messages:changed', handleMessageUpdate);
+		socket.on('connect', handleConnect);
 		void refreshConversation();
-		const interval = window.setInterval(() => void refreshConversation(), 15_000);
 		return () => {
 			isDisposed = true;
-			window.clearInterval(interval);
+			socket.off('messages:changed', handleMessageUpdate);
+			socket.off('connect', handleConnect);
 		};
 	});
 

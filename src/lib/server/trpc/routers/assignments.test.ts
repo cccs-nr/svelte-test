@@ -210,6 +210,18 @@ describe('assignment router', () => {
 		expect(recipientStatus.purchased).toBe(true);
 		expect(Object.keys(recipientStatus).sort()).toEqual(['purchased', 'purchasedAt']);
 		expect(JSON.stringify(recipientStatus)).not.toContain(participants[0].id);
+		if (!recipientStatus.purchasedAt) throw new Error('Expected the gift purchase timestamp.');
+		const seenInput = { purchasedAt: recipientStatus.purchasedAt };
+		await expect(
+			recipientCaller.assignments.markRecipientGiftStatusSeen(seenInput)
+		).resolves.toEqual({
+			updated: true
+		});
+		await expect(
+			recipientCaller.assignments.markRecipientGiftStatusSeen(seenInput)
+		).resolves.toEqual({
+			updated: false
+		});
 		await expect(otherCaller.assignments.myRecipientGiftStatus()).resolves.toEqual({
 			purchased: false,
 			purchasedAt: null

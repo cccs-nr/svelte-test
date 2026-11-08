@@ -5,6 +5,7 @@
 	import { X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import ConversationPanel from '#lib/components/ConversationPanel.svelte';
+	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { formatEventBudget, formatBudgetInput } from '#lib/models/event.js';
 	import { trpc } from '#lib/trpc/client.js';
 	import { Button } from '#lib/components/ui/button/index.js';
@@ -39,26 +40,55 @@
 	let errorMessage = $state<string | null>(null);
 	let successMessage = $state<string | null>(null);
 	let isLoadFailed = $state(false);
+	let loadPromise: Promise<boolean> | null = null;
 	let isFormDisabled = $derived(isSaving || isLoading || isDeleting !== null);
+	let ideaDialog = $state<HTMLDialogElement>();
 	let imageDialog = $state<HTMLDialogElement>();
 	let fullSizeImage = $state<{ src: string; alt: string } | null>(null);
 
 	onMount(() => {
+		const socket = getRealtimeSocket();
+		const handleWishlistUpdate = () => void loadWishlists(true);
+		const handleGiftStatusUpdate = () => void loadWishlists(true);
+		const handleConnect = () => void loadWishlists(true);
+		socket.on('wishlist:changed', handleWishlistUpdate);
+		socket.on('gift-status:changed', handleGiftStatusUpdate);
+		socket.on('connect', handleConnect);
 		void loadWishlists();
+		return () => {
+			socket.off('wishlist:changed', handleWishlistUpdate);
+			socket.off('gift-status:changed', handleGiftStatusUpdate);
+			socket.off('connect', handleConnect);
+		};
 	});
 
-	async function loadWishlists(): Promise<boolean> {
+	async function loadWishlists(force = false): Promise<boolean> {
+		if (loadPromise) {
+			if (!force) return loadPromise;
+			await loadPromise;
+			return loadWishlists();
+		}
 		isLoading = true;
 		isLoadFailed = false;
 		errorMessage = null;
-		try {
+		const request = (async () => {
 			const [wishlist, giftStatus] = await Promise.all([
 				trpc.wishlists.mine.query(),
 				trpc.assignments.myRecipientGiftStatus.query()
 			]);
 			suggestions = wishlist;
 			recipientGiftStatus = giftStatus;
+			if (giftStatus.purchased && giftStatus.purchasedAt) {
+				await trpc.assignments.markRecipientGiftStatusSeen.mutate({
+					purchasedAt: giftStatus.purchasedAt
+				});
+			}
 			return true;
+		})();
+		loadPromise = request;
+
+		try {
+			return await request;
 		} catch (error) {
 			isLoadFailed = true;
 			errorMessage =
@@ -67,6 +97,7 @@
 					: 'Unable to load your wishlists. Please try again.';
 			return false;
 		} finally {
+			if (loadPromise === request) loadPromise = null;
 			isLoading = false;
 		}
 	}
@@ -85,6 +116,14 @@
 		removeCurrentImage = false;
 		errorMessage = null;
 		successMessage = null;
+		ideaDialog?.showModal();
+	}
+
+	function openNewSuggestionDialog(): void {
+		resetEditor();
+		errorMessage = null;
+		successMessage = null;
+		ideaDialog?.showModal();
 	}
 
 	function resetEditor(): void {
@@ -96,6 +135,14 @@
 		notes = '';
 		selectedFiles = undefined;
 		removeCurrentImage = false;
+	}
+
+	function closeIdeaDialog(): void {
+		if (!isSaving) ideaDialog?.close();
+	}
+
+	function handleIdeaDialogClick(event: MouseEvent): void {
+		if (event.target === event.currentTarget) closeIdeaDialog();
 	}
 
 	function getErrorMessage(error: unknown, fallback: string): string {
@@ -183,8 +230,11 @@
 			}
 
 			const refreshed = await loadWishlists();
-			resetEditor();
-			if (refreshed) successMessage = wasEditing ? 'Suggestion updated.' : 'Suggestion saved.';
+			if (refreshed) {
+				successMessage = wasEditing ? 'Suggestion updated.' : 'Suggestion saved.';
+				ideaDialog?.close();
+				resetEditor();
+			}
 		} catch (error) {
 			errorMessage = getErrorMessage(error, 'Unable to save the gift suggestion.');
 		} finally {
@@ -275,7 +325,7 @@
 			<Button
 				type="button"
 				variant="outline"
-				onclick={() => void loadWishlists()}
+				onclick={() => void loadWishlists(true)}
 				disabled={isLoading || isSaving || isDeleting !== null}
 			>
 				Refresh wishlists
@@ -307,19 +357,176 @@
 	{/if}
 
 	<Card class="border-stone-200 bg-white">
-		<CardHeader>
-			<CardTitle>{editingId ? 'Edit a gift idea' : 'Add a gift idea'}</CardTitle>
-			<CardDescription>
-				{#if data.giftBudgetCents !== null}
-					The event budget is {formatEventBudget(data.giftBudgetCents, data.currency)}. It’s a
-					guideline, not a spending limit.
-				{:else}
-					Your event budget will appear here once the organizer sets it.
-				{/if}
-				Add as many ideas as you like.
-			</CardDescription>
+		<CardHeader class="flex flex-row flex-wrap items-center justify-between gap-4">
+			<div>
+				<CardTitle>Your wishlist ideas</CardTitle>
+				<CardDescription>
+					{#if data.giftBudgetCents !== null}
+						Event budget: {formatEventBudget(data.giftBudgetCents, data.currency)} (a guideline).
+					{:else}
+						Your event budget will appear here once the organizer sets it.
+					{/if}
+				</CardDescription>
+			</div>
+			<Button type="button" onclick={openNewSuggestionDialog} disabled={isFormDisabled}>
+				Add a gift idea
+			</Button>
 		</CardHeader>
-		<CardContent>
+	</Card>
+
+	<div class="grid gap-6">
+		<Card id="my-wishlist" class="border-stone-200 bg-white">
+			<CardHeader>
+				<CardTitle>Your gift ideas</CardTitle>
+				<CardDescription>
+					Only you can see these until the organizer finalizes the assignments.
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				{#if isLoading}
+					<p class="text-sm text-stone-500">Loading your wishlist…</p>
+				{:else if isLoadFailed}
+					<p class="text-sm text-stone-600">Your wishlist could not be loaded. Try refreshing.</p>
+				{:else if suggestions.length === 0}
+					<p class="text-sm text-stone-600">
+						No ideas yet. Select “Add a gift idea” to get started.
+					</p>
+				{:else}
+					<div class="-mx-2 overflow-x-auto px-2">
+						<table class="w-full min-w-[760px] border-collapse text-left text-sm">
+							<thead>
+								<tr
+									class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase"
+								>
+									<th scope="col" class="px-3 py-3 font-medium">Gift idea</th>
+									<th scope="col" class="px-3 py-3 font-medium">Estimated price</th>
+									<th scope="col" class="px-3 py-3 font-medium">Updated</th>
+									<th scope="col" class="px-3 py-3 font-medium">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each suggestions as suggestion (suggestion.id)}
+									<tr class="border-b border-stone-100 last:border-0">
+										<th scope="row" class="max-w-2xl px-3 py-4 font-normal">
+											<div class="flex items-start gap-3">
+												{#if suggestion.imageKey}
+													<button
+														type="button"
+														class="size-16 shrink-0 cursor-zoom-in overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+														aria-label={`View full-size image for ${suggestion.title}`}
+														onclick={() =>
+															openSuggestionImage(suggestion.imageKey, suggestion.title)}
+													>
+														<img
+															class="size-full object-cover"
+															src={imageUrl(suggestion.imageKey)}
+															alt=""
+															loading="lazy"
+														/>
+													</button>
+												{/if}
+												<div class="min-w-0">
+													<p class="font-semibold text-stone-950">{suggestion.title}</p>
+													{#if suggestion.description}
+														<p class="mt-1 whitespace-pre-wrap text-stone-600">
+															{suggestion.description}
+														</p>
+													{/if}
+													{#if suggestion.notes}
+														<p class="mt-1 whitespace-pre-wrap text-stone-600">
+															Notes: {suggestion.notes}
+														</p>
+													{/if}
+													{#if suggestion.url}
+														<a
+															class="mt-2 inline-block font-medium text-emerald-800 underline-offset-4 hover:underline"
+															href={suggestion.url}
+															target="_blank"
+															rel="noopener noreferrer external"
+														>
+															View gift link
+														</a>
+													{/if}
+												</div>
+											</div>
+										</th>
+										<td class="px-3 py-4 align-top text-stone-700">
+											{suggestion.estimatedPriceCents === null
+												? '—'
+												: formatEventBudget(suggestion.estimatedPriceCents, 'CAD')}
+										</td>
+										<td class="px-3 py-4 align-top text-stone-700">
+											<time datetime={suggestion.updatedAt}>
+												{formatTimestamp(suggestion.updatedAt)}
+											</time>
+										</td>
+										<td class="px-3 py-4 align-top">
+											<div class="flex flex-wrap gap-2">
+												<Button
+													type="button"
+													size="sm"
+													variant="outline"
+													onclick={() => startEditing(suggestion)}
+													disabled={isSaving || isDeleting !== null}
+												>
+													Edit
+												</Button>
+												<Button
+													type="button"
+													size="sm"
+													variant="destructive"
+													onclick={() => deleteSuggestion(suggestion)}
+													disabled={isSaving || isDeleting !== null}
+												>
+													{isDeleting === suggestion.id ? 'Deleting…' : 'Delete'}
+												</Button>
+											</div>
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				{/if}
+			</CardContent>
+		</Card>
+	</div>
+
+	<dialog
+		bind:this={ideaDialog}
+		class="m-auto max-h-[92vh] w-[95vw] max-w-2xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
+		aria-labelledby="gift-idea-dialog-title"
+		onclick={handleIdeaDialogClick}
+		onclose={resetEditor}
+	>
+		<div class="p-5 sm:p-7">
+			<div class="mb-6 flex items-start justify-between gap-4">
+				<div>
+					<h2 id="gift-idea-dialog-title" class="text-xl font-semibold">
+						{editingId ? 'Edit a gift idea' : 'Add a gift idea'}
+					</h2>
+					<p class="mt-1 text-sm text-stone-600">
+						{#if data.giftBudgetCents !== null}
+							Event budget: {formatEventBudget(data.giftBudgetCents, data.currency)} (a guideline).
+						{:else}
+							Your event budget will appear here once the organizer sets it.
+						{/if}
+					</p>
+				</div>
+				<Button type="button" variant="outline" onclick={closeIdeaDialog} disabled={isSaving}>
+					Close
+				</Button>
+			</div>
+
+			{#if errorMessage}
+				<p
+					class="mb-5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
+					role="alert"
+				>
+					{errorMessage}
+				</p>
+			{/if}
+
 			<form class="grid gap-5 md:grid-cols-2" onsubmit={saveSuggestion}>
 				<div class="space-y-2 md:col-span-2">
 					<label class="text-sm font-medium" for="wishlist-title">Gift name</label>
@@ -401,111 +608,17 @@
 						</label>
 					{/if}
 				</div>
-				<div class="flex flex-wrap gap-3 md:col-span-2">
+				<div class="flex flex-wrap justify-end gap-3 md:col-span-2">
+					<Button type="button" variant="outline" onclick={closeIdeaDialog} disabled={isSaving}>
+						Cancel
+					</Button>
 					<Button type="submit" disabled={isFormDisabled}>
 						{isSaving ? 'Saving…' : editingId ? 'Save changes' : 'Add gift idea'}
 					</Button>
-					{#if editingId}
-						<Button type="button" variant="outline" onclick={resetEditor} disabled={isFormDisabled}>
-							Cancel
-						</Button>
-					{/if}
 				</div>
 			</form>
-		</CardContent>
-	</Card>
-
-	<div class="grid gap-6">
-		<Card id="my-wishlist" class="border-stone-200 bg-white">
-			<CardHeader>
-				<CardTitle>Your gift ideas</CardTitle>
-				<CardDescription>
-					Only you can see these until the organizer finalizes the assignments.
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				{#if isLoading}
-					<p class="text-sm text-stone-500">Loading your wishlist…</p>
-				{:else if isLoadFailed}
-					<p class="text-sm text-stone-600">Your wishlist could not be loaded. Try refreshing.</p>
-				{:else if suggestions.length === 0}
-					<p class="text-sm text-stone-600">No ideas yet. Add one above to get started.</p>
-				{:else}
-					<ul class="space-y-4">
-						{#each suggestions as suggestion (suggestion.id)}
-							<li class="rounded-xl border border-stone-200 p-4">
-								{#if suggestion.imageKey}
-									<button
-										type="button"
-										class="mb-4 block w-full cursor-zoom-in overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
-										aria-label={`View full-size image for ${suggestion.title}`}
-										onclick={() => openSuggestionImage(suggestion.imageKey, suggestion.title)}
-									>
-										<img
-											class="max-h-56 w-full rounded-lg object-cover"
-											src={imageUrl(suggestion.imageKey)}
-											alt=""
-											loading="lazy"
-										/>
-									</button>
-								{/if}
-								<h3 class="font-semibold text-stone-950">{suggestion.title}</h3>
-								{#if suggestion.description}
-									<p class="mt-2 text-sm whitespace-pre-wrap text-stone-600">
-										{suggestion.description}
-									</p>
-								{/if}
-								{#if suggestion.url}
-									<a
-										class="mt-3 inline-block text-sm font-medium text-emerald-800 underline-offset-4 hover:underline"
-										href={suggestion.url}
-										target="_blank"
-										rel="noopener noreferrer external"
-									>
-										View gift link
-									</a>
-								{/if}
-								{#if suggestion.estimatedPriceCents !== null}
-									<p class="mt-2 text-sm text-stone-600">
-										Estimated price: {formatEventBudget(suggestion.estimatedPriceCents, 'CAD')}
-									</p>
-								{/if}
-								{#if suggestion.notes}
-									<p class="mt-2 text-sm whitespace-pre-wrap text-stone-600">
-										Notes: {suggestion.notes}
-									</p>
-								{/if}
-								<p class="mt-3 text-xs text-stone-500">
-									Added {formatTimestamp(suggestion.createdAt)} · Updated
-									{formatTimestamp(suggestion.updatedAt)}
-								</p>
-								<div class="mt-4 flex flex-wrap gap-2">
-									<Button
-										type="button"
-										size="sm"
-										variant="outline"
-										onclick={() => startEditing(suggestion)}
-										disabled={isSaving || isDeleting !== null}
-									>
-										Edit
-									</Button>
-									<Button
-										type="button"
-										size="sm"
-										variant="destructive"
-										onclick={() => deleteSuggestion(suggestion)}
-										disabled={isSaving || isDeleting !== null}
-									>
-										{isDeleting === suggestion.id ? 'Deleting…' : 'Delete'}
-									</Button>
-								</div>
-							</li>
-						{/each}
-					</ul>
-				{/if}
-			</CardContent>
-		</Card>
-	</div>
+		</div>
+	</dialog>
 
 	<ConversationPanel
 		direction="asRecipient"

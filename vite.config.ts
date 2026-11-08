@@ -2,10 +2,12 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { realtimeVitePlugin } from './scripts/realtime-vite-plugin.mjs';
 
 export default defineConfig({
 	plugins: [
 		tailwindcss(),
+		realtimeVitePlugin(),
 		sveltekit({
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.

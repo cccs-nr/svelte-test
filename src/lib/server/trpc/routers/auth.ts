@@ -9,6 +9,7 @@ import { loginRateLimiter, registrationRateLimiter } from '#lib/server/auth/logi
 import { createUserSession, deleteUserSession } from '#lib/server/auth/session.js';
 import { hashPassword, verifyPassword } from '#lib/server/auth/password.js';
 import { assignments, sessions, users } from '#lib/server/db/schema.js';
+import { disconnectUserRealtime, notifyOrganizerDashboard } from '#lib/server/realtime.js';
 import { protectedProcedure, publicProcedure, router } from '#lib/server/trpc/init.js';
 
 const loginInput = z.object({
@@ -97,6 +98,7 @@ export const authRouter = router({
 			throw new TRPCError({ code: 'CONFLICT', message: 'That username is already taken.' });
 		}
 
+		notifyOrganizerDashboard();
 		createUserSession(ctx.db, id, ctx.event.cookies);
 
 		return {
@@ -156,6 +158,8 @@ export const authRouter = router({
 				.set({ displayName: input.displayName, isParticipating, updatedAt: new Date() })
 				.where(eq(users.id, ctx.user.id))
 				.run();
+			if (isParticipating !== current.isParticipating) disconnectUserRealtime(ctx.user.id);
+			notifyOrganizerDashboard();
 
 			return { ...ctx.user, displayName: input.displayName, isParticipating };
 		})
@@ -186,6 +190,7 @@ export const authRouter = router({
 				transaction.delete(sessions).where(eq(sessions.userId, ctx.user.id)).run();
 			});
 
+			disconnectUserRealtime(ctx.user.id);
 			createUserSession(ctx.db, ctx.user.id, ctx.event.cookies);
 			return { success: true };
 		})

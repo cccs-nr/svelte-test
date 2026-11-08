@@ -1,7 +1,10 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import type { PageProps } from './$types';
 	import { daysUntilExchange, formatEventBudget, type EventStatus } from '#lib/models/event.js';
+	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import {
 		Card,
 		CardContent,
@@ -12,6 +15,22 @@
 	} from '#lib/components/ui/card/index.js';
 
 	let { data }: PageProps = $props();
+
+	onMount(() => {
+		const socket = getRealtimeSocket();
+		const refreshOverview = () => void invalidateAll();
+		const liveEvents = [
+			'connect',
+			'messages:changed',
+			'wishlist:changed',
+			'recipient-wishlist:changed',
+			'gift-status:changed'
+		] as const;
+		for (const event of liveEvents) socket.on(event, refreshOverview);
+		return () => {
+			for (const event of liveEvents) socket.off(event, refreshOverview);
+		};
+	});
 
 	function statusLabel(status: EventStatus): string {
 		switch (status) {

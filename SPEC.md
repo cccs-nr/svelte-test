@@ -755,6 +755,11 @@ The first objective is a working MVP rather than implementing every possible fea
 - [x] Embed the recipient conversation in Wishlist and the giver conversation in Gift; remove the separate messages page.
 - [x] Lower the password minimum to 3 characters while accepting arbitrary characters.
 - [x] Apply an original winter-holiday visual theme with local decorative artwork.
+- [x] Add authenticated, same-origin Socket.IO updates for messages, wishlists, purchase status, badges, and organizer aggregate stats.
+- [x] Scope live events to affected accounts; do not broadcast conversation contents or assignment pairings.
+- [x] Show real-time unread/new-item counts on Wishlist and Gift navigation links.
+- [x] Replace the inline wishlist form and cards with an add/edit dialog and a wishlist table.
+- [x] Highlight the active top-navigation page with the primary color.
 
 ## 18. Explicit Non-Goals
 

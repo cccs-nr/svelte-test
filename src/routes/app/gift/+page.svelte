@@ -6,6 +6,7 @@
 	import type { PageProps } from './$types';
 	import ConversationPanel from '#lib/components/ConversationPanel.svelte';
 	import { formatEventBudget } from '#lib/models/event.js';
+	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import {
@@ -26,24 +27,48 @@
 	let isUpdatingStatus = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let notice = $state<string | null>(null);
+	let loadPromise: Promise<boolean> | null = null;
 	let imageDialog = $state<HTMLDialogElement>();
 	let fullSizeImage = $state<{ src: string; alt: string } | null>(null);
 
 	onMount(() => {
+		const socket = getRealtimeSocket();
+		const handleRecipientWishlistUpdate = () => void loadGiftIdeas(true);
+		const handleGiftStatusUpdate = () => void loadGiftIdeas(true);
+		const handleConnect = () => void loadGiftIdeas(true);
+		socket.on('recipient-wishlist:changed', handleRecipientWishlistUpdate);
+		socket.on('gift-status:changed', handleGiftStatusUpdate);
+		socket.on('connect', handleConnect);
 		void loadGiftIdeas();
+		return () => {
+			socket.off('recipient-wishlist:changed', handleRecipientWishlistUpdate);
+			socket.off('gift-status:changed', handleGiftStatusUpdate);
+			socket.off('connect', handleConnect);
+		};
 	});
 
-	async function loadGiftIdeas(): Promise<boolean> {
+	async function loadGiftIdeas(force = false): Promise<boolean> {
+		if (loadPromise) {
+			if (!force) return loadPromise;
+			await loadPromise;
+			return loadGiftIdeas();
+		}
 		isLoading = true;
 		errorMessage = null;
-		try {
+		const request = (async () => {
 			const [recipientWishlist, status] = await Promise.all([
 				trpc.wishlists.assignedRecipient.query(),
 				trpc.assignments.myGiftStatus.query()
 			]);
 			wishlist = recipientWishlist;
 			giftStatus = status;
+			await trpc.wishlists.markAssignedRecipientWishlistViewed.mutate();
 			return true;
+		})();
+		loadPromise = request;
+
+		try {
+			return await request;
 		} catch (error) {
 			errorMessage =
 				error instanceof TRPCClientError
@@ -51,6 +76,7 @@
 					: 'Unable to load your gift ideas. Please try again.';
 			return false;
 		} finally {
+			if (loadPromise === request) loadPromise = null;
 			isLoading = false;
 		}
 	}
@@ -137,7 +163,7 @@
 		<Button
 			type="button"
 			variant="outline"
-			onclick={() => void loadGiftIdeas()}
+			onclick={() => void loadGiftIdeas(true)}
 			disabled={isLoading || isUpdatingStatus}
 		>
 			Refresh gift ideas

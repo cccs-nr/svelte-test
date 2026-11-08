@@ -8,6 +8,7 @@ import {
 } from '#lib/server/assignment-algorithm.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { assignments, events, users } from '#lib/server/db/schema.js';
+import { notifyOrganizerDashboard, notifyUser } from '#lib/server/realtime.js';
 import {
 	organizerProcedure,
 	participantProcedure,
@@ -74,6 +75,14 @@ function validateExistingAssignments(
 		participants,
 		rows.map(({ giverId, receiverId }) => ({ giverId, receiverId }))
 	);
+}
+
+function notifyAssignmentParticipants(userIds: readonly string[]): void {
+	for (const userId of new Set(userIds)) {
+		notifyUser(userId, 'messages:changed');
+		notifyUser(userId, 'recipient-wishlist:changed');
+		notifyUser(userId, 'gift-status:changed');
+	}
 }
 
 export const assignmentRouter = router({
@@ -146,6 +155,7 @@ export const assignmentRouter = router({
 				.where(eq(events.id, event.id))
 				.run();
 		});
+		notifyOrganizerDashboard();
 
 		return { assignmentCount: generated.length, finalized: false };
 	}),
@@ -212,6 +222,8 @@ export const assignmentRouter = router({
 				.where(eq(events.id, event.id))
 				.run();
 		});
+		notifyAssignmentParticipants(rows.flatMap(({ giverId, receiverId }) => [giverId, receiverId]));
+		notifyOrganizerDashboard();
 
 		return { finalized: true, assignmentCount: rows.length };
 	}),
@@ -246,6 +258,8 @@ export const assignmentRouter = router({
 					.run();
 			}
 		});
+		notifyAssignmentParticipants(rows.flatMap(({ giverId, receiverId }) => [giverId, receiverId]));
+		notifyOrganizerDashboard();
 
 		return { success: true, removedCount: rows.length, wasFinalized: finalized };
 	}),
@@ -322,13 +336,61 @@ export const assignmentRouter = router({
 			purchasedAt: assignment?.giftPurchasedAt?.toISOString() ?? null
 		};
 	}),
+	markRecipientGiftStatusSeen: participantProcedure
+		.input(z.object({ purchasedAt: z.string().min(1) }))
+		.mutation(({ ctx, input }) => {
+			const expectedPurchaseAt = new Date(input.purchasedAt);
+			if (Number.isNaN(expectedPurchaseAt.getTime())) {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: 'A valid purchase timestamp is required.'
+				});
+			}
+
+			const assignment = ctx.db
+				.select({
+					id: assignments.id,
+					giftPurchasedAt: assignments.giftPurchasedAt,
+					statusSeenAt: assignments.receiverGiftStatusSeenAt
+				})
+				.from(assignments)
+				.where(
+					and(
+						eq(assignments.eventId, SINGLE_EVENT_ID),
+						eq(assignments.receiverId, ctx.user.id),
+						isNotNull(assignments.finalizedAt)
+					)
+				)
+				.get();
+			if (
+				!assignment?.giftPurchasedAt ||
+				assignment.giftPurchasedAt.getTime() !== expectedPurchaseAt.getTime()
+			) {
+				return { updated: false };
+			}
+			if (
+				assignment.statusSeenAt &&
+				assignment.statusSeenAt.getTime() >= assignment.giftPurchasedAt.getTime()
+			) {
+				return { updated: false };
+			}
+
+			ctx.db
+				.update(assignments)
+				.set({ receiverGiftStatusSeenAt: expectedPurchaseAt })
+				.where(eq(assignments.id, assignment.id))
+				.run();
+			notifyUser(ctx.user.id, 'badges:changed');
+			return { updated: true };
+		}),
 	setGiftPurchased: participantProcedure
 		.input(z.object({ purchased: z.boolean() }))
-		.mutation(({ ctx, input }) =>
-			ctx.db.transaction((transaction) => {
+		.mutation(({ ctx, input }) => {
+			const result = ctx.db.transaction((transaction) => {
 				const assignment = transaction
 					.select({
 						id: assignments.id,
+						receiverId: assignments.receiverId,
 						giftPurchasedAt: assignments.giftPurchasedAt
 					})
 					.from(assignments)
@@ -351,7 +413,9 @@ export const assignmentRouter = router({
 				if (Boolean(assignment.giftPurchasedAt) === input.purchased) {
 					return {
 						purchased: input.purchased,
-						purchasedAt: assignment.giftPurchasedAt?.toISOString() ?? null
+						purchasedAt: assignment.giftPurchasedAt?.toISOString() ?? null,
+						receiverId: assignment.receiverId,
+						changed: false
 					};
 				}
 
@@ -364,8 +428,18 @@ export const assignmentRouter = router({
 
 				return {
 					purchased: input.purchased,
-					purchasedAt: purchasedAt?.toISOString() ?? null
+					purchasedAt: purchasedAt?.toISOString() ?? null,
+					receiverId: assignment.receiverId,
+					changed: true
 				};
-			})
-		)
+			});
+
+			if (result.changed) {
+				notifyUser(ctx.user.id, 'gift-status:changed');
+				notifyUser(result.receiverId, 'gift-status:changed');
+				notifyOrganizerDashboard();
+			}
+
+			return { purchased: result.purchased, purchasedAt: result.purchasedAt };
+		})
 });

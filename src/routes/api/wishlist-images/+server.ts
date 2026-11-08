@@ -4,6 +4,8 @@ import { MAX_IMAGE_BYTES } from '$app/env/private';
 import { isExchangeParticipant } from '#lib/auth.js';
 import { giftSuggestions } from '#lib/server/db/schema.js';
 import { db } from '#lib/server/db/index.js';
+import { getFinalizedGiverId } from '#lib/server/wishlist-access.js';
+import { notifyOrganizerDashboard, notifyUser } from '#lib/server/realtime.js';
 import {
 	detectImageMimeType,
 	removeImage,
@@ -124,6 +126,11 @@ export const POST: RequestHandler = async ({ request, url, locals }) => {
 		return failure(409, 'The suggestion image changed. Refresh your wishlist and try again.');
 	}
 
+	notifyUser(locals.user.id, 'wishlist:changed');
+	const giverId = getFinalizedGiverId(db, locals.user.id);
+	if (giverId) notifyUser(giverId, 'recipient-wishlist:changed');
+	notifyOrganizerDashboard();
+
 	const previousMimeType = suggestion.imageMimeType;
 	if (suggestion.imageKey && previousMimeType && isImageMimeType(previousMimeType)) {
 		await removeImage(suggestion.imageKey, previousMimeType);
@@ -172,6 +179,11 @@ export const DELETE: RequestHandler = async ({ request, url, locals }) => {
 	if (result.changes === 0) {
 		return failure(409, 'The suggestion image changed. Refresh your wishlist and try again.');
 	}
+
+	notifyUser(locals.user.id, 'wishlist:changed');
+	const giverId = getFinalizedGiverId(db, locals.user.id);
+	if (giverId) notifyUser(giverId, 'recipient-wishlist:changed');
+	notifyOrganizerDashboard();
 
 	await removeImage(suggestion.imageKey, suggestion.imageMimeType);
 	return new Response(null, { status: 204 });

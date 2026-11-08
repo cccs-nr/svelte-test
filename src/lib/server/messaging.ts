@@ -5,6 +5,7 @@ import type { MessageDirection } from '#lib/models/messaging.js';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { assignments, conversations, messages, users } from '#lib/server/db/schema.js';
+import { notifyOrganizerDashboard, notifyUser } from '#lib/server/realtime.js';
 
 type GiverThreadContext = {
 	assignmentId: string;
@@ -183,7 +184,10 @@ export function getParticipantConversations(database: AppDatabase, userId: strin
 	};
 }
 
-export function countUnreadMessages(database: AppDatabase, userId: string): number {
+export function countUnreadMessageCounts(
+	database: AppDatabase,
+	userId: string
+): { asGiver: number; asRecipient: number; total: number } {
 	const unreadAsGiver =
 		database
 			.select({ value: count() })
@@ -217,7 +221,15 @@ export function countUnreadMessages(database: AppDatabase, userId: string): numb
 			)
 			.get()?.value ?? 0;
 
-	return unreadAsGiver + unreadAsRecipient;
+	return {
+		asGiver: unreadAsGiver,
+		asRecipient: unreadAsRecipient,
+		total: unreadAsGiver + unreadAsRecipient
+	};
+}
+
+export function countUnreadMessages(database: AppDatabase, userId: string): number {
+	return countUnreadMessageCounts(database, userId).total;
 }
 
 export function getRecentParticipantMessages(database: AppDatabase, userId: string, limit = 6) {
@@ -290,9 +302,13 @@ export function sendParticipantMessage(
 		});
 	}
 
-	return database.transaction((transaction) => {
+	const participants = database.transaction((transaction) => {
 		const assignment = transaction
-			.select({ id: assignments.id })
+			.select({
+				id: assignments.id,
+				giverId: assignments.giverId,
+				receiverId: assignments.receiverId
+			})
 			.from(assignments)
 			.where(
 				and(
@@ -363,8 +379,13 @@ export function sendParticipantMessage(
 			.where(eq(conversations.id, conversation.id))
 			.run();
 
-		return { success: true };
+		return { giverId: assignment.giverId, receiverId: assignment.receiverId };
 	});
+
+	notifyUser(participants.giverId, 'messages:changed');
+	notifyUser(participants.receiverId, 'messages:changed');
+	notifyOrganizerDashboard();
+	return { success: true };
 }
 
 export function markParticipantMessagesRead(
@@ -386,7 +407,7 @@ export function markParticipantMessagesRead(
 		throw new TRPCError({ code: 'BAD_REQUEST', message: 'A valid read timestamp is required.' });
 	}
 
-	return database.transaction((transaction) => {
+	const result = database.transaction((transaction) => {
 		const conversation = transaction
 			.select({ id: conversations.id })
 			.from(conversations)
@@ -424,4 +445,6 @@ export function markParticipantMessagesRead(
 
 		return { markedCount: result.changes };
 	});
+	if (result.markedCount > 0) notifyUser(userId, 'badges:changed');
+	return result;
 }

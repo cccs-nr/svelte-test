@@ -8,6 +8,7 @@ import type { TRPCContext } from '#lib/server/trpc/context.js';
 import { createDatabase } from '#lib/server/db/connection.js';
 import { assignments, events, giftSuggestions, users } from '#lib/server/db/schema.js';
 import type { SessionCookieStore } from '#lib/server/auth/session.js';
+import { getParticipantBadgeCounts } from '#lib/server/notification-counts.js';
 import { canViewWishlist } from '#lib/server/wishlist-access.js';
 import { appRouter } from '#lib/server/trpc/router.js';
 
@@ -197,6 +198,28 @@ describe('wishlists router', () => {
 			recipient: { displayName: 'Dave' },
 			suggestions: []
 		});
+	});
+
+	it('clears the recipient-idea badge when the giver views the wishlist', async () => {
+		finalizeAssignments();
+		const alice = appRouter.createCaller(createContext(participants[0]));
+		const bob = appRouter.createCaller(createContext(participants[1]));
+		const idea = await bob.wishlists.create({ title: 'A new cookbook' });
+
+		expect(getParticipantBadgeCounts(db, 'alice').gift).toBe(1);
+		await expect(alice.wishlists.markAssignedRecipientWishlistViewed()).resolves.toEqual({
+			updated: true
+		});
+		expect(getParticipantBadgeCounts(db, 'alice').gift).toBe(0);
+
+		db.update(giftSuggestions)
+			.set({ updatedAt: new Date(Date.now() + 10) })
+			.where(eq(giftSuggestions.id, idea.id))
+			.run();
+		expect(getParticipantBadgeCounts(db, 'alice').gift).toBe(1);
+		await new Promise((resolve) => setTimeout(resolve, 20));
+		await alice.wishlists.markAssignedRecipientWishlistViewed();
+		expect(getParticipantBadgeCounts(db, 'alice').gift).toBe(0);
 	});
 
 	it('rejects organizer access to participant wishlist procedures', async () => {

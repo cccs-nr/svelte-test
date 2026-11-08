@@ -3,6 +3,7 @@ import { and, eq, lt } from 'drizzle-orm';
 import type { AuthenticatedUser } from '#lib/auth.js';
 import { sessions, users } from '#lib/server/db/schema.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
+import { disconnectUserRealtime } from '#lib/server/realtime.js';
 
 export const SESSION_COOKIE_NAME = 'secret_santa_session';
 
@@ -63,10 +64,16 @@ export function deleteUserSession(database: AppDatabase, cookies: SessionCookieS
 	const token = cookies.get(SESSION_COOKIE_NAME);
 
 	if (token) {
+		const session = database
+			.select({ userId: sessions.userId })
+			.from(sessions)
+			.where(eq(sessions.tokenHash, hashSessionToken(token)))
+			.get();
 		database
 			.delete(sessions)
 			.where(eq(sessions.tokenHash, hashSessionToken(token)))
 			.run();
+		if (session) disconnectUserRealtime(session.userId);
 	}
 
 	clearSessionCookie(cookies);
@@ -83,7 +90,10 @@ export function resolveSessionUser(
 	const session = database.select().from(sessions).where(eq(sessions.tokenHash, tokenHash)).get();
 
 	if (!session || session.expiresAt.getTime() <= Date.now()) {
-		if (session) database.delete(sessions).where(eq(sessions.id, session.id)).run();
+		if (session) {
+			database.delete(sessions).where(eq(sessions.id, session.id)).run();
+			disconnectUserRealtime(session.userId);
+		}
 		clearSessionCookie(cookies);
 		return null;
 	}
@@ -102,6 +112,7 @@ export function resolveSessionUser(
 
 	if (!user) {
 		database.delete(sessions).where(eq(sessions.id, session.id)).run();
+		disconnectUserRealtime(session.userId);
 		clearSessionCookie(cookies);
 		return null;
 	}
