@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Let It Snow</title>
+  <circle cx="128" cy="128" r="124" fill="#e7e9f4"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#404c80" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M42 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#e7be50"/>
+  <path d="M206 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#b92745"/>
+  <path d="M58 179h140" stroke="#404c80" stroke-width="8" stroke-linecap="round"/>
+<path d="M80 163l25-36 25 36zM117 163l32-52 32 52z" fill="#b92745" stroke="#404c80" stroke-width="6" stroke-linejoin="round"/>
+<path d="M101 139l4-12 5 12M144 133l5-22 6 22" fill="none" stroke="#e7be50" stroke-width="7"/>
+<circle cx="94" cy="91" r="5" fill="#e7be50"/><circle cx="166" cy="82" r="6" fill="#e7be50"/>
+</svg>

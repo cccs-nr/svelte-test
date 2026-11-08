@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Figgy Pudding</title>
+  <circle cx="128" cy="128" r="124" fill="#fff2d6"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#744210" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M56 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#c92d4b"/>
+  <path d="M212 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#17603a"/>
+  <path d="M67 158h122l-15 34H82z" fill="#17603a" stroke="#744210" stroke-width="7" stroke-linejoin="round"/>
+<path d="M75 155c9-40 29-62 53-62s44 22 53 62z" fill="#c92d4b" stroke="#744210" stroke-width="7"/>
+<path d="M101 123l13 9M141 112l-7 13M157 135l-11 4" stroke="#17603a" stroke-width="7" stroke-linecap="round"/>
+</svg>

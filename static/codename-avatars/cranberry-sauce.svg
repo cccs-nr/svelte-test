@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Cranberry Sauce</title>
+  <circle cx="128" cy="128" r="124" fill="#fce8e7"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#9f1239" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M45 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#f4c95d"/>
+  <path d="M198 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#17603a"/>
+  <path d="M70 111c12 81 104 81 116 0z" fill="#9f1239"/>
+<ellipse cx="128" cy="109" rx="60" ry="21" fill="#f4c95d"/><circle cx="94" cy="114" r="11" fill="#17603a"/><circle cx="117" cy="102" r="11" fill="#17603a"/><circle cx="141" cy="111" r="11" fill="#17603a"/><circle cx="162" cy="124" r="11" fill="#17603a"/><circle cx="107" cy="136" r="11" fill="#17603a"/><circle cx="133" cy="134" r="11" fill="#17603a"/><circle cx="153" cy="148" r="11" fill="#17603a"/>
+</svg>

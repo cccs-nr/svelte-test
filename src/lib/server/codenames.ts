@@ -2,33 +2,13 @@ import { randomInt, randomUUID } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
+import { suggestedCodenames } from '#lib/models/codenames.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { participantCodenames } from '#lib/server/db/schema.js';
 
-type DatabaseExecutor = Pick<AppDatabase, 'select' | 'insert' | 'update'>;
+export { suggestedCodenames } from '#lib/models/codenames.js';
 
-const suggestedCodenames = [
-	'Frosty',
-	'Jingle',
-	'Tinsel',
-	'Mistletoe',
-	'Snowflake',
-	'Candy Cane',
-	'Gingerbread',
-	'Peppermint',
-	'Nutcracker',
-	'Snowball',
-	'Holly',
-	'Evergreen',
-	'Kringle',
-	'Reindeer',
-	'Yule',
-	'Twinkle',
-	'Blizzard',
-	'North Star',
-	'Sugarplum',
-	'Figgy Pudding'
-];
+type DatabaseExecutor = Pick<AppDatabase, 'select' | 'insert' | 'update'>;
 
 const codenamePool = [
 	...suggestedCodenames,
@@ -46,9 +26,16 @@ export function generateCodenames(
 ): { userId: string; codename: string }[] {
 	const uniqueUserIds = [...new Set(userIds)];
 	const usedNames = new Set(alreadyUsed.map((name) => name.toLocaleLowerCase('en')));
-	const availableNames = codenamePool.filter(
+	const availableNames: string[] = suggestedCodenames.filter(
 		(name) => !usedNames.has(name.toLocaleLowerCase('en'))
 	);
+	if (availableNames.length < uniqueUserIds.length) {
+		availableNames.push(
+			...codenamePool
+				.slice(suggestedCodenames.length)
+				.filter((name) => !usedNames.has(name.toLocaleLowerCase('en')))
+		);
+	}
 	let extensionIndex = 0;
 	while (availableNames.length < uniqueUserIds.length) {
 		const base = suggestedCodenames[extensionIndex % suggestedCodenames.length];
@@ -134,6 +121,30 @@ export function getParticipantCodename(database: AppDatabase, userId: string) {
 			)
 		)
 		.get();
+}
+
+export function getAvailableCodenames(database: AppDatabase, userId: string): string[] {
+	const selectedCodenames = database
+		.select({ userId: participantCodenames.userId, codename: participantCodenames.codename })
+		.from(participantCodenames)
+		.where(eq(participantCodenames.eventId, SINGLE_EVENT_ID))
+		.all();
+	const currentCodename = selectedCodenames.find(
+		(selection) => selection.userId === userId
+	)?.codename;
+	if (!currentCodename) return [];
+
+	const takenByOthers = new Set(
+		selectedCodenames
+			.filter((selection) => selection.userId !== userId)
+			.map((selection) => selection.codename.toLocaleLowerCase('en'))
+	);
+	const current = currentCodename.toLocaleLowerCase('en');
+
+	return suggestedCodenames.filter((codename) => {
+		const normalized = codename.toLocaleLowerCase('en');
+		return normalized !== current && !takenByOthers.has(normalized);
+	});
 }
 
 export function assignCodename(

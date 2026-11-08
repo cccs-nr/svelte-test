@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Cinnamon Roll</title>
+  <circle cx="128" cy="128" r="124" fill="#e6f1f8"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#145374" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M56 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#f4c95d"/>
+  <path d="M212 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
+  <circle cx="128" cy="128" r="63" fill="#f4c95d" stroke="#145374" stroke-width="8"/>
+<path d="M92 124c0-20 19-33 38-25 16 7 11 30-4 30-10 0-13-12-6-17M91 159c20 17 51 18 73 1" fill="none" stroke="#c92d4b" stroke-width="10" stroke-linecap="round"/>
+<path d="M103 91h50" stroke="#145374" stroke-width="7" stroke-linecap="round"/>
+</svg>

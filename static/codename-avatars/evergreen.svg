@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Evergreen</title>
+  <circle cx="128" cy="128" r="124" fill="#e6f1f8"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#145374" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M53 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#f4c95d"/>
+  <path d="M200 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
+  <path d="M128 51l-35 47h22l-35 44h30l-39 49h114l-39-49h30l-35-44h22z" fill="#145374"/>
+<path d="M119 191h18v26h-18z" fill="#c92d4b"/>
+<circle cx="129" cy="91" r="7" fill="#f4c95d"/><circle cx="105" cy="139" r="7" fill="#c92d4b"/><circle cx="151" cy="155" r="7" fill="#f4c95d"/>
+</svg>

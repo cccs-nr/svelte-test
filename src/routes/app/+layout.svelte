@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { TRPCClientError } from '@trpc/client';
 	import { Gift, LogOut, Menu, UserRound, X } from '@lucide/svelte';
 	import type { LayoutProps } from './$types';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import CodenameAvatar from '#lib/components/CodenameAvatar.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import { connectRealtime, disconnectRealtime } from '#lib/realtime/client.js';
@@ -63,6 +64,10 @@
 			realtimeError = 'Live updates are unavailable. The displayed badges may be out of date.';
 		}
 
+		function handleCodenameUpdate(): void {
+			void invalidateAll();
+		}
+
 		function handleDisconnect(reason: string): void {
 			if (isDisposed || reason === 'io client disconnect') return;
 			realtimeError = 'Live updates disconnected. Reconnecting…';
@@ -75,6 +80,7 @@
 		socket.on('connect_error', handleConnectError);
 		socket.on('disconnect', handleDisconnect);
 		socket.on('badges:changed', refreshBadgeCounts);
+		socket.on('codenames:changed', handleCodenameUpdate);
 
 		return () => {
 			isDisposed = true;
@@ -83,6 +89,7 @@
 			socket.off('connect_error', handleConnectError);
 			socket.off('disconnect', handleDisconnect);
 			socket.off('badges:changed', refreshBadgeCounts);
+			socket.off('codenames:changed', handleCodenameUpdate);
 			disconnectRealtime();
 		};
 	});
@@ -309,6 +316,14 @@
 										? 'Organizer · Participant'
 										: data.user.role}
 								</p>
+								{#if data.user.codename}
+									<p
+										class="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-800"
+									>
+										<CodenameAvatar codename={data.user.codename} size="xs" />
+										<span>Codename · {data.user.codename}</span>
+									</p>
+								{/if}
 							</div>
 						</div>
 						<div class="my-2 border-t border-stone-100"></div>

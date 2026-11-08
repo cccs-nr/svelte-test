@@ -6,6 +6,7 @@
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import CodenameAvatar from '#lib/components/CodenameAvatar.svelte';
 	import {
 		Card,
 		CardContent,
@@ -430,8 +431,11 @@
 													</span>
 												{:else if suggestion.reservationStatus === 'reserved' || suggestion.reservationStatus === 'purchased'}
 													<span
-														class="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700"
+														class="inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700"
 													>
+														{#if suggestion.reservationCodename}
+															<CodenameAvatar codename={suggestion.reservationCodename} size="xs" />
+														{/if}
 														{suggestion.reservationStatus === 'purchased'
 															? 'Purchased'
 															: suggestion.reservedByMe

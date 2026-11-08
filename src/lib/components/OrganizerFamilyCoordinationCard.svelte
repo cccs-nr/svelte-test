@@ -5,6 +5,7 @@
 	import { type EventStatus } from '#lib/models/event.js';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
+	import CodenameAvatar from '#lib/components/CodenameAvatar.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import {
 		Card,
@@ -250,7 +251,12 @@
 										{reservation.title}
 									</th>
 									<td class="px-3 py-3 text-stone-700">{reservation.ownerDisplayName}</td>
-									<td class="px-3 py-3 text-stone-700">{reservation.reserverLabel}</td>
+									<td class="px-3 py-3 text-stone-700">
+										<span class="inline-flex items-center gap-2">
+											<CodenameAvatar codename={reservation.reserverCodename} size="xs" />
+											{reservation.reserverLabel}
+										</span>
+									</td>
 									<td class="px-3 py-3 text-stone-700 capitalize">{reservation.status}</td>
 									<td class="px-3 py-3">
 										<div class="flex flex-wrap gap-2">

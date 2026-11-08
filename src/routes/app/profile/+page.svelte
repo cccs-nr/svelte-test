@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
 	import type { PageProps } from './$types';
+	import CodenameAvatar from '#lib/components/CodenameAvatar.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import {
 		Card,
@@ -16,8 +17,10 @@
 	import { trpc } from '#lib/trpc/client.js';
 
 	let { data }: PageProps = $props();
-	let displayName = $derived(data.profile.displayName);
-	let isParticipating = $derived(data.profile.isParticipating);
+	let displayNameOverride = $state<string | null>(null);
+	let participationOverride = $state<boolean | null>(null);
+	let displayName = $derived(displayNameOverride ?? data.profile.displayName);
+	let isParticipating = $derived(participationOverride ?? data.profile.isParticipating);
 	let currentPassword = $state('');
 	let newPassword = $state('');
 	let confirmPassword = $state('');
@@ -28,8 +31,9 @@
 	let isSaving = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let successMessage = $state<string | null>(null);
-	let avatarDialog = $state<HTMLDialogElement>();
-	let profileDialog = $state<HTMLDialogElement>();
+	let codenameErrorMessage = $state<string | null>(null);
+	let codenameSuccessMessage = $state<string | null>(null);
+	let isSavingCodename = $state(false);
 	let passwordDialog = $state<HTMLDialogElement>();
 
 	function closeDialog(dialog: HTMLDialogElement | undefined): void {
@@ -37,8 +41,6 @@
 	}
 
 	function handleDialogClick(event: MouseEvent): void {
-		if (event.target === avatarDialog) closeDialog(avatarDialog);
-		if (event.target === profileDialog) closeDialog(profileDialog);
 		if (event.target === passwordDialog) closeDialog(passwordDialog);
 	}
 
@@ -96,7 +98,6 @@
 			avatarFiles = undefined;
 			await invalidateAll();
 			avatarSuccessMessage = 'Profile picture updated.';
-			avatarDialog?.close();
 		} catch (error) {
 			avatarErrorMessage =
 				error instanceof TRPCClientError
@@ -121,7 +122,6 @@
 			await checkAvatarResponse(response, 'Unable to remove your profile picture.');
 			await invalidateAll();
 			avatarSuccessMessage = 'Profile picture removed.';
-			avatarDialog?.close();
 		} catch (error) {
 			avatarErrorMessage =
 				error instanceof Error ? error.message : 'Unable to remove your profile picture.';
@@ -151,13 +151,34 @@
 				...(data.profile.role === 'organizer' ? { isParticipating } : {})
 			});
 			await invalidateAll();
+			displayNameOverride = null;
+			participationOverride = null;
 			successMessage = 'Profile updated.';
-			profileDialog?.close();
 		} catch (error) {
 			errorMessage =
 				error instanceof TRPCClientError ? error.message : 'Unable to update your profile.';
 		} finally {
 			isSaving = false;
+		}
+	}
+
+	async function changeCodename(): Promise<void> {
+		if (isSavingCodename || data.availableCodenameCount === 0) return;
+
+		isSavingCodename = true;
+		codenameErrorMessage = null;
+		codenameSuccessMessage = null;
+		try {
+			const result = await trpc.codenames.changeMine.mutate();
+			await invalidateAll();
+			codenameSuccessMessage = `Your codename is now ${result.codename}.`;
+		} catch (error) {
+			codenameErrorMessage =
+				error instanceof TRPCClientError
+					? error.message
+					: 'Unable to change your codename. Please try again.';
+		} finally {
+			isSavingCodename = false;
 		}
 	}
 
@@ -226,72 +247,108 @@
 				identity stays private.
 			</CardDescription>
 		</CardHeader>
-		<CardContent class="flex flex-col gap-5 sm:flex-row sm:items-center">
-			<ProfileAvatar
-				displayName={data.profile.displayName}
-				hasAvatar={data.profile.hasAvatar}
-				imageVersion={data.profile.avatarVersion}
-				size="lg"
-			/>
-			<div class="min-w-0 flex-1 space-y-4">
-				{#if avatarSuccessMessage}
-					<p class="text-sm text-emerald-800" role="status">{avatarSuccessMessage}</p>
-				{/if}
-				<Button type="button" variant="outline" onclick={() => avatarDialog?.showModal()}>
-					{data.profile.hasAvatar ? 'Change picture' : 'Add profile picture'}
-				</Button>
+		<CardContent class="space-y-5">
+			<div class="flex flex-col gap-5 sm:flex-row sm:items-center">
+				<ProfileAvatar
+					displayName={data.profile.displayName}
+					hasAvatar={data.profile.hasAvatar}
+					imageVersion={data.profile.avatarVersion}
+					size="lg"
+				/>
+				<form class="flex min-w-0 flex-1 flex-wrap items-end gap-3" onsubmit={uploadAvatar}>
+					<div class="min-w-0 flex-1 space-y-2">
+						<label class="text-sm font-medium" for="profile-picture"> Choose a picture </label>
+						<Input
+							id="profile-picture"
+							type="file"
+							accept="image/jpeg,image/png,image/webp"
+							bind:files={avatarFiles}
+							disabled={isSavingAvatar}
+						/>
+						<p class="text-xs text-stone-500">
+							JPEG, PNG, or WebP up to {formatFileSize(data.maxImageBytes)}.
+						</p>
+					</div>
+					<Button type="submit" disabled={isSavingAvatar}>
+						{isSavingAvatar
+							? 'Uploading…'
+							: data.profile.hasAvatar
+								? 'Change picture'
+								: 'Add picture'}
+					</Button>
+					{#if data.profile.hasAvatar}
+						<Button
+							type="button"
+							variant="outline"
+							onclick={removeAvatar}
+							disabled={isSavingAvatar}
+						>
+							Remove
+						</Button>
+					{/if}
+				</form>
 			</div>
+			{#if avatarErrorMessage}
+				<p class="text-sm text-rose-700" role="alert">{avatarErrorMessage}</p>
+			{/if}
+			{#if avatarSuccessMessage}
+				<p class="text-sm text-emerald-800" role="status">{avatarSuccessMessage}</p>
+			{/if}
 		</CardContent>
 	</Card>
 
-	<dialog
-		bind:this={avatarDialog}
-		class="m-auto max-h-[92vh] w-[95vw] max-w-xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
-		aria-labelledby="profile-picture-title"
-		onclick={handleDialogClick}
-	>
-		<div class="p-5 sm:p-7">
-			<div class="mb-6 flex items-start justify-between gap-4">
-				<div>
-					<h2 id="profile-picture-title" class="text-xl font-semibold">Profile picture</h2>
-					<p class="mt-1 text-sm text-stone-600">
-						JPEG, PNG, or WebP up to {formatFileSize(data.maxImageBytes)}.
-					</p>
+	{#if data.profile.codename}
+		<Card class="border-stone-200 bg-white">
+			<CardHeader>
+				<CardTitle>Your event codename</CardTitle>
+				<CardDescription>
+					This is how other participants identify you in family gift conversations before the
+					reveal.
+				</CardDescription>
+			</CardHeader>
+			<CardContent class="space-y-4">
+				<div class="flex items-center gap-4">
+					<CodenameAvatar codename={data.profile.codename} size="lg" />
+					<div>
+						<p class="text-lg font-semibold text-stone-950">{data.profile.codename}</p>
+						<p class="mt-1 text-sm text-stone-600">Your codename profile picture</p>
+					</div>
 				</div>
-				<Button
-					type="button"
-					variant="outline"
-					onclick={() => closeDialog(avatarDialog)}
-					disabled={isSavingAvatar}
-				>
-					Close
-				</Button>
-			</div>
-			{#if avatarErrorMessage}
-				<p class="mb-4 text-sm text-rose-700" role="alert">{avatarErrorMessage}</p>
-			{/if}
-			<form class="flex flex-wrap items-end gap-3" onsubmit={uploadAvatar}>
-				<div class="min-w-0 flex-1 space-y-2">
-					<label class="text-sm font-medium" for="profile-picture">Choose a picture</label>
-					<Input
-						id="profile-picture"
-						type="file"
-						accept="image/jpeg,image/png,image/webp"
-						bind:files={avatarFiles}
-						disabled={isSavingAvatar}
-					/>
-				</div>
-				<Button type="submit" disabled={isSavingAvatar}>
-					{isSavingAvatar ? 'Uploading…' : 'Upload'}
-				</Button>
-				{#if data.profile.hasAvatar}
-					<Button type="button" variant="outline" onclick={removeAvatar} disabled={isSavingAvatar}>
-						Remove
-					</Button>
+				{#if codenameErrorMessage}
+					<p class="text-sm text-rose-700" role="alert">{codenameErrorMessage}</p>
 				{/if}
-			</form>
-		</div>
-	</dialog>
+				{#if codenameSuccessMessage}
+					<p class="text-sm text-emerald-800" role="status">{codenameSuccessMessage}</p>
+				{/if}
+				{#if data.canChangeCodename}
+					{#if data.availableCodenameCount > 0}
+						<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+							<p class="text-sm text-stone-600">
+								{data.availableCodenameCount} unused {data.availableCodenameCount === 1
+									? 'codename is'
+									: 'codenames are'} available. We’ll randomly choose one for you.
+							</p>
+							<Button
+								type="button"
+								onclick={() => void changeCodename()}
+								disabled={isSavingCodename}
+							>
+								{isSavingCodename ? 'Choosing…' : 'Pick a new codename'}
+							</Button>
+						</div>
+					{:else}
+						<p class="text-sm text-stone-600">
+							All 50 codenames are currently in use, so there are no unused names to select.
+						</p>
+					{/if}
+				{:else}
+					<p class="text-sm text-stone-600">
+						Codenames are locked after the event is completed or the identity reveal begins.
+					</p>
+				{/if}
+			</CardContent>
+		</Card>
+	{/if}
 
 	<Card class="border-stone-200 bg-white">
 		<CardHeader>
@@ -300,57 +357,25 @@
 				Your name is how family members recognize you and what you can use to sign in.
 			</CardDescription>
 		</CardHeader>
-		<CardContent class="flex flex-wrap items-center justify-between gap-4">
-			<div>
-				<p class="font-medium text-stone-950">{data.profile.displayName}</p>
-				<p class="mt-1 text-sm text-stone-600 capitalize">
-					{data.profile.role}
-					{#if data.profile.role === 'organizer' && data.profile.isParticipating}
-						· Participant
-					{/if}
-					{#if data.profile.householdName}
-						· {data.profile.householdName}
-					{/if}
-				</p>
-			</div>
-			<Button type="button" variant="outline" onclick={() => profileDialog?.showModal()}>
-				Edit profile
-			</Button>
-		</CardContent>
-	</Card>
-
-	<dialog
-		bind:this={profileDialog}
-		class="m-auto max-h-[92vh] w-[95vw] max-w-xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
-		aria-labelledby="profile-details-title"
-		onclick={handleDialogClick}
-	>
-		<div class="p-5 sm:p-7">
-			<div class="mb-6 flex items-start justify-between gap-4">
-				<div>
-					<h2 id="profile-details-title" class="text-xl font-semibold">Edit profile</h2>
-					<p class="mt-1 text-sm text-stone-600">
-						Your name is how family members recognize you and what you can use to sign in.
-					</p>
-				</div>
-				<Button
-					type="button"
-					variant="outline"
-					onclick={() => closeDialog(profileDialog)}
-					disabled={isSaving}
-				>
-					Close
-				</Button>
-			</div>
-			{#if errorMessage}
-				<p class="mb-4 text-sm text-rose-700" role="alert">{errorMessage}</p>
-			{/if}
+		<CardContent class="space-y-5">
+			<p class="text-sm text-stone-600 capitalize">
+				{data.profile.role}
+				{#if data.profile.role === 'organizer' && data.profile.isParticipating}
+					· Participant
+				{/if}
+				{#if data.profile.householdName}
+					· {data.profile.householdName}
+				{/if}
+			</p>
 			<form class="space-y-5" onsubmit={saveProfile}>
 				<div class="space-y-2">
 					<label class="text-sm font-medium" for="profile-display-name">Your name</label>
 					<Input
 						id="profile-display-name"
-						bind:value={displayName}
+						value={displayName}
+						oninput={(event) => {
+							displayNameOverride = event.currentTarget.value;
+						}}
 						maxlength={64}
 						required
 						disabled={isSaving}
@@ -362,7 +387,10 @@
 							<input
 								class="mt-1"
 								type="checkbox"
-								bind:checked={isParticipating}
+								checked={isParticipating}
+								onchange={(event) => {
+									participationOverride = event.currentTarget.checked;
+								}}
 								disabled={isSaving || !data.canChangeParticipation}
 							/>
 							<span>
@@ -380,22 +408,14 @@
 						{/if}
 					</div>
 				{/if}
-				<div class="flex justify-end gap-3">
-					<Button
-						type="button"
-						variant="outline"
-						onclick={() => closeDialog(profileDialog)}
-						disabled={isSaving}
-					>
-						Cancel
-					</Button>
+				<div class="flex justify-end">
 					<Button type="submit" disabled={isSaving}>
 						{isSaving ? 'Saving…' : 'Save profile'}
 					</Button>
 				</div>
 			</form>
-		</div>
-	</dialog>
+		</CardContent>
+	</Card>
 
 	<Card class="border-stone-200 bg-white">
 		<CardHeader>

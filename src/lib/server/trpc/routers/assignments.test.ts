@@ -6,6 +6,7 @@ import type { AuthenticatedUser } from '#lib/auth.js';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { TRPCContext } from '#lib/server/trpc/context.js';
 import { createDatabase } from '#lib/server/db/connection.js';
+import { getAvailableCodenames, suggestedCodenames } from '#lib/server/codenames.js';
 import {
 	assignments,
 	codenameAuditLog,
@@ -389,6 +390,47 @@ describe('assignment router', () => {
 			organizerCaller.codenames.update({ userId: 'alice', codename: 'New Frost' })
 		).rejects.toMatchObject({ code: 'CONFLICT' });
 		expect(db.select().from(codenameAuditLog).all()).toHaveLength(1);
+	});
+
+	it('lets a participant switch to an unused suggested codename until event completion', async () => {
+		seedEventAndParticipants(['home-a', 'home-a', 'home-b', 'home-b']);
+		const organizerCaller = appRouter.createCaller(createContext(organizer));
+		const aliceCaller = appRouter.createCaller(createContext(participants[0]));
+		const bobCaller = appRouter.createCaller(createContext(participants[1]));
+		await organizerCaller.assignments.generate();
+
+		const beforeChange = await aliceCaller.codenames.mine();
+		const bobCodename = (await bobCaller.codenames.mine()).codename;
+		if (!beforeChange.codename || !bobCodename) {
+			throw new Error('Expected both participants to have assigned codenames.');
+		}
+		const availableCodenames = getAvailableCodenames(db, 'alice');
+		expect(availableCodenames).not.toContain(beforeChange.codename);
+		expect(availableCodenames).not.toContain(bobCodename);
+		expect(JSON.stringify(availableCodenames)).not.toContain('alice');
+		const changed = await aliceCaller.codenames.changeMine();
+		expect(availableCodenames).toContain(changed.codename);
+		expect(suggestedCodenames).toContain(changed.codename);
+		await expect(aliceCaller.codenames.mine()).resolves.toMatchObject({
+			codename: changed.codename
+		});
+		await expect(bobCaller.codenames.mine()).resolves.toMatchObject({
+			codename: bobCodename
+		});
+		expect(getAvailableCodenames(db, 'bob')).not.toContain(changed.codename);
+		expect(
+			db
+				.select()
+				.from(codenameAuditLog)
+				.all()
+				.some((entry) => entry.actorId === 'alice' && entry.targetUserId === 'alice')
+		).toBe(true);
+
+		await organizerCaller.assignments.finalize();
+		await organizerCaller.event.complete({ confirm: true });
+		await expect(aliceCaller.codenames.changeMine()).rejects.toMatchObject({
+			code: 'PRECONDITION_FAILED'
+		});
 	});
 
 	it('requires an explicit audited organizer action to view the codename mapping', async () => {

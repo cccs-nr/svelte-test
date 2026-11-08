@@ -830,6 +830,10 @@ When assignments are generated, every active participant must have one unique, r
 
 The suggested codename list in the family-wide scope is the initial vocabulary, not a hard participant limit. If the event has more participants than available names, generate additional Christmas-themed combinations and check them for uniqueness before storing them.
 
+The built-in selection list contains 50 unique options inspired by holiday foods, Christmas songs, and classic Christmas movie or cartoon characters. A participant may ask Profile to randomly pick a different codename while the event is in progress. The server chooses only from names not currently assigned to another participant. Self-service changes are recorded and are locked once the event is completed or the identity reveal has happened.
+
+Generate one stable, original SVG cartoon avatar for each of the 50 suggested codenames. Use that image instead of the participant's personal profile picture whenever the participant is represented by codename in family conversations or buyer-facing reservation activity. The Profile page should show both the participant's personal profile picture and their codename avatar. Use a simple generic fallback SVG for overflow or administrator-created codenames; no external image service should be required.
+
 Codename assignment requirements:
 
 - Store each codename with its event and participant association.
@@ -972,6 +976,8 @@ Phases 1–6 above describe the existing application and remain complete as reco
 - Use collision-checked, Christmas-themed fallback names when the initial list is exhausted.
 - Add organizer-guarded operations for any approved codename management workflow.
 - Add an explicit reveal action that records who initiated it and when, and makes the mapping available only according to the confirmed policy.
+- Add a self-service profile action that randomly chooses an unused codename from the 50-name list before event completion or reveal.
+- Display the signed-in participant's codename in the top-navigation account menu.
 
 **Exit criteria:** Tests demonstrate one stable, unique codename per active participant; failed or retried draws do not create partial or duplicate records; pre-reveal participant procedures cannot retrieve the mapping.
 
@@ -1044,8 +1050,11 @@ Phases 1–6 above describe the existing application and remain complete as reco
 - Add clear Available, Reserved, and Purchased states to eligible viewers, with reservation actions and the participant's own reservation list.
 - Provide separate, clearly labeled Gift Discussion and Gift Coordination conversations.
 - Use codename labels consistently wherever participants coordinate or discuss purchases.
+- Show the corresponding generated codename avatar instead of personal profile photos in family conversation and reservation identity surfaces.
+- Keep profile picture and profile detail editing inline on the Profile page; reserve dialogs for contexts where editing is secondary.
 - Preserve existing navigation, badges, dark mode, dialogs, image viewing, and mobile behavior.
 - Provide useful loading, empty, conflict, and permission-denied states.
+- Show uncaught route errors in a centered application error card, with stack details limited to development mode.
 
 **Exit criteria:** Main participant workflows can be completed on mobile and desktop without confusing the three conversation types or exposing private purchase data.
 
@@ -1062,7 +1071,7 @@ Phases 1–6 above describe the existing application and remain complete as reco
 - Run formatting, lint, type checks, the complete test suite, and a production build.
 - Update README instructions for migrations, backups, organizer workflows, and event completion.
 
-**Verification completed:** `pnpm check` passed with no diagnostics; `pnpm test` passed all 88 tests across 24 files; `pnpm lint` passed; and the production build completed with isolated environment loading. A dedicated browser end-to-end test harness is not currently configured, so automated UI E2E coverage remains a follow-up.
+**Verification completed:** `pnpm check` passed with no diagnostics; `pnpm test` passed all 91 tests across 24 files; `pnpm lint` passed; and the production build completed with isolated environment loading. A dedicated browser end-to-end test harness is not currently configured, so automated UI E2E coverage remains a follow-up.
 
 ## 22. Expansion Acceptance Criteria
 
@@ -1079,4 +1088,9 @@ The expansion is complete when:
 - Group conversations use codenames before reveal, have unread indicators, and receive scoped realtime updates.
 - Organizers can review aggregate statistics, manage authorized reservation corrections, and deliberately initiate reveal.
 - Reveal publishes the mapping according to the approved policy and preserves event history.
+- Participants can randomly select an unused suggested codename from Profile before the event is completed or revealed.
+- The signed-in participant's codename appears in the top-navigation account menu.
+- Family conversation and reservation identity surfaces use the associated codename avatar instead of the participant's personal photo.
+- Profile picture and profile detail changes are available inline on the Profile page.
+- Uncaught route errors render a centered message card and expose stack details only in development.
 - The application remains responsive, self-hosted, SQLite-backed, and compatible with the existing Docker deployment.

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Carol Bells</title>
+  <circle cx="128" cy="128" r="124" fill="#f8eadc"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#7a452a" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M42 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#d52f4b"/>
+  <path d="M206 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#237247"/>
+  <path d="M82 169c13-18 18-31 18-57 0-23 12-40 28-40s28 17 28 40c0 26 5 39 18 57z" fill="#d52f4b" stroke="#7a452a" stroke-width="8" stroke-linejoin="round"/>
+<path d="M75 170h106" stroke="#237247" stroke-width="15" stroke-linecap="round"/>
+<circle cx="128" cy="194" r="12" fill="#7a452a"/>
+<path d="M105 67l-10-13M151 67l10-13" stroke="#237247" stroke-width="8" stroke-linecap="round"/>
+</svg>

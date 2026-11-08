@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Toffee</title>
+  <circle cx="128" cy="128" r="124" fill="#e7e9f4"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#404c80" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M57 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#e7be50"/>
+  <path d="M211 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#b92745"/>
+  <path d="M80 105l36-20 35 20-35 22z" fill="#e7be50" stroke="#404c80" stroke-width="6" stroke-linejoin="round"/>
+<path d="M80 105v43l36 21v-42z" fill="#b92745" stroke="#404c80" stroke-width="6" stroke-linejoin="round"/>
+<path d="M116 127l35-22v43l-35 21z" fill="#404c80" stroke="#404c80" stroke-width="6" stroke-linejoin="round"/>
+<path d="M72 185h112" stroke="#b92745" stroke-width="8" stroke-linecap="round"/>
+</svg>

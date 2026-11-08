@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Hot Cocoa</title>
+  <circle cx="128" cy="128" r="124" fill="#fff2d6"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#744210" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M53 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#c92d4b"/>
+  <path d="M200 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#17603a"/>
+  <path d="M164 95h17c23 0 23 48 0 48h-17" fill="none" stroke="#744210" stroke-width="13"/>
+<path d="M78 83h89v97c0 14-10 24-24 24h-41c-14 0-24-10-24-24z" fill="#17603a"/>
+<ellipse cx="122" cy="84" rx="45" ry="14" fill="#744210"/>
+<path d="M97 70c-9-13 9-17 0-30M126 70c-9-13 9-17 0-30M151 70c-9-13 9-17 0-30" fill="none" stroke="#c92d4b" stroke-width="7" stroke-linecap="round"/>
+<path d="M95 181h56" stroke="#c92d4b" stroke-width="8" stroke-linecap="round"/>
+</svg>

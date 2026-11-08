@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for All Is Bright</title>
+  <circle cx="128" cy="128" r="124" fill="#eee8f5"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M56 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#e0b85b"/>
+  <path d="M212 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
+  <path d="M62 88c35 28 97 28 132 0" fill="none" stroke="#5b3b76" stroke-width="8" stroke-linecap="round"/>
+<path d="M77 99v20M103 109v20M128 113v20M153 109v20M179 99v20" stroke="#c92d4b" stroke-width="5"/>
+<circle cx="77" cy="126" r="10" fill="#e0b85b"/><circle cx="103" cy="136" r="10" fill="#c92d4b"/>
+<circle cx="128" cy="140" r="10" fill="#e0b85b"/><circle cx="153" cy="136" r="10" fill="#c92d4b"/><circle cx="179" cy="126" r="10" fill="#e0b85b"/>
+</svg>

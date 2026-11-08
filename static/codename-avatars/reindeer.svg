@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Reindeer</title>
+  <circle cx="128" cy="128" r="124" fill="#fff2d6"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#744210" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M46 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#c92d4b"/>
+  <path d="M197 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#17603a"/>
+  <path d="M94 118L79 80 61 70M80 82H56M162 118l15-38 18-10M176 82h24" fill="none" stroke="#744210" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M85 148c0-32 18-51 43-51s43 19 43 51c0 27-18 42-43 42s-43-15-43-42z" fill="#17603a"/>
+<circle cx="110" cy="140" r="6" fill="#744210"/><circle cx="146" cy="140" r="6" fill="#744210"/>
+<path d="M114 160c10 9 20 9 29 0" fill="none" stroke="#744210" stroke-width="7" stroke-linecap="round"/>
+<circle cx="128" cy="151" r="9" fill="#c92d4b"/>
+</svg>

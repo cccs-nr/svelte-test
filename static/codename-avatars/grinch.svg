@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Grinch</title>
+  <circle cx="128" cy="128" r="124" fill="#e4f2ee"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#245b52" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M57 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#efc34d"/>
+  <path d="M211 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#b92342"/>
+  <path d="M72 122c-11-25 7-44 31-34 3-27 29-34 43-12 21-16 45-2 38 24 25 8 28 33 5 44 5 24-19 38-39 24-17 20-45 11-45-14-26 2-41-13-33-32z" fill="#245b52"/>
+<circle cx="116" cy="126" r="12" fill="#b92342"/><circle cx="138" cy="116" r="12" fill="#b92342"/><circle cx="142" cy="140" r="12" fill="#b92342"/>
+<path d="M128 94l-2-21" stroke="#efc34d" stroke-width="8" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Deck the Halls</title>
+  <circle cx="128" cy="128" r="124" fill="#f8eadc"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#7a452a" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M63 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#d52f4b"/>
+  <path d="M195 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#237247"/>
+  <path d="M68 147c31-70 89-79 121-19" fill="none" stroke="#7a452a" stroke-width="12" stroke-linecap="round"/>
+<path d="M83 155c31-51 73-59 94-27" fill="none" stroke="#237247" stroke-width="8" stroke-linecap="round"/>
+<circle cx="85" cy="139" r="10" fill="#d52f4b"/><circle cx="128" cy="108" r="10" fill="#d52f4b"/><circle cx="175" cy="128" r="10" fill="#d52f4b"/>
+<path d="M74 182h108" stroke="#7a452a" stroke-width="8" stroke-linecap="round"/>
+</svg>

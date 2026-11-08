@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Sleigh Ride</title>
+  <circle cx="128" cy="128" r="124" fill="#e7e9f4"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#404c80" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M42 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#e7be50"/>
+  <path d="M206 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#b92745"/>
+  <path d="M61 170h134c-10 19-29 29-60 29H83z" fill="#b92745" stroke="#404c80" stroke-width="8" stroke-linejoin="round"/>
+<path d="M82 187c26 14 74 14 103-2" fill="none" stroke="#e7be50" stroke-width="8" stroke-linecap="round"/>
+<path d="M91 152c8-28 26-44 51-44 19 0 33 8 43 22-32 19-61 25-94 22z" fill="#404c80"/>
+<circle cx="115" cy="132" r="10" fill="#e7be50"/><circle cx="145" cy="123" r="10" fill="#e7be50"/>
+</svg>

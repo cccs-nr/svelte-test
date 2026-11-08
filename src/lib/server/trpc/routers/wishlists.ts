@@ -164,6 +164,7 @@ export const wishlistsRouter = router({
 							reservationId: null,
 							reservationStatus: null,
 							reservedBy: null,
+							reservationCodename: null,
 							reservedByMe: false
 						};
 					}
@@ -180,12 +181,19 @@ export const wishlistsRouter = router({
 							message: 'A reserved idea is missing its participant label.'
 						});
 					}
+					if (suggestion.reservationStatus && !reserverCodename) {
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'A reservation is missing its participant codename.'
+						});
+					}
 
 					return {
 						...idea,
 						reservationId: reserverId === ctx.user.id ? suggestion.reservationId : null,
 						reservationStatus: suggestion.reservationStatus ?? 'available',
 						reservedBy,
+						reservationCodename: suggestion.reservationStatus ? reserverCodename : null,
 						reservedByMe: reserverId === ctx.user.id
 					};
 				})

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Gingerbread</title>
+  <circle cx="128" cy="128" r="124" fill="#e6f1f8"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#145374" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M42 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#f4c95d"/>
+  <path d="M206 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
+  <circle cx="128" cy="132" r="62" fill="#f4c95d" stroke="#145374" stroke-width="8"/>
+<g fill="#c92d4b"><circle cx="101" cy="111" r="6"/><circle cx="144" cy="106" r="6"/><circle cx="117" cy="144" r="6"/><circle cx="157" cy="145" r="6"/><circle cx="91" cy="151" r="6"/></g>
+<path d="M92 186h72" stroke="#c92d4b" stroke-width="8" stroke-linecap="round"/>
+</svg>

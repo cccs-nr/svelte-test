@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Charlie Brown</title>
+  <circle cx="128" cy="128" r="124" fill="#f8eadc"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#7a452a" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M56 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#d52f4b"/>
+  <path d="M212 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#237247"/>
+  <path d="M128 52l19 52 55 2-43 34 15 53-46-31-46 31 15-53-43-34 55-2z" fill="#d52f4b" stroke="#7a452a" stroke-width="7" stroke-linejoin="round"/>
+<circle cx="128" cy="127" r="14" fill="#237247"/>
+</svg>

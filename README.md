@@ -54,7 +54,9 @@ Organizers can manage the draw from **Assignments** after opening the event. The
 
 Generated assignments remain private until the organizer finalizes the draw. Regenerating a draft requires confirmation; each participant can see only their own recipient after finalization. Resetting a finalized draw also requires confirmation and reopens the event. While assignment rows exist, changes that could invalidate the draw (such as participant registration, activation, role, or household membership changes, and event edits) are blocked until the organizer resets it.
 
-Generating the draw also assigns each active participant a unique Christmas-themed codename. Codes are stored with the event and remain stable across draft resets. The regular Dashboard does not show the participant-to-codename mapping. An organizer can open a separate, audited codename-management action when needed; the organizer can reveal the mapping to participants only after completing the event.
+Generating the draw also assigns each active participant a unique Christmas-themed codename from a 50-name list of holiday foods, songs, and classic movie/cartoon references. Each codename has its own stable, original SVG cartoon avatar, used instead of the participant’s personal avatar in family gift conversations and reservation labels. Codes are stored with the event and remain stable across draft resets. Before event completion or reveal, participants can randomly pick a different unused codename from **Profile**. The regular Dashboard does not show the participant-to-codename mapping. An organizer can open a separate, audited codename-management action when needed; the organizer can reveal the mapping to participants only after completing the event.
+
+The SVG avatars are stored in `static/codename-avatars/` and use clean, single-focus illustrations. To regenerate them after changing the codename list, run `python3 scripts/generate-codename-avatars.py`. The generator uses Python's standard library and does not require an image service or third-party drawing package.
 
 ### Live messages and notifications
 
@@ -66,7 +68,7 @@ Before reveal, family conversations and reservation activity identify other part
 
 Organizer accounts are excluded from the draw by default. An organizer can opt in from **Profile** while keeping organizer access; they will see only their own recipient and assigned wishlist. Regular participant accounts remain in the draw. Participation cannot be changed while assignments exist.
 
-The top-nav avatar opens a Google-style account menu with profile, theme, and sign-out actions. The appearance toggle follows the operating system theme until changed, then saves the selected light or dark mode in the browser. Wishlist images can be opened in an accessible full-size viewer and dismissed with Escape, the close button, or by selecting the backdrop. The app navigation collapses to a menu on narrow screens.
+The top-nav avatar opens an account menu with profile, theme, and sign-out actions; it also displays the signed-in participant’s codename and codename illustration when assigned. On the Profile page, picture, name, and participation settings are edited inline, and the codename illustration appears beside the current codename. The appearance toggle follows the operating system theme until changed, then saves the selected light or dark mode in the browser. Wishlist images can be opened in an accessible full-size viewer and dismissed with Escape, the close button, or by selecting the backdrop. The app navigation collapses to a menu on narrow screens. Unexpected route errors render a centered diagnostic card; stack details are shown only during development.
 
 ### Wishlists and gift ideas
 

@@ -287,15 +287,16 @@ export const reservationsRouter = router({
 					...visibleReservation
 				} = reservation;
 				const reserverLabel = event?.revealedAt ? reserverDisplayName : reserverCodename;
-				if (!reserverLabel) {
+				if (!reserverLabel || !reserverCodename) {
 					throw new TRPCError({
 						code: 'INTERNAL_SERVER_ERROR',
-						message: 'A reservation is missing its participant label.'
+						message: 'A reservation is missing its participant label or codename.'
 					});
 				}
 				return {
 					...visibleReservation,
 					reserverLabel,
+					reserverCodename,
 					reservedAt: reservedAt.toISOString(),
 					purchasedAt: purchasedAt?.toISOString() ?? null
 				};

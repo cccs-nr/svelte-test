@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Roasted Chestnut</title>
+  <circle cx="128" cy="128" r="124" fill="#f8eadc"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#7a452a" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M52 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#d52f4b"/>
+  <path d="M201 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#237247"/>
+  <path d="M72 159c4-48 24-80 56-80s52 32 56 80c-28 30-84 30-112 0z" fill="#237247" stroke="#7a452a" stroke-width="8"/>
+<path d="M91 125c18-21 56-27 79-8" fill="none" stroke="#d52f4b" stroke-width="10" stroke-linecap="round"/>
+<path d="M128 79c-5-18 5-27 19-30" fill="none" stroke="#7a452a" stroke-width="8" stroke-linecap="round"/>
+</svg>

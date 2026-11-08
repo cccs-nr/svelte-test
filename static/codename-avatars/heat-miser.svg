@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Heat Miser</title>
+  <circle cx="128" cy="128" r="124" fill="#eee8f5"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M60 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#e0b85b"/>
+  <path d="M203 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
+  <path d="M128 49c4 31-23 42-9 68-22-8-37 16-34 37 3 25 22 43 45 43s43-19 45-44c3-29-17-44-31-64-7-10-13-24-16-40z" fill="#c92d4b"/>
+<path d="M128 112c1 20-16 30-13 47 2 12 7 20 15 20s16-9 16-21c0-15-12-28-18-46z" fill="#e0b85b"/>
+<circle cx="128" cy="179" r="7" fill="#5b3b76"/>
+</svg>

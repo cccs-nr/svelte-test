@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Peppermint Bark</title>
+  <circle cx="128" cy="128" r="124" fill="#eee8f5"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M45 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#e0b85b"/>
+  <path d="M198 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
+  <rect x="77" y="88" width="102" height="80" rx="10" fill="#5b3b76"/>
+<path d="M87 99h82v58H87z" fill="#e0b85b"/>
+<path d="M92 105l27 30M126 104l30 32M99 143l15 13M146 141l16 15" stroke="#c92d4b" stroke-width="12" stroke-linecap="round"/>
+</svg>

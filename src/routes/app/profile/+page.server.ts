@@ -3,8 +3,10 @@ import { redirect } from '@sveltejs/kit';
 import { MAX_IMAGE_BYTES } from '$app/env/private';
 import type { PageServerLoad } from './$types';
 import { db } from '#lib/server/db/index.js';
-import { assignments, households, users } from '#lib/server/db/schema.js';
+import { getAvailableCodenames, getParticipantCodename } from '#lib/server/codenames.js';
+import { assignments, events, households, users } from '#lib/server/db/schema.js';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
+import { isActiveExchangeParticipant } from '#lib/server/wishlist-access.js';
 
 export const load: PageServerLoad = ({ locals }) => {
 	if (!locals.user) redirect(303, '/login');
@@ -33,13 +35,31 @@ export const load: PageServerLoad = ({ locals }) => {
 			.where(eq(assignments.eventId, SINGLE_EVENT_ID))
 			.get()
 	);
+	const event = db
+		.select({ status: events.status, revealedAt: events.revealedAt })
+		.from(events)
+		.where(eq(events.id, SINGLE_EVENT_ID))
+		.get();
+	const hasParticipantAccess = isActiveExchangeParticipant(db, locals.user.id);
+	const codename = hasParticipantAccess
+		? (getParticipantCodename(db, locals.user.id)?.codename ?? null)
+		: null;
+	const canChangeCodename = Boolean(
+		codename && event && event.status !== 'completed' && !event.revealedAt
+	);
+	const availableCodenameCount = canChangeCodename
+		? getAvailableCodenames(db, locals.user.id).length
+		: 0;
 	return {
 		profile: {
 			...profileDetails,
 			hasAvatar: Boolean(avatarKey),
-			avatarVersion: avatarVersion.getTime()
+			avatarVersion: avatarVersion.getTime(),
+			codename
 		},
 		maxImageBytes: MAX_IMAGE_BYTES,
-		canChangeParticipation: !hasAssignments
+		canChangeParticipation: !hasAssignments,
+		canChangeCodename,
+		availableCodenameCount
 	};
 };

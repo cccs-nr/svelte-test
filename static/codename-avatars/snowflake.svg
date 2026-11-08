@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Snowflake</title>
+  <circle cx="128" cy="128" r="124" fill="#e7e9f4"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#404c80" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M53 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#e7be50"/>
+  <path d="M200 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#b92745"/>
+  <path d="M128 57v142M67 93l122 70M67 163l122-70" stroke="#404c80" stroke-width="11" stroke-linecap="round"/>
+<path d="M108 76l20 18 20-18M108 180l20-18 20 18M73 109l18 19-18 19M183 109l-18 19 18 19" fill="none" stroke="#b92745" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="128" cy="128" r="13" fill="#e7be50"/>
+</svg>

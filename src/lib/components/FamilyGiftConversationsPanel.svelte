@@ -4,6 +4,7 @@
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import CodenameAvatar from '#lib/components/CodenameAvatar.svelte';
 	import {
 		Card,
 		CardContent,
@@ -313,8 +314,9 @@
 						>
 							{#each currentThread.messages as message (message.id)}
 								<li
-									class={`flex ${message.senderLabel === 'You' ? 'justify-end' : 'justify-start'}`}
+									class={`flex items-start gap-2 ${message.senderLabel === 'You' ? 'flex-row-reverse justify-end' : 'justify-start'}`}
 								>
+									<CodenameAvatar codename={message.senderCodename} size="sm" />
 									<div
 										class={`max-w-[90%] rounded-2xl px-4 py-3 ${
 											message.senderLabel === 'You' ? 'bg-emerald-100' : 'bg-stone-100'

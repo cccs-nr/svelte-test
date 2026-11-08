@@ -310,7 +310,7 @@ function getConversationThread(database: AppDatabase, conversationId: string, vi
 					: message.revealedAt
 						? message.senderDisplayName
 						: message.senderCodename;
-			if (!senderLabel) {
+			if (!senderLabel || !message.senderCodename) {
 				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
 					message: 'A conversation participant is missing a codename.'
@@ -320,7 +320,8 @@ function getConversationThread(database: AppDatabase, conversationId: string, vi
 				id: message.id,
 				content: message.content,
 				sentAt: message.createdAt.toISOString(),
-				senderLabel
+				senderLabel,
+				senderCodename: message.senderCodename
 			};
 		});
 

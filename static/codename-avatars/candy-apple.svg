@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Original Christmas avatar for Candy Apple</title>
+  <circle cx="128" cy="128" r="124" fill="#fff2d6"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#744210" stroke-opacity=".22" stroke-width="4"/>
+  <path d="M42 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#c92d4b"/>
+  <path d="M206 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#17603a"/>
+  <path d="M128 95c-30-28-70-2-58 43 9 35 37 61 58 61s49-26 58-61c12-45-28-71-58-43z" fill="#17603a" stroke="#744210" stroke-width="7"/>
+<path d="M128 99c-3-21 3-34 16-44" fill="none" stroke="#744210" stroke-width="9" stroke-linecap="round"/>
+<path d="M143 61c18-12 34-3 35 12-15 8-29 5-35-12z" fill="#c92d4b"/>
+<ellipse cx="100" cy="122" rx="9" ry="16" fill="#c92d4b" opacity=".72"/>
+</svg>
