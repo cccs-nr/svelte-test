@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
-	import { LogOut, Menu, UserRound, X } from '@lucide/svelte';
+	import { Gift, LogOut, Menu, UserRound, X } from '@lucide/svelte';
 	import type { LayoutProps } from './$types';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
@@ -17,46 +17,6 @@
 	let accountMenu = $state<HTMLDivElement>();
 	let isSigningOut = $state(false);
 	let logoutError = $state<string | null>(null);
-	let clientUnreadMessageCount = $state<number | null>(null);
-	let unreadMessageCount = $derived(clientUnreadMessageCount ?? data.unreadMessageCount);
-	let unreadMessageError = $state<string | null>(null);
-
-	onMount(() => {
-		if (!data.user.isParticipating) return;
-
-		let isDisposed = false;
-		let isRefreshing = false;
-
-		async function refreshUnreadMessageCount(): Promise<void> {
-			if (isRefreshing) return;
-			isRefreshing = true;
-
-			try {
-				const result = await trpc.conversations.unreadCount.query();
-				if (!isDisposed) {
-					clientUnreadMessageCount = result.count;
-					unreadMessageError = null;
-				}
-			} catch (error) {
-				if (!isDisposed) {
-					unreadMessageError =
-						error instanceof TRPCClientError
-							? 'Unread message count could not be refreshed.'
-							: 'Unable to reach the messaging service.';
-				}
-			} finally {
-				isRefreshing = false;
-			}
-		}
-
-		void refreshUnreadMessageCount();
-		const interval = window.setInterval(() => void refreshUnreadMessageCount(), 15_000);
-		return () => {
-			isDisposed = true;
-			window.clearInterval(interval);
-		};
-	});
-
 	onMount(() => {
 		function handleOutsidePointerDown(event: PointerEvent): void {
 			if (!isAccountMenuOpen || !(event.target instanceof Node)) return;
@@ -120,16 +80,20 @@
 	<title>Secret Santa</title>
 </svelte:head>
 
-<div class="min-h-screen bg-stone-50">
-	<header class="border-b border-stone-200 bg-white/90">
+<div class="min-h-screen bg-transparent">
+	<header
+		class="sticky top-0 z-40 border-b-4 border-rose-800 bg-[#123b2b]/95 text-emerald-50 shadow-sm backdrop-blur"
+	>
 		<div
-			class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-8"
+			class="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-2 sm:px-8"
 		>
 			<a
 				href={resolve('/app')}
-				class="inline-flex items-center gap-3 font-semibold tracking-tight text-stone-950"
+				class="inline-flex items-center gap-3 font-semibold tracking-tight text-white"
 			>
-				<span class="grid size-9 place-items-center rounded-xl bg-emerald-800 text-white">S</span>
+				<span class="grid size-9 place-items-center rounded-xl bg-rose-700 text-white">
+					<Gift size={18} aria-hidden="true" />
+				</span>
 				Secret Santa
 			</a>
 			<nav
@@ -137,39 +101,39 @@
 				class={`order-3 ${isMobileNavigationOpen ? 'flex' : 'hidden'} w-full flex-col gap-1 text-sm sm:order-none sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:gap-2`}
 				aria-label="Main navigation"
 			>
-				<a
-					href={resolve('/app')}
-					onclick={closeMobileNavigation}
-					class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
-				>
-					Overview
-				</a>
 				{#if data.user.role === 'organizer'}
+					<a
+						href={resolve('/app/dashboard')}
+						onclick={closeMobileNavigation}
+						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
+					>
+						Dashboard
+					</a>
 					<a
 						href={resolve('/app/event')}
 						onclick={closeMobileNavigation}
-						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
 					>
 						Event
 					</a>
 					<a
 						href={resolve('/app/participants')}
 						onclick={closeMobileNavigation}
-						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
 					>
 						Participants
 					</a>
 					<a
 						href={resolve('/app/households')}
 						onclick={closeMobileNavigation}
-						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
 					>
 						Households
 					</a>
 					<a
 						href={resolve('/app/assignments')}
 						onclick={closeMobileNavigation}
-						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
 					>
 						Assignments
 					</a>
@@ -178,27 +142,16 @@
 					<a
 						href={resolve('/app/wishlist')}
 						onclick={closeMobileNavigation}
-						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
 					>
 						Wishlist
 					</a>
 					<a
-						href={resolve('/app/messages')}
+						href={resolve('/app/gift')}
 						onclick={closeMobileNavigation}
-						aria-label={unreadMessageCount > 0
-							? `Messages, ${unreadMessageCount} unread`
-							: 'Messages'}
-						class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+						class="rounded-lg px-3 py-2 text-emerald-50 hover:bg-white/10 hover:text-white"
 					>
-						Messages
-						{#if unreadMessageCount > 0}
-							<span
-								class="grid min-w-5 place-items-center rounded-full bg-rose-100 px-1.5 py-0.5 text-xs font-semibold text-rose-800"
-								aria-hidden="true"
-							>
-								{unreadMessageCount}
-							</span>
-						{/if}
+						Gift
 					</a>
 				{/if}
 			</nav>
@@ -206,11 +159,14 @@
 				<Button
 					type="button"
 					variant="outline"
-					class="size-10 p-0 sm:hidden"
+					class="size-10 border-white/30 bg-white/10 p-0 text-white hover:bg-white/20 sm:hidden"
 					aria-controls="main-navigation"
 					aria-expanded={isMobileNavigationOpen}
 					aria-label={isMobileNavigationOpen ? 'Close navigation' : 'Open navigation'}
-					onclick={() => (isMobileNavigationOpen = !isMobileNavigationOpen)}
+					onclick={() => {
+						isAccountMenuOpen = false;
+						isMobileNavigationOpen = !isMobileNavigationOpen;
+					}}
 				>
 					{#if isMobileNavigationOpen}
 						<X size={18} aria-hidden="true" />
@@ -223,7 +179,7 @@
 						bind:this={accountButton}
 						id="account-menu-trigger"
 						type="button"
-						class="inline-flex size-10 cursor-pointer items-center justify-center rounded-full transition outline-none hover:ring-2 hover:ring-emerald-700/40 focus-visible:ring-2 focus-visible:ring-emerald-700"
+						class="inline-flex size-10 cursor-pointer items-center justify-center rounded-full transition outline-none hover:ring-2 hover:ring-amber-300/70 focus-visible:ring-2 focus-visible:ring-amber-300"
 						aria-label={`Open account menu for ${data.user.displayName}`}
 						aria-haspopup="dialog"
 						aria-expanded={isAccountMenuOpen}
@@ -300,12 +256,6 @@
 			{logoutError}
 		</p>
 	{/if}
-	{#if unreadMessageError}
-		<p class="mx-auto mt-2 max-w-6xl px-4 text-sm text-rose-700 sm:px-8" role="status">
-			{unreadMessageError}
-		</p>
-	{/if}
-
 	<main class="mx-auto max-w-6xl px-4 py-10 sm:px-8">
 		{@render children()}
 	</main>

@@ -8,7 +8,12 @@ import {
 } from '#lib/server/assignment-algorithm.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { assignments, events, users } from '#lib/server/db/schema.js';
-import { organizerProcedure, protectedProcedure, router } from '#lib/server/trpc/init.js';
+import {
+	organizerProcedure,
+	participantProcedure,
+	protectedProcedure,
+	router
+} from '#lib/server/trpc/init.js';
 import { z } from 'zod';
 
 function getActiveParticipants(database: AppDatabase) {
@@ -280,5 +285,87 @@ export const assignmentRouter = router({
 		}
 
 		return { displayName: recipient.displayName };
-	})
+	}),
+	myGiftStatus: participantProcedure.query(({ ctx }) => {
+		const assignment = ctx.db
+			.select({ giftPurchasedAt: assignments.giftPurchasedAt })
+			.from(assignments)
+			.where(
+				and(
+					eq(assignments.eventId, SINGLE_EVENT_ID),
+					eq(assignments.giverId, ctx.user.id),
+					isNotNull(assignments.finalizedAt)
+				)
+			)
+			.get();
+
+		return {
+			purchased: Boolean(assignment?.giftPurchasedAt),
+			purchasedAt: assignment?.giftPurchasedAt?.toISOString() ?? null
+		};
+	}),
+	myRecipientGiftStatus: participantProcedure.query(({ ctx }) => {
+		const assignment = ctx.db
+			.select({ giftPurchasedAt: assignments.giftPurchasedAt })
+			.from(assignments)
+			.where(
+				and(
+					eq(assignments.eventId, SINGLE_EVENT_ID),
+					eq(assignments.receiverId, ctx.user.id),
+					isNotNull(assignments.finalizedAt)
+				)
+			)
+			.get();
+
+		return {
+			purchased: Boolean(assignment?.giftPurchasedAt),
+			purchasedAt: assignment?.giftPurchasedAt?.toISOString() ?? null
+		};
+	}),
+	setGiftPurchased: participantProcedure
+		.input(z.object({ purchased: z.boolean() }))
+		.mutation(({ ctx, input }) =>
+			ctx.db.transaction((transaction) => {
+				const assignment = transaction
+					.select({
+						id: assignments.id,
+						giftPurchasedAt: assignments.giftPurchasedAt
+					})
+					.from(assignments)
+					.where(
+						and(
+							eq(assignments.eventId, SINGLE_EVENT_ID),
+							eq(assignments.giverId, ctx.user.id),
+							isNotNull(assignments.finalizedAt)
+						)
+					)
+					.get();
+
+				if (!assignment) {
+					throw new TRPCError({
+						code: 'PRECONDITION_FAILED',
+						message: 'A finalized assignment is required to update gift status.'
+					});
+				}
+
+				if (Boolean(assignment.giftPurchasedAt) === input.purchased) {
+					return {
+						purchased: input.purchased,
+						purchasedAt: assignment.giftPurchasedAt?.toISOString() ?? null
+					};
+				}
+
+				const purchasedAt = input.purchased ? new Date() : null;
+				transaction
+					.update(assignments)
+					.set({ giftPurchasedAt: purchasedAt })
+					.where(eq(assignments.id, assignment.id))
+					.run();
+
+				return {
+					purchased: input.purchased,
+					purchasedAt: purchasedAt?.toISOString() ?? null
+				};
+			})
+		)
 });

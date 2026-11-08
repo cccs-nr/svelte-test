@@ -4,6 +4,7 @@
 	import { TRPCClientError } from '@trpc/client';
 	import { X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
+	import ConversationPanel from '#lib/components/ConversationPanel.svelte';
 	import { formatEventBudget, formatBudgetInput } from '#lib/models/event.js';
 	import { trpc } from '#lib/trpc/client.js';
 	import { Button } from '#lib/components/ui/button/index.js';
@@ -17,11 +18,13 @@
 	import { Input } from '#lib/components/ui/input/index.js';
 
 	type GiftSuggestion = Awaited<ReturnType<typeof trpc.wishlists.mine.query>>[number];
-	type RecipientWishlist = Awaited<ReturnType<typeof trpc.wishlists.assignedRecipient.query>>;
+	type RecipientGiftStatus = Awaited<
+		ReturnType<typeof trpc.assignments.myRecipientGiftStatus.query>
+	>;
 
 	let { data }: PageProps = $props();
 	let suggestions = $state<GiftSuggestion[]>([]);
-	let recipientWishlist = $state<RecipientWishlist>({ recipient: null, suggestions: [] });
+	let recipientGiftStatus = $state<RecipientGiftStatus>({ purchased: false, purchasedAt: null });
 	let editingId = $state<string | null>(null);
 	let title = $state('');
 	let description = $state('');
@@ -49,10 +52,12 @@
 		isLoadFailed = false;
 		errorMessage = null;
 		try {
-			[suggestions, recipientWishlist] = await Promise.all([
+			const [wishlist, giftStatus] = await Promise.all([
 				trpc.wishlists.mine.query(),
-				trpc.wishlists.assignedRecipient.query()
+				trpc.assignments.myRecipientGiftStatus.query()
 			]);
+			suggestions = wishlist;
+			recipientGiftStatus = giftStatus;
 			return true;
 		} catch (error) {
 			isLoadFailed = true;
@@ -253,13 +258,15 @@
 </script>
 
 <svelte:head>
-	<title>Wishlists | Secret Santa</title>
+	<title>Wishlist | Secret Santa</title>
 </svelte:head>
 
 <section class="space-y-8">
 	<div>
 		<p class="text-sm font-medium tracking-[0.18em] text-emerald-800 uppercase">Participant</p>
-		<h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">Wishlists</h1>
+		<h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">
+			Your wishlist
+		</h1>
 		<p class="mt-3 max-w-2xl text-stone-600">
 			Add a few ideas to help your Secret Santa find something you’ll love. Your gift ideas are only
 			shared with your assigned Secret Santa after the draw is finalized.
@@ -286,6 +293,17 @@
 	{/if}
 	{#if successMessage}
 		<p class="text-sm text-emerald-800" role="status">{successMessage}</p>
+	{/if}
+	{#if recipientGiftStatus.purchased}
+		<div
+			class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950"
+			role="status"
+		>
+			<p class="font-semibold">Your Secret Santa marked your gift as purchased.</p>
+			{#if recipientGiftStatus.purchasedAt}
+				<p class="mt-1">Updated {formatTimestamp(recipientGiftStatus.purchasedAt)}.</p>
+			{/if}
+		</div>
 	{/if}
 
 	<Card class="border-stone-200 bg-white">
@@ -397,8 +415,8 @@
 		</CardContent>
 	</Card>
 
-	<div class="grid gap-6 lg:grid-cols-2">
-		<Card class="border-stone-200 bg-white">
+	<div class="grid gap-6">
+		<Card id="my-wishlist" class="border-stone-200 bg-white">
 			<CardHeader>
 				<CardTitle>Your gift ideas</CardTitle>
 				<CardDescription>
@@ -487,88 +505,14 @@
 				{/if}
 			</CardContent>
 		</Card>
-
-		<Card class="border-stone-200 bg-white">
-			<CardHeader>
-				<CardTitle>
-					{recipientWishlist.recipient
-						? `${recipientWishlist.recipient.displayName}’s wishlist`
-						: 'Your recipient’s wishlist'}
-				</CardTitle>
-				<CardDescription>
-					{recipientWishlist.recipient
-						? 'These ideas are private to you as their assigned Secret Santa.'
-						: 'This will be available after the organizer finalizes the draw.'}
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				{#if isLoading}
-					<p class="text-sm text-stone-500">Checking for your assignment…</p>
-				{:else if isLoadFailed}
-					<p class="text-sm text-stone-600">Your recipient’s wishlist could not be loaded.</p>
-				{:else if !recipientWishlist.recipient}
-					<p class="text-sm text-stone-600">
-						Your assigned recipient and their gift ideas will appear here after the draw is
-						finalized.
-					</p>
-				{:else if recipientWishlist.suggestions.length === 0}
-					<p class="text-sm text-stone-600">They haven’t added any gift ideas yet.</p>
-				{:else}
-					<ul class="space-y-4">
-						{#each recipientWishlist.suggestions as suggestion (suggestion.id)}
-							<li class="rounded-xl border border-stone-200 p-4">
-								{#if suggestion.imageKey}
-									<button
-										type="button"
-										class="mb-4 block w-full cursor-zoom-in overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
-										aria-label={`View full-size image for ${suggestion.title}`}
-										onclick={() => openSuggestionImage(suggestion.imageKey, suggestion.title)}
-									>
-										<img
-											class="max-h-56 w-full rounded-lg object-cover"
-											src={imageUrl(suggestion.imageKey)}
-											alt=""
-											loading="lazy"
-										/>
-									</button>
-								{/if}
-								<h3 class="font-semibold text-stone-950">{suggestion.title}</h3>
-								{#if suggestion.description}
-									<p class="mt-2 text-sm whitespace-pre-wrap text-stone-600">
-										{suggestion.description}
-									</p>
-								{/if}
-								{#if suggestion.url}
-									<a
-										class="mt-3 inline-block text-sm font-medium text-emerald-800 underline-offset-4 hover:underline"
-										href={suggestion.url}
-										target="_blank"
-										rel="noopener noreferrer external"
-									>
-										View gift link
-									</a>
-								{/if}
-								{#if suggestion.estimatedPriceCents !== null}
-									<p class="mt-2 text-sm text-stone-600">
-										Estimated price: {formatEventBudget(suggestion.estimatedPriceCents, 'CAD')}
-									</p>
-								{/if}
-								{#if suggestion.notes}
-									<p class="mt-2 text-sm whitespace-pre-wrap text-stone-600">
-										Notes: {suggestion.notes}
-									</p>
-								{/if}
-								<p class="mt-3 text-xs text-stone-500">
-									Added {formatTimestamp(suggestion.createdAt)} · Updated
-									{formatTimestamp(suggestion.updatedAt)}
-								</p>
-							</li>
-						{/each}
-					</ul>
-				{/if}
-			</CardContent>
-		</Card>
 	</div>
+
+	<ConversationPanel
+		direction="asRecipient"
+		displayName={data.user.displayName}
+		hasAvatar={data.hasAvatar}
+		avatarVersion={data.avatarVersion}
+	/>
 
 	<dialog
 		bind:this={imageDialog}

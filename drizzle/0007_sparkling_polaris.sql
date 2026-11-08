@@ -1,0 +1,1 @@
+ALTER TABLE `assignments` ADD `gift_purchased_at` integer;

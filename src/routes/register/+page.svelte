@@ -120,12 +120,14 @@
 							type="password"
 							bind:value={password}
 							autocomplete="new-password"
-							minlength={12}
+							minlength={3}
 							maxlength={128}
 							required
 							disabled={isSubmitting}
 						/>
-						<p class="text-xs text-stone-500">Use at least 12 characters.</p>
+						<p class="text-xs text-stone-500">
+							Use at least 3 characters. Any characters are allowed.
+						</p>
 					</div>
 					<div class="space-y-2">
 						<label class="text-sm font-medium" for="confirm-password">Confirm password</label>
@@ -134,7 +136,7 @@
 							type="password"
 							bind:value={confirmPassword}
 							autocomplete="new-password"
-							minlength={12}
+							minlength={3}
 							maxlength={128}
 							required
 							disabled={isSubmitting}

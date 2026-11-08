@@ -318,7 +318,8 @@
 		<CardHeader>
 			<CardTitle>Change password</CardTitle>
 			<CardDescription>
-				Use at least 12 characters. Changing your password signs out your other active sessions.
+				Use at least 3 characters; any characters are allowed. Changing your password signs out your
+				other active sessions.
 			</CardDescription>
 		</CardHeader>
 		<CardContent>
@@ -330,7 +331,7 @@
 						type="password"
 						bind:value={currentPassword}
 						autocomplete="current-password"
-						minlength={12}
+						minlength={3}
 						maxlength={128}
 						required
 						disabled={isSaving}
@@ -343,7 +344,7 @@
 						type="password"
 						bind:value={newPassword}
 						autocomplete="new-password"
-						minlength={12}
+						minlength={3}
 						maxlength={128}
 						required
 						disabled={isSaving}
@@ -356,7 +357,7 @@
 						type="password"
 						bind:value={confirmPassword}
 						autocomplete="new-password"
-						minlength={12}
+						minlength={3}
 						maxlength={128}
 						required
 						disabled={isSaving}

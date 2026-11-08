@@ -99,7 +99,7 @@ describe('auth router', () => {
 		const user = await caller.auth.register({
 			username: ' NewMember ',
 			displayName: 'New Member',
-			password: 'a-strong-registration-password'
+			password: ' !a'
 		});
 
 		expect(user).toMatchObject({
@@ -114,6 +114,21 @@ describe('auth router', () => {
 		const savedUser = db.select().from(users).where(eq(users.id, user.id)).get();
 		expect(savedUser?.role).toBe('participant');
 		expect(savedUser?.isActive).toBe(true);
+		await expect(
+			caller.auth.login({ username: 'newmember', password: ' !a' })
+		).resolves.toMatchObject({ id: user.id });
+	});
+
+	it('rejects passwords shorter than three characters', async () => {
+		const caller = appRouter.createCaller(createContext(createCookieStore()));
+
+		await expect(
+			caller.auth.register({
+				username: 'short-pass',
+				displayName: 'Short Pass',
+				password: 'ab'
+			})
+		).rejects.toMatchObject({ code: 'BAD_REQUEST' });
 	});
 
 	it('lets users update their display name and change their password', async () => {
@@ -131,7 +146,7 @@ describe('auth router', () => {
 		).resolves.toMatchObject({ displayName: 'Family Organizer' });
 		await signedInCaller.auth.changePassword({
 			currentPassword: 'correct-horse-battery-staple',
-			newPassword: 'a-new-strong-password'
+			newPassword: '? ='
 		});
 
 		const savedUser = db.select().from(users).where(eq(users.id, user.id)).get();
@@ -139,6 +154,9 @@ describe('auth router', () => {
 		expect(savedUser?.passwordHash).toBeDefined();
 		expect(db.select().from(sessions).all()).toHaveLength(1);
 		expect(cookies.get(SESSION_COOKIE_NAME)).toBeDefined();
+		await expect(
+			caller.auth.login({ username: 'organizer', password: '? =' })
+		).resolves.toMatchObject({ id: user.id });
 	});
 
 	it('lets an organizer opt in before assignments and prevents participant opt-out', async () => {

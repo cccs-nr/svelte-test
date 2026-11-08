@@ -110,7 +110,8 @@ export const assignments = sqliteTable(
 		createdAt: integer('created_at', { mode: 'timestamp_ms' })
 			.notNull()
 			.default(sql`(unixepoch() * 1000)`),
-		finalizedAt: integer('finalized_at', { mode: 'timestamp_ms' })
+		finalizedAt: integer('finalized_at', { mode: 'timestamp_ms' }),
+		giftPurchasedAt: integer('gift_purchased_at', { mode: 'timestamp_ms' })
 	},
 	(table) => [
 		uniqueIndex('assignments_event_giver_unique').on(table.eventId, table.giverId),

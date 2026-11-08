@@ -12,13 +12,14 @@ export const load: LayoutServerLoad = ({ locals }) => {
 		.from(users)
 		.where(eq(users.id, locals.user.id))
 		.get();
+	const unreadMessageCount =
+		locals.user.role === 'participant' || locals.user.isParticipating
+			? countUnreadMessages(db, locals.user.id)
+			: 0;
 	return {
 		user: locals.user,
 		hasAvatar: Boolean(avatar?.key),
 		avatarVersion: avatar?.updatedAt.getTime() ?? 0,
-		unreadMessageCount:
-			locals.user.role === 'participant' || locals.user.isParticipating
-				? countUnreadMessages(db, locals.user.id)
-				: 0
+		unreadMessageCount
 	};
 };

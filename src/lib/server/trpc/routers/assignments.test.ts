@@ -168,6 +168,58 @@ describe('assignment router', () => {
 		expect(recipientUser?.householdId).not.toBe('home-a');
 	});
 
+	it('lets the giver mark a gift purchased and reveals only that status to the recipient', async () => {
+		seedEventAndParticipants(['home-a', 'home-a', 'home-b', 'home-b']);
+		const organizerCaller = appRouter.createCaller(createContext(organizer));
+		const giver = appRouter.createCaller(createContext(participants[0]));
+
+		await organizerCaller.assignments.generate();
+		await expect(giver.assignments.setGiftPurchased({ purchased: true })).rejects.toMatchObject({
+			code: 'PRECONDITION_FAILED'
+		});
+		await organizerCaller.assignments.finalize();
+
+		const assignment = db
+			.select({ receiverId: assignments.receiverId })
+			.from(assignments)
+			.where(eq(assignments.giverId, participants[0].id))
+			.get();
+		if (!assignment) throw new Error('Expected Alice to have a finalized assignment.');
+
+		const recipient = participants.find((participant) => participant.id === assignment.receiverId);
+		if (!recipient) throw new Error('Expected the assigned recipient to be a participant.');
+		const recipientCaller = appRouter.createCaller(createContext(recipient));
+		const otherParticipant = participants.find((participant) => participant.id !== recipient.id);
+		if (!otherParticipant) throw new Error('Expected another participant.');
+		const otherCaller = appRouter.createCaller(createContext(otherParticipant));
+
+		await expect(giver.assignments.myGiftStatus()).resolves.toEqual({
+			purchased: false,
+			purchasedAt: null
+		});
+		await expect(recipientCaller.assignments.myRecipientGiftStatus()).resolves.toEqual({
+			purchased: false,
+			purchasedAt: null
+		});
+		await expect(giver.assignments.setGiftPurchased({ purchased: true })).resolves.toMatchObject({
+			purchased: true,
+			purchasedAt: expect.any(String)
+		});
+
+		const recipientStatus = await recipientCaller.assignments.myRecipientGiftStatus();
+		expect(recipientStatus.purchased).toBe(true);
+		expect(Object.keys(recipientStatus).sort()).toEqual(['purchased', 'purchasedAt']);
+		expect(JSON.stringify(recipientStatus)).not.toContain(participants[0].id);
+		await expect(otherCaller.assignments.myRecipientGiftStatus()).resolves.toEqual({
+			purchased: false,
+			purchasedAt: null
+		});
+		await expect(giver.assignments.setGiftPurchased({ purchased: false })).resolves.toEqual({
+			purchased: false,
+			purchasedAt: null
+		});
+	});
+
 	it('includes an opted-in organizer in the draw and reveals only their own recipient', async () => {
 		seedEventAndParticipants(['home-a', 'home-a', 'home-b', 'home-b']);
 		db.insert(users)

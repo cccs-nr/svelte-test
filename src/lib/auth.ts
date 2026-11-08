@@ -10,7 +10,7 @@ export const usernameSchema = z
 	.regex(/^[a-zA-Z0-9._-]+$/)
 	.transform((username) => username.toLowerCase());
 
-export const passwordSchema = z.string().min(12).max(128);
+export const passwordSchema = z.string().min(3).max(128);
 export const displayNameSchema = z.string().trim().min(1).max(64);
 export const registrationSchema = z.object({
 	username: usernameSchema,

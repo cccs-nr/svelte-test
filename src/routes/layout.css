@@ -7,24 +7,24 @@
 
 :root {
 	color-scheme: light;
-	--background: oklch(1 0 0);
-	--foreground: oklch(0.145 0 0);
+	--background: oklch(0.975 0.018 105);
+	--foreground: oklch(0.24 0.035 150);
 	--card: oklch(1 0 0);
 	--card-foreground: oklch(0.145 0 0);
 	--popover: oklch(1 0 0);
 	--popover-foreground: oklch(0.145 0 0);
-	--primary: oklch(0.205 0 0);
-	--primary-foreground: oklch(0.985 0 0);
+	--primary: oklch(0.39 0.09 150);
+	--primary-foreground: oklch(0.985 0.02 105);
 	--secondary: oklch(0.97 0 0);
 	--secondary-foreground: oklch(0.205 0 0);
 	--muted: oklch(0.97 0 0);
 	--muted-foreground: oklch(0.556 0 0);
-	--accent: oklch(0.97 0 0);
-	--accent-foreground: oklch(0.205 0 0);
+	--accent: oklch(0.94 0.045 25);
+	--accent-foreground: oklch(0.34 0.11 25);
 	--destructive: oklch(0.577 0.245 27.325);
 	--border: oklch(0.922 0 0);
 	--input: oklch(0.922 0 0);
-	--ring: oklch(0.708 0 0);
+	--ring: oklch(0.66 0.1 150);
 	--chart-1: oklch(0.87 0 0);
 	--chart-2: oklch(0.556 0 0);
 	--chart-3: oklch(0.439 0 0);
@@ -72,14 +72,14 @@
 	--card-foreground: oklch(0.985 0 0);
 	--popover: oklch(0.205 0 0);
 	--popover-foreground: oklch(0.985 0 0);
-	--primary: oklch(0.922 0 0);
+	--primary: oklch(0.72 0.13 150);
 	--primary-foreground: oklch(0.205 0 0);
 	--secondary: oklch(0.269 0 0);
 	--secondary-foreground: oklch(0.985 0 0);
 	--muted: oklch(0.269 0 0);
 	--muted-foreground: oklch(0.708 0 0);
-	--accent: oklch(0.269 0 0);
-	--accent-foreground: oklch(0.985 0 0);
+	--accent: oklch(0.31 0.08 25);
+	--accent-foreground: oklch(0.94 0.04 25);
 	--destructive: oklch(0.704 0.191 22.216);
 	--border: oklch(1 0 0 / 10%);
 	--input: oklch(1 0 0 / 15%);
@@ -155,6 +155,17 @@
 	}
 	body {
 		@apply bg-background text-foreground;
+		background-image:
+			url('/winter-holiday.svg'), linear-gradient(145deg, #f7f5e9 0%, #edf5ed 54%, #f6eded 100%);
+		background-attachment: fixed;
+		background-repeat: repeat, no-repeat;
+		background-size:
+			480px 480px,
+			cover;
+	}
+	.dark body {
+		background-image:
+			url('/winter-holiday.svg'), linear-gradient(145deg, #101b16 0%, #16231c 54%, #241619 100%);
 	}
 	html {
 		@apply font-sans;

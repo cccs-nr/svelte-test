@@ -1,10 +1,39 @@
-import { and, count, eq, isNotNull, or } from 'drizzle-orm';
+import { and, count, desc, eq, isNotNull } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { isExchangeParticipant } from '#lib/auth.js';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
+import { countUnreadMessages, getRecentParticipantMessages } from '#lib/server/messaging.js';
 import { db } from '#lib/server/db/index.js';
-import { assignments, events, households, users } from '#lib/server/db/schema.js';
+import { assignments, events, giftSuggestions, users } from '#lib/server/db/schema.js';
+
+function getRecentIdeas(ownerId: string) {
+	return db
+		.select({
+			id: giftSuggestions.id,
+			title: giftSuggestions.title,
+			updatedAt: giftSuggestions.updatedAt
+		})
+		.from(giftSuggestions)
+		.where(eq(giftSuggestions.ownerId, ownerId))
+		.orderBy(desc(giftSuggestions.updatedAt), desc(giftSuggestions.createdAt))
+		.limit(3)
+		.all()
+		.map((suggestion) => ({
+			...suggestion,
+			updatedAt: suggestion.updatedAt.toISOString()
+		}));
+}
+
+function getIdeaCount(ownerId: string): number {
+	return (
+		db
+			.select({ value: count() })
+			.from(giftSuggestions)
+			.where(eq(giftSuggestions.ownerId, ownerId))
+			.get()?.value ?? 0
+	);
+}
 
 export const load: PageServerLoad = ({ locals }) => {
 	if (!locals.user) redirect(303, '/login');
@@ -12,70 +41,66 @@ export const load: PageServerLoad = ({ locals }) => {
 	const event =
 		db
 			.select({
-				id: events.id,
 				name: events.name,
-				description: events.description,
 				exchangeDate: events.exchangeDate,
 				giftBudgetCents: events.giftBudgetCents,
 				currency: events.currency,
-				instructions: events.instructions,
 				status: events.status
 			})
 			.from(events)
 			.where(eq(events.id, SINGLE_EVENT_ID))
 			.get() ?? null;
-	const ownAssignment = isExchangeParticipant(locals.user)
-		? db
-				.select({ receiverId: assignments.receiverId })
-				.from(assignments)
-				.where(
-					and(
-						eq(assignments.eventId, SINGLE_EVENT_ID),
-						eq(assignments.giverId, locals.user.id),
-						isNotNull(assignments.finalizedAt)
-					)
-				)
-				.get()
-		: null;
-	const recipient = ownAssignment
+
+	if (!isExchangeParticipant(locals.user)) {
+		return { user: locals.user, event, participant: null };
+	}
+
+	const outgoingAssignment = db
+		.select({
+			receiverId: assignments.receiverId,
+			giftPurchasedAt: assignments.giftPurchasedAt
+		})
+		.from(assignments)
+		.where(
+			and(
+				eq(assignments.eventId, SINGLE_EVENT_ID),
+				eq(assignments.giverId, locals.user.id),
+				isNotNull(assignments.finalizedAt)
+			)
+		)
+		.get();
+	const incomingAssignment = db
+		.select({ giftPurchasedAt: assignments.giftPurchasedAt })
+		.from(assignments)
+		.where(
+			and(
+				eq(assignments.eventId, SINGLE_EVENT_ID),
+				eq(assignments.receiverId, locals.user.id),
+				isNotNull(assignments.finalizedAt)
+			)
+		)
+		.get();
+	const recipient = outgoingAssignment
 		? (db
 				.select({ displayName: users.displayName })
 				.from(users)
-				.where(eq(users.id, ownAssignment.receiverId))
+				.where(eq(users.id, outgoingAssignment.receiverId))
 				.get() ?? null)
 		: null;
 
-	let organizerStats: {
-		totalParticipants: number;
-		activeAccounts: number;
-		householdCount: number;
-		assignmentCount: number;
-		assignmentsFinalized: boolean;
-	} | null = null;
-
-	if (locals.user.role === 'organizer') {
-		const assignmentRows = db
-			.select({ finalizedAt: assignments.finalizedAt })
-			.from(assignments)
-			.where(eq(assignments.eventId, SINGLE_EVENT_ID))
-			.all();
-
-		organizerStats = {
-			totalParticipants:
-				db
-					.select({ value: count() })
-					.from(users)
-					.where(or(eq(users.role, 'participant'), eq(users.isParticipating, true)))
-					.get()?.value ?? 0,
-			activeAccounts:
-				db.select({ value: count() }).from(users).where(eq(users.isActive, true)).get()?.value ?? 0,
-			householdCount: db.select({ value: count() }).from(households).get()?.value ?? 0,
-			assignmentCount: assignmentRows.length,
-			assignmentsFinalized:
-				assignmentRows.length > 0 &&
-				assignmentRows.every((assignment) => assignment.finalizedAt !== null)
-		};
-	}
-
-	return { user: locals.user, event, organizerStats, recipient };
+	return {
+		user: locals.user,
+		event,
+		participant: {
+			myWishlistCount: getIdeaCount(locals.user.id),
+			myRecentIdeas: getRecentIdeas(locals.user.id),
+			recipientDisplayName: recipient?.displayName ?? null,
+			recipientWishlistCount: outgoingAssignment ? getIdeaCount(outgoingAssignment.receiverId) : 0,
+			recipientRecentIdeas: outgoingAssignment ? getRecentIdeas(outgoingAssignment.receiverId) : [],
+			giftPurchasedAt: outgoingAssignment?.giftPurchasedAt?.toISOString() ?? null,
+			recipientGiftPurchasedAt: incomingAssignment?.giftPurchasedAt?.toISOString() ?? null,
+			unreadMessageCount: countUnreadMessages(db, locals.user.id),
+			recentMessages: getRecentParticipantMessages(db, locals.user.id)
+		}
+	};
 };

@@ -153,7 +153,7 @@
 								placeholder="Your password"
 								bind:value={password}
 								required
-								minlength={12}
+								minlength={3}
 								maxlength={128}
 								disabled={isSubmitting}
 								aria-invalid={Boolean(errorMessage)}

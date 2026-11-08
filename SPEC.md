@@ -106,6 +106,7 @@ Implement a simple username-and-password authentication system.
 ### Authentication requirements
 
 - Users log in using a username and password.
+- Passwords accept any characters, with a minimum of 3 characters and a maximum of 128.
 - Passwords must be securely hashed using Argon2id or an equivalent secure password-hashing algorithm.
 - Authentication sessions should use secure, HTTP-only cookies.
 - Sessions should survive normal browser navigation and page refreshes.
@@ -746,6 +747,14 @@ The first objective is a working MVP rather than implementing every possible fea
 - [x] Allow organizers to opt into participant access.
 - [x] Open wishlist images in a dismissible full-size viewer.
 - [x] Add private profile avatars and a unified account menu.
+- [x] Separate the participant's own **Wishlist** from recipient **Gift** ideas in navigation.
+- [x] Let a giver report a purchased gift and show the recipient an anonymous status update.
+- [x] Add an organizer event dashboard with lifecycle progress and per-account activity counts.
+- [x] Simplify the overview with account metrics, recent messages, and recent gift ideas.
+- [x] Make the top navigation sticky and approximately 64px high when collapsed.
+- [x] Embed the recipient conversation in Wishlist and the giver conversation in Gift; remove the separate messages page.
+- [x] Lower the password minimum to 3 characters while accepting arbitrary characters.
+- [x] Apply an original winter-holiday visual theme with local decorative artwork.
 
 ## 18. Explicit Non-Goals
 

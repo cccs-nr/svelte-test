@@ -8,6 +8,7 @@ import type { TRPCContext } from '#lib/server/trpc/context.js';
 import { createDatabase } from '#lib/server/db/connection.js';
 import { assignments, conversations, events, messages, users } from '#lib/server/db/schema.js';
 import type { SessionCookieStore } from '#lib/server/auth/session.js';
+import { getRecentParticipantMessages } from '#lib/server/messaging.js';
 import { appRouter } from '#lib/server/trpc/router.js';
 
 let client: ReturnType<typeof createDatabase>['client'] | undefined;
@@ -191,6 +192,23 @@ describe('anonymous messaging router', () => {
 		const aliceThread = (await alice.conversations.list()).asGiver;
 		expect(aliceThread?.messages.map((message) => message.senderLabel)).toEqual(['You', 'Bob']);
 		expect(aliceThread?.messages[1]?.content).toBe('Yes, I love baking.');
+	});
+
+	it('shows recent dashboard messages with anonymous recipient-side labels', async () => {
+		const alice = appRouter.createCaller(createContext(participants[0]));
+		const bob = appRouter.createCaller(createContext(participants[1]));
+
+		await alice.messages.send({ direction: 'asGiver', content: 'A private question.' });
+		await bob.messages.send({ direction: 'asRecipient', content: 'A private reply.' });
+
+		const aliceRecent = getRecentParticipantMessages(db, 'alice');
+		expect(aliceRecent.map((message) => message.senderLabel)).toEqual(['Bob', 'You']);
+		expect(aliceRecent[0]?.threadLabel).toBe('Bob');
+
+		const bobRecent = getRecentParticipantMessages(db, 'bob');
+		expect(bobRecent.map((message) => message.senderLabel)).toEqual(['You', 'Your Secret Santa']);
+		expect(bobRecent.every((message) => message.threadLabel === 'Your Secret Santa')).toBe(true);
+		expect(JSON.stringify(bobRecent)).not.toContain('alice');
 	});
 
 	it('tracks unread messages by participant side and respects the read-through timestamp', async () => {

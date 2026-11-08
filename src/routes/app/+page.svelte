@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Gift, ShieldCheck } from '@lucide/svelte';
+	import type { PageProps } from './$types';
+	import { daysUntilExchange, formatEventBudget, type EventStatus } from '#lib/models/event.js';
 	import {
 		Card,
 		CardContent,
@@ -9,8 +10,6 @@
 		CardHeader,
 		CardTitle
 	} from '#lib/components/ui/card/index.js';
-	import { daysUntilExchange, formatEventBudget, type EventStatus } from '#lib/models/event.js';
-	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
@@ -27,7 +26,7 @@
 		}
 	}
 
-	function formatExchangeDate(date: string): string {
+	function formatDate(date: string): string {
 		return new Intl.DateTimeFormat('en-CA', { dateStyle: 'long' }).format(
 			new Date(`${date}T00:00:00`)
 		);
@@ -39,6 +38,13 @@
 		if (days === 0) return 'The exchange is today!';
 		return `${days} ${days === 1 ? 'day' : 'days'} until the exchange`;
 	}
+
+	function formatTimestamp(value: string): string {
+		return new Intl.DateTimeFormat('en-CA', {
+			dateStyle: 'medium',
+			timeStyle: 'short'
+		}).format(new Date(value));
+	}
 </script>
 
 <svelte:head>
@@ -47,18 +53,19 @@
 
 <section class="space-y-8">
 	<div>
-		<p class="text-sm font-medium tracking-[0.18em] text-emerald-800 uppercase">
-			{data.event ? 'Your family exchange' : 'Welcome to Secret Santa'}
-		</p>
+		<p class="text-sm font-medium tracking-[0.18em] text-emerald-800 uppercase">Your exchange</p>
 		<h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">
 			Welcome, {data.user.displayName}
 		</h1>
 		{#if data.event}
-			<p class="mt-3 max-w-2xl text-stone-600">{data.event.name} is taking shape.</p>
+			<p class="mt-3 max-w-2xl text-stone-600">
+				{data.event.name} · {statusLabel(data.event.status)} · Exchange day
+				{formatDate(data.event.exchangeDate)}
+			</p>
 		{:else}
 			<p class="mt-3 max-w-2xl text-stone-600">
 				{data.user.role === 'organizer'
-					? 'Set up the exchange, invite family members, and get everything ready in one place.'
+					? 'Set up the event and invite participants to get started.'
 					: 'Your organizer is getting the exchange ready. Check back soon.'}
 			</p>
 		{/if}
@@ -68,144 +75,66 @@
 		<div class="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.7fr)]">
 			<Card class="border-stone-200 bg-white">
 				<CardHeader>
-					<div
-						class="mb-2 grid size-11 place-items-center rounded-2xl bg-emerald-50 text-emerald-800"
-					>
-						<Gift size={20} aria-hidden="true" />
-					</div>
 					<CardTitle>{data.event.name}</CardTitle>
-					<CardDescription>
-						{data.event.description || 'A little surprise brings everyone closer.'}
-					</CardDescription>
+					<CardDescription>{countdownLabel(data.event.exchangeDate)}</CardDescription>
 				</CardHeader>
-				<CardContent class="grid gap-5 sm:grid-cols-2">
+				<CardContent class="grid gap-4 sm:grid-cols-2">
 					<div>
 						<p class="text-sm text-stone-500">Exchange date</p>
-						<p class="mt-1 font-medium text-stone-900">
-							{formatExchangeDate(data.event.exchangeDate)}
-						</p>
-						<p class="mt-1 text-sm text-emerald-800">
-							{countdownLabel(data.event.exchangeDate)}
-						</p>
+						<p class="mt-1 font-medium text-stone-900">{formatDate(data.event.exchangeDate)}</p>
 					</div>
 					<div>
 						<p class="text-sm text-stone-500">Gift budget</p>
-						<p class="mt-1 text-xl font-semibold text-stone-950">
+						<p class="mt-1 font-medium text-stone-900">
 							{formatEventBudget(data.event.giftBudgetCents, data.event.currency)}
 						</p>
-						<p class="mt-1 text-sm text-stone-500">A guideline for gift ideas</p>
 					</div>
-					<div>
-						<p class="text-sm text-stone-500">Event status</p>
-						<p class="mt-1 font-medium text-stone-900">{statusLabel(data.event.status)}</p>
-					</div>
-					{#if data.event.instructions}
-						<div>
-							<p class="text-sm text-stone-500">Instructions</p>
-							<p class="mt-1 text-sm whitespace-pre-wrap text-stone-700">
-								{data.event.instructions}
-							</p>
-						</div>
-					{/if}
 				</CardContent>
 				{#if data.user.role === 'organizer'}
-					<CardFooter>
+					<CardFooter class="flex flex-wrap gap-4">
 						<a
 							class="text-sm font-medium text-emerald-800 hover:underline"
 							href={resolve('/app/event')}
 						>
-							Edit event settings
+							Event settings
+						</a>
+						<a
+							class="text-sm font-medium text-emerald-800 hover:underline"
+							href={resolve('/app/dashboard')}
+						>
+							Dashboard
 						</a>
 					</CardFooter>
 				{/if}
 			</Card>
 
-			<Card class="border-stone-200 bg-white">
-				<CardHeader>
-					<div class="mb-2 grid size-11 place-items-center rounded-2xl bg-rose-50 text-rose-800">
-						<ShieldCheck size={20} aria-hidden="true" />
-					</div>
-					<CardTitle>Your account</CardTitle>
-					<CardDescription>
-						Signed in as {data.user.role === 'organizer'
-							? data.user.isParticipating
-								? 'an organizer and participant'
-								: 'an organizer'
-							: 'a participant'}.
-					</CardDescription>
-				</CardHeader>
-				<CardContent class="space-y-2 text-sm text-stone-600">
-					<p>Username: <span class="font-medium text-stone-900">{data.user.username}</span></p>
-					<p>
-						{#if data.user.role === 'organizer' && data.organizerStats}
-							{data.organizerStats.totalParticipants} participants ·
-							{data.organizerStats.activeAccounts} active accounts ·
-							{data.organizerStats.householdCount} households
-						{:else}
-							Your account is ready for the exchange.
-						{/if}
-					</p>
-				</CardContent>
-			</Card>
+			{#if data.user.role === 'organizer'}
+				<Card class="border-stone-200 bg-white">
+					<CardHeader>
+						<CardTitle>Organizer tools</CardTitle>
+						<CardDescription>
+							Review participation, gift ideas, messages, and the event’s progress.
+						</CardDescription>
+					</CardHeader>
+					<CardFooter>
+						<a
+							class="text-sm font-medium text-emerald-800 hover:underline"
+							href={resolve('/app/dashboard')}
+						>
+							Open dashboard
+						</a>
+					</CardFooter>
+				</Card>
+			{/if}
 		</div>
-		{#if data.user.isParticipating}
-			<Card class="border-stone-200 bg-white">
-				<CardHeader>
-					<CardTitle>Your Secret Santa recipient</CardTitle>
-					<CardDescription>
-						Recipient details stay hidden until the organizer finalizes the assignments.
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					{#if data.recipient}
-						<p class="text-lg font-medium text-stone-950">{data.recipient.displayName}</p>
-					{:else if data.event.status === 'assignments_generated'}
-						<p class="text-sm text-stone-600">The organizer is reviewing the draw.</p>
-					{:else}
-						<p class="text-sm text-stone-600">Your recipient has not been assigned yet.</p>
-					{/if}
-				</CardContent>
-			</Card>
-		{/if}
-		{#if data.user.role === 'organizer' && data.organizerStats}
-			<Card class="border-stone-200 bg-white">
-				<CardHeader>
-					<CardTitle>Gift assignments</CardTitle>
-					<CardDescription>
-						{#if data.organizerStats.assignmentCount === 0}
-							No assignments have been generated.
-						{:else if data.organizerStats.assignmentsFinalized}
-							The draw is finalized. Participants can now see their own recipient.
-						{:else}
-							{data.organizerStats.assignmentCount} assignments are awaiting finalization.
-						{/if}
-					</CardDescription>
-				</CardHeader>
-				<CardFooter>
-					<a
-						class="text-sm font-medium text-emerald-800 hover:underline"
-						href={resolve('/app/assignments')}
-					>
-						Manage assignments
-					</a>
-				</CardFooter>
-			</Card>
-		{/if}
 	{:else if data.user.role === 'organizer'}
 		<Card class="border-stone-200 bg-white">
 			<CardHeader>
 				<CardTitle>Start with your event details</CardTitle>
 				<CardDescription>
-					Set the exchange date and CAD budget, then add participants and households.
+					Set the exchange date and gift budget, then add participants and households.
 				</CardDescription>
 			</CardHeader>
-			<CardContent class="text-sm text-stone-600">
-				{#if data.organizerStats}
-					{data.organizerStats.totalParticipants} participants ·
-					{data.organizerStats.activeAccounts} active accounts ·
-					{data.organizerStats.householdCount} households
-				{/if}
-			</CardContent>
 			<CardFooter>
 				<a
 					class="text-sm font-medium text-emerald-800 hover:underline"
@@ -220,10 +149,206 @@
 			<CardHeader>
 				<CardTitle>The exchange is being prepared</CardTitle>
 				<CardDescription>
-					Your account is ready. The event name, date, and budget will appear here once your
-					organizer saves them.
+					Your account is ready. Event details will appear here after the organizer saves them.
 				</CardDescription>
 			</CardHeader>
+		</Card>
+	{/if}
+
+	{#if data.participant}
+		<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+			<Card class="border-stone-200 bg-white">
+				<CardHeader class="pb-2">
+					<CardDescription>Your wishlist</CardDescription>
+					<CardTitle class="text-2xl">{data.participant.myWishlistCount}</CardTitle>
+				</CardHeader>
+				<CardFooter>
+					<a
+						class="text-sm font-medium text-emerald-800 hover:underline"
+						href={resolve('/app/wishlist')}
+					>
+						Edit wishlist
+					</a>
+				</CardFooter>
+			</Card>
+			<Card class="border-stone-200 bg-white">
+				<CardHeader class="pb-2">
+					<CardDescription>Ideas for your recipient</CardDescription>
+					<CardTitle class="text-2xl">{data.participant.recipientWishlistCount}</CardTitle>
+				</CardHeader>
+				<CardFooter>
+					<a
+						class="text-sm font-medium text-emerald-800 hover:underline"
+						href={resolve('/app/gift')}
+					>
+						View gift ideas
+					</a>
+				</CardFooter>
+			</Card>
+			<Card class="border-stone-200 bg-white">
+				<CardHeader class="pb-2">
+					<CardDescription>Unread messages</CardDescription>
+					<CardTitle class="text-2xl">{data.participant.unreadMessageCount}</CardTitle>
+				</CardHeader>
+				<CardFooter>
+					<div class="flex flex-wrap gap-4">
+						<a
+							class="text-sm font-medium text-emerald-800 hover:underline"
+							href={resolve('/app/wishlist')}
+						>
+							Message my Secret Santa
+						</a>
+						<a
+							class="text-sm font-medium text-emerald-800 hover:underline"
+							href={resolve('/app/gift')}
+						>
+							Message my recipient
+						</a>
+					</div>
+				</CardFooter>
+			</Card>
+			<Card class="border-stone-200 bg-white">
+				<CardHeader class="pb-2">
+					<CardDescription>Gift status</CardDescription>
+					<CardTitle class="text-xl">
+						{data.participant.recipientDisplayName
+							? data.participant.giftPurchasedAt
+								? 'Purchased'
+								: 'In progress'
+							: 'Waiting for draw'}
+					</CardTitle>
+				</CardHeader>
+				<CardFooter>
+					<a
+						class="text-sm font-medium text-emerald-800 hover:underline"
+						href={resolve('/app/gift')}
+					>
+						Update gift status
+					</a>
+				</CardFooter>
+			</Card>
+		</div>
+
+		{#if data.participant.recipientGiftPurchasedAt}
+			<p
+				class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950"
+				role="status"
+			>
+				Your Secret Santa marked your gift as purchased on {formatTimestamp(
+					data.participant.recipientGiftPurchasedAt
+				)}.
+			</p>
+		{/if}
+
+		<div class="grid gap-6 lg:grid-cols-2">
+			<Card class="border-stone-200 bg-white">
+				<CardHeader>
+					<CardTitle>Recent messages</CardTitle>
+					<CardDescription>Your latest notes from both sides of the exchange.</CardDescription>
+				</CardHeader>
+				<CardContent>
+					{#if data.participant.recentMessages.length === 0}
+						<p class="text-sm text-stone-600">
+							Messages will appear here after the draw is finalized and a conversation starts.
+						</p>
+					{:else}
+						<ul class="space-y-4">
+							{#each data.participant.recentMessages as message (message.id)}
+								<li class="rounded-xl border border-stone-200 p-3">
+									<div class="flex flex-wrap justify-between gap-2 text-xs text-stone-500">
+										<p>
+											<span class="font-medium text-stone-800">{message.senderLabel}</span>
+											· {message.threadLabel}
+										</p>
+										<time datetime={message.sentAt}>{formatTimestamp(message.sentAt)}</time>
+									</div>
+									<p class="mt-2 text-sm whitespace-pre-wrap text-stone-700">{message.content}</p>
+								</li>
+							{/each}
+						</ul>
+					{/if}
+				</CardContent>
+				<CardFooter>
+					<div class="flex flex-wrap gap-4">
+						<a
+							class="text-sm font-medium text-emerald-800 hover:underline"
+							href={resolve('/app/wishlist')}
+						>
+							Open Secret Santa conversation
+						</a>
+						<a
+							class="text-sm font-medium text-emerald-800 hover:underline"
+							href={resolve('/app/gift')}
+						>
+							Open recipient conversation
+						</a>
+					</div>
+				</CardFooter>
+			</Card>
+
+			<Card class="border-stone-200 bg-white">
+				<CardHeader>
+					<CardTitle>
+						{data.participant.recipientDisplayName
+							? `Recent ideas for ${data.participant.recipientDisplayName}`
+							: 'Recent gift ideas'}
+					</CardTitle>
+					<CardDescription>
+						{data.participant.recipientDisplayName
+							? 'A quick look at your recipient’s latest wishlist updates.'
+							: 'Your recipient’s wishlist will appear after the draw is finalized.'}
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					{#if data.participant.recipientRecentIdeas.length === 0}
+						<p class="text-sm text-stone-600">No recipient ideas to show yet.</p>
+					{:else}
+						<ul class="space-y-3">
+							{#each data.participant.recipientRecentIdeas as idea (idea.id)}
+								<li
+									class="flex items-start justify-between gap-3 rounded-xl border border-stone-200 p-3"
+								>
+									<p class="font-medium text-stone-900">{idea.title}</p>
+									<time class="shrink-0 text-xs text-stone-500" datetime={idea.updatedAt}>
+										{formatTimestamp(idea.updatedAt)}
+									</time>
+								</li>
+							{/each}
+						</ul>
+					{/if}
+				</CardContent>
+				<CardFooter>
+					<a
+						class="text-sm font-medium text-emerald-800 hover:underline"
+						href={resolve('/app/gift')}
+					>
+						See all gift ideas
+					</a>
+				</CardFooter>
+			</Card>
+		</div>
+
+		<Card class="border-stone-200 bg-white">
+			<CardHeader>
+				<CardTitle>Your latest wishlist ideas</CardTitle>
+				<CardDescription>Keep your own list helpful and up to date.</CardDescription>
+			</CardHeader>
+			<CardContent>
+				{#if data.participant.myRecentIdeas.length === 0}
+					<p class="text-sm text-stone-600">You haven’t added a gift idea yet.</p>
+				{:else}
+					<ul class="flex flex-wrap gap-3">
+						{#each data.participant.myRecentIdeas as idea (idea.id)}
+							<li class="rounded-xl border border-stone-200 px-3 py-2">
+								<p class="font-medium text-stone-900">{idea.title}</p>
+								<time class="text-xs text-stone-500" datetime={idea.updatedAt}>
+									Updated {formatTimestamp(idea.updatedAt)}
+								</time>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</CardContent>
 		</Card>
 	{/if}
 </section>

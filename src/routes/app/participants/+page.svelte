@@ -197,7 +197,7 @@
 						type="password"
 						bind:value={createPassword}
 						autocomplete="new-password"
-						minlength={12}
+						minlength={3}
 						maxlength={128}
 						required
 						disabled={isSaving}
@@ -369,7 +369,7 @@
 								type="password"
 								bind:value={resetPassword}
 								autocomplete="new-password"
-								minlength={12}
+								minlength={3}
 								maxlength={128}
 								required
 								disabled={isSaving}

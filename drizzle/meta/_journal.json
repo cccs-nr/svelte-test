@@ -50,6 +50,13 @@
       "when": 1794157624571,
       "tag": "0006_account_avatars",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1794158931944,
+      "tag": "0007_sparkling_polaris",
+      "breakpoints": true
     }
   ]
 }

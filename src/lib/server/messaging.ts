@@ -220,6 +220,62 @@ export function countUnreadMessages(database: AppDatabase, userId: string): numb
 	return unreadAsGiver + unreadAsRecipient;
 }
 
+export function getRecentParticipantMessages(database: AppDatabase, userId: string, limit = 6) {
+	const recentForThread = (
+		context: GiverThreadContext | RecipientThreadContext,
+		direction: MessageDirection
+	) => {
+		const conversation = database
+			.select({ id: conversations.id })
+			.from(conversations)
+			.where(eq(conversations.assignmentId, context.assignmentId))
+			.get();
+		if (!conversation) return [];
+
+		return database
+			.select({
+				id: messages.id,
+				content: messages.content,
+				senderSide: messages.senderSide,
+				createdAt: messages.createdAt
+			})
+			.from(messages)
+			.where(eq(messages.conversationId, conversation.id))
+			.orderBy(desc(messages.createdAt), desc(messages.id))
+			.limit(limit)
+			.all()
+			.map((message) => ({
+				id: message.id,
+				content: message.content,
+				sentAt: message.createdAt.toISOString(),
+				senderLabel:
+					message.senderSide === (direction === 'asGiver' ? 'giver' : 'recipient')
+						? 'You'
+						: direction === 'asRecipient'
+							? 'Your Secret Santa'
+							: 'recipientDisplayName' in context
+								? context.recipientDisplayName
+								: 'Your recipient',
+				threadLabel:
+					direction === 'asRecipient'
+						? 'Your Secret Santa'
+						: 'recipientDisplayName' in context
+							? context.recipientDisplayName
+							: 'Your recipient'
+			}));
+	};
+
+	const giverContext = getThreadContext(database, userId, 'asGiver');
+	const recipientContext = getThreadContext(database, userId, 'asRecipient');
+
+	return [
+		...(giverContext ? recentForThread(giverContext, 'asGiver') : []),
+		...(recipientContext ? recentForThread(recipientContext, 'asRecipient') : [])
+	]
+		.sort((left, right) => Date.parse(right.sentAt) - Date.parse(left.sentAt))
+		.slice(0, limit);
+}
+
 export function sendParticipantMessage(
 	database: AppDatabase,
 	userId: string,
