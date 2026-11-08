@@ -1,5 +1,5 @@
 import { and, eq, isNotNull } from 'drizzle-orm';
-import type { AuthenticatedUser } from '#lib/auth.js';
+import { isExchangeParticipant, type AuthenticatedUser } from '#lib/auth.js';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { assignments } from '#lib/server/db/schema.js';
@@ -25,7 +25,7 @@ export function canViewWishlist(
 	viewer: AuthenticatedUser,
 	ownerId: string
 ): boolean {
-	if (viewer.role !== 'participant') return false;
+	if (!isExchangeParticipant(viewer)) return false;
 	if (viewer.id === ownerId) return true;
 
 	return (

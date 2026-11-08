@@ -12,6 +12,7 @@ export const load: PageServerLoad = ({ locals }) => {
 			username: users.username,
 			displayName: users.displayName,
 			role: users.role,
+			isParticipating: users.isParticipating,
 			isActive: users.isActive,
 			householdId: users.householdId,
 			householdName: households.name

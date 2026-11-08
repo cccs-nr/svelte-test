@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
 	import { Gift } from '@lucide/svelte';
+	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import {
 		Card,
@@ -60,16 +61,19 @@
 	class="grid min-h-screen place-items-center bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-100 via-stone-50 to-rose-50 px-4 py-10"
 >
 	<div class="w-full max-w-lg">
-		<a
-			class="mb-8 inline-flex items-center gap-3 font-semibold tracking-tight text-stone-950"
-			href={resolve('/')}
-			aria-label="Secret Santa home"
-		>
-			<span class="grid size-10 place-items-center rounded-2xl bg-emerald-800 text-white">
-				<Gift size={19} aria-hidden="true" />
-			</span>
-			Secret Santa
-		</a>
+		<div class="mb-8 flex items-center justify-between gap-4">
+			<a
+				class="inline-flex items-center gap-3 font-semibold tracking-tight text-stone-950"
+				href={resolve('/')}
+				aria-label="Secret Santa home"
+			>
+				<span class="grid size-10 place-items-center rounded-2xl bg-emerald-800 text-white">
+					<Gift size={19} aria-hidden="true" />
+				</span>
+				Secret Santa
+			</a>
+			<ThemeToggle />
+		</div>
 
 		<Card class="border-white/80 bg-white/95 shadow-xl shadow-stone-900/10">
 			<CardHeader>

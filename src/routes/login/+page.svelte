@@ -4,6 +4,7 @@
 	import { TRPCClientError } from '@trpc/client';
 	import { Gift, ShieldCheck, Sparkles } from '@lucide/svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import {
 		Card,
 		CardContent,
@@ -64,18 +65,21 @@
 	<section
 		class="relative mx-auto flex w-full max-w-6xl flex-col justify-between gap-12 lg:col-span-2"
 	>
-		<a
-			class="inline-flex w-fit items-center gap-3 rounded-full py-2"
-			href={resolve('/')}
-			aria-label="Secret Santa home"
-		>
-			<span
-				class="grid size-11 place-items-center rounded-2xl bg-emerald-800 text-white shadow-lg shadow-emerald-950/10"
+		<div class="flex w-full items-center justify-between gap-4">
+			<a
+				class="inline-flex w-fit items-center gap-3 rounded-full py-2"
+				href={resolve('/')}
+				aria-label="Secret Santa home"
 			>
-				<Gift size={21} strokeWidth={1.8} aria-hidden="true" />
-			</span>
-			<span class="text-lg font-semibold tracking-tight">Secret Santa</span>
-		</a>
+				<span
+					class="grid size-11 place-items-center rounded-2xl bg-emerald-800 text-white shadow-lg shadow-emerald-950/10"
+				>
+					<Gift size={21} strokeWidth={1.8} aria-hidden="true" />
+				</span>
+				<span class="text-lg font-semibold tracking-tight">Secret Santa</span>
+			</a>
+			<ThemeToggle />
+		</div>
 
 		<div
 			class="grid items-center gap-12 py-2 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.75fr)] lg:gap-20"

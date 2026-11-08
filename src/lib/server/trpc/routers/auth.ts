@@ -45,7 +45,8 @@ export const authRouter = router({
 			id: user.id,
 			username: user.username,
 			displayName: user.displayName,
-			role: user.role
+			role: user.role,
+			isParticipating: user.role === 'participant' || user.isParticipating
 		};
 	}),
 	register: publicProcedure.input(registrationSchema).mutation(async ({ ctx, input }) => {
@@ -85,6 +86,7 @@ export const authRouter = router({
 				displayName: input.displayName,
 				passwordHash: await hashPassword(input.password),
 				role: 'participant',
+				isParticipating: true,
 				isActive: true
 			})
 			.onConflictDoNothing({ target: users.username })
@@ -100,7 +102,8 @@ export const authRouter = router({
 			id,
 			username: input.username,
 			displayName: input.displayName,
-			role: 'participant' as const
+			role: 'participant' as const,
+			isParticipating: true
 		};
 	}),
 	logout: publicProcedure.mutation(({ ctx }) => {
@@ -108,15 +111,53 @@ export const authRouter = router({
 		return { success: true };
 	}),
 	me: protectedProcedure.query(({ ctx }) => ctx.user),
-	updateProfile: protectedProcedure.input(updateProfileInputSchema).mutation(({ ctx, input }) => {
-		ctx.db
-			.update(users)
-			.set({ displayName: input.displayName, updatedAt: new Date() })
-			.where(eq(users.id, ctx.user.id))
-			.run();
+	updateProfile: protectedProcedure.input(updateProfileInputSchema).mutation(({ ctx, input }) =>
+		ctx.db.transaction((transaction) => {
+			const current = transaction
+				.select({ role: users.role, isParticipating: users.isParticipating })
+				.from(users)
+				.where(eq(users.id, ctx.user.id))
+				.get();
+			if (!current) {
+				throw new TRPCError({ code: 'NOT_FOUND', message: 'Account not found.' });
+			}
 
-		return { ...ctx.user, displayName: input.displayName };
-	}),
+			if (
+				current.role === 'participant' &&
+				input.isParticipating !== undefined &&
+				!input.isParticipating
+			) {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: 'Participant accounts are always included in the exchange.'
+				});
+			}
+
+			const isParticipating =
+				current.role === 'participant' ? true : (input.isParticipating ?? current.isParticipating);
+			if (isParticipating !== current.isParticipating) {
+				const assignmentsExist = transaction
+					.select({ id: assignments.id })
+					.from(assignments)
+					.where(eq(assignments.eventId, SINGLE_EVENT_ID))
+					.get();
+				if (assignmentsExist) {
+					throw new TRPCError({
+						code: 'CONFLICT',
+						message: 'Reset assignments before changing your participation setting.'
+					});
+				}
+			}
+
+			transaction
+				.update(users)
+				.set({ displayName: input.displayName, isParticipating, updatedAt: new Date() })
+				.where(eq(users.id, ctx.user.id))
+				.run();
+
+			return { ...ctx.user, displayName: input.displayName, isParticipating };
+		})
+	),
 	changePassword: protectedProcedure
 		.input(changePasswordInputSchema)
 		.mutation(async ({ ctx, input }) => {

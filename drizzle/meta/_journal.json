@@ -36,6 +36,13 @@
       "when": 1794151267421,
       "tag": "0004_anonymous_messaging",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1794152847210,
+      "tag": "0005_organizer_participation",
+      "breakpoints": true
     }
   ]
 }

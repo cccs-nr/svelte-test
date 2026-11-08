@@ -4,6 +4,23 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
+		<script>
+			(() => {
+				const root = document.documentElement;
+				try {
+					const preference = localStorage.getItem('secret-santa-theme');
+					const dark =
+						preference === 'dark' ||
+						(preference !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+					root.classList.toggle('dark', dark);
+					root.style.colorScheme = dark ? 'dark' : 'light';
+				} catch {
+					const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+					root.classList.toggle('dark', dark);
+					root.style.colorScheme = dark ? 'dark' : 'light';
+				}
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

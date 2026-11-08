@@ -19,6 +19,7 @@ function getAccount(database: AppDatabase, id: string) {
 			username: users.username,
 			displayName: users.displayName,
 			role: users.role,
+			isParticipating: users.isParticipating,
 			isActive: users.isActive,
 			householdId: users.householdId,
 			householdName: households.name
@@ -51,6 +52,7 @@ export const participantsRouter = router({
 				username: users.username,
 				displayName: users.displayName,
 				role: users.role,
+				isParticipating: users.isParticipating,
 				isActive: users.isActive,
 				householdId: users.householdId,
 				householdName: households.name
@@ -84,6 +86,7 @@ export const participantsRouter = router({
 				displayName: input.displayName,
 				passwordHash: await hashPassword(input.password),
 				role: input.role,
+				isParticipating: input.role === 'participant',
 				householdId: input.householdId,
 				isActive: true
 			})
@@ -110,6 +113,12 @@ export const participantsRouter = router({
 			if (!current) {
 				throw new TRPCError({ code: 'NOT_FOUND', message: 'Account not found.' });
 			}
+			const isParticipating =
+				input.role === 'participant'
+					? true
+					: current.role === 'organizer'
+						? current.isParticipating
+						: false;
 
 			const assignmentSetExists = transaction
 				.select({ id: assignments.id })
@@ -120,11 +129,13 @@ export const participantsRouter = router({
 				assignmentSetExists &&
 				(current.role !== input.role ||
 					current.isActive !== input.isActive ||
-					current.householdId !== input.householdId)
+					current.householdId !== input.householdId ||
+					current.isParticipating !== isParticipating)
 			) {
 				throw new TRPCError({
 					code: 'CONFLICT',
-					message: 'Reset assignments before changing participant status, role, or household.'
+					message:
+						'Reset assignments before changing participant status, role, participation, or household.'
 				});
 			}
 
@@ -182,6 +193,7 @@ export const participantsRouter = router({
 					username: input.username,
 					displayName: input.displayName,
 					role: input.role,
+					isParticipating,
 					isActive: input.isActive,
 					householdId: input.householdId,
 					updatedAt: new Date()

@@ -29,7 +29,8 @@ export const resetPasswordInputSchema = z.object({
 });
 
 export const updateProfileInputSchema = z.object({
-	displayName: displayNameSchema
+	displayName: displayNameSchema,
+	isParticipating: z.boolean().optional()
 });
 
 export const changePasswordInputSchema = z.object({

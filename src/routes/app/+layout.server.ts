@@ -8,6 +8,8 @@ export const load: LayoutServerLoad = ({ locals }) => {
 	return {
 		user: locals.user,
 		unreadMessageCount:
-			locals.user.role === 'participant' ? countUnreadMessages(db, locals.user.id) : 0
+			locals.user.role === 'participant' || locals.user.isParticipating
+				? countUnreadMessages(db, locals.user.id)
+				: 0
 	};
 };

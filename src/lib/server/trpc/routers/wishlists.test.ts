@@ -41,14 +41,27 @@ const organizer: AuthenticatedUser = {
 	id: 'organizer-id',
 	username: 'organizer',
 	displayName: 'Organizer',
-	role: 'organizer'
+	role: 'organizer',
+	isParticipating: false
 };
 
 const participants: AuthenticatedUser[] = [
-	{ id: 'alice', username: 'alice', displayName: 'Alice', role: 'participant' },
-	{ id: 'bob', username: 'bob', displayName: 'Bob', role: 'participant' },
-	{ id: 'carol', username: 'carol', displayName: 'Carol', role: 'participant' },
-	{ id: 'dave', username: 'dave', displayName: 'Dave', role: 'participant' }
+	{
+		id: 'alice',
+		username: 'alice',
+		displayName: 'Alice',
+		role: 'participant',
+		isParticipating: true
+	},
+	{ id: 'bob', username: 'bob', displayName: 'Bob', role: 'participant', isParticipating: true },
+	{
+		id: 'carol',
+		username: 'carol',
+		displayName: 'Carol',
+		role: 'participant',
+		isParticipating: true
+	},
+	{ id: 'dave', username: 'dave', displayName: 'Dave', role: 'participant', isParticipating: true }
 ];
 
 function seedEventAndParticipants(): void {
@@ -192,6 +205,18 @@ describe('wishlists router', () => {
 		await expect(organizerCaller.wishlists.mine()).rejects.toMatchObject({ code: 'FORBIDDEN' });
 		await expect(organizerCaller.wishlists.assignedRecipient()).rejects.toMatchObject({
 			code: 'FORBIDDEN'
+		});
+	});
+
+	it('allows opted-in organizers to use participant-only wishlist procedures', async () => {
+		const participatingOrganizer = appRouter.createCaller(
+			createContext({ ...organizer, isParticipating: true })
+		);
+
+		await expect(participatingOrganizer.wishlists.mine()).resolves.toEqual([]);
+		await expect(participatingOrganizer.wishlists.assignedRecipient()).resolves.toEqual({
+			recipient: null,
+			suggestions: []
 		});
 	});
 

@@ -3,11 +3,14 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
+	import { Menu, X } from '@lucide/svelte';
 	import type { LayoutProps } from './$types';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import { trpc } from '#lib/trpc/client.js';
 
 	let { children, data }: LayoutProps = $props();
+	let isMobileNavigationOpen = $state(false);
 	let isSigningOut = $state(false);
 	let logoutError = $state<string | null>(null);
 	let clientUnreadMessageCount = $state<number | null>(null);
@@ -15,7 +18,7 @@
 	let unreadMessageError = $state<string | null>(null);
 
 	onMount(() => {
-		if (data.user.role !== 'participant') return;
+		if (!data.user.isParticipating) return;
 
 		let isDisposed = false;
 		let isRefreshing = false;
@@ -49,6 +52,10 @@
 			window.clearInterval(interval);
 		};
 	});
+
+	function closeMobileNavigation(): void {
+		isMobileNavigationOpen = false;
+	}
 
 	async function handleLogout(): Promise<void> {
 		if (isSigningOut) return;
@@ -87,11 +94,13 @@
 				Secret Santa
 			</a>
 			<nav
-				class="order-3 flex w-full flex-wrap gap-2 text-sm sm:order-none sm:w-auto"
+				id="main-navigation"
+				class={`order-3 ${isMobileNavigationOpen ? 'flex' : 'hidden'} w-full flex-col gap-1 text-sm sm:order-none sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:gap-2`}
 				aria-label="Main navigation"
 			>
 				<a
 					href={resolve('/app')}
+					onclick={closeMobileNavigation}
 					class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
 				>
 					Overview
@@ -99,38 +108,44 @@
 				{#if data.user.role === 'organizer'}
 					<a
 						href={resolve('/app/event')}
+						onclick={closeMobileNavigation}
 						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
 					>
 						Event
 					</a>
 					<a
 						href={resolve('/app/participants')}
+						onclick={closeMobileNavigation}
 						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
 					>
 						Participants
 					</a>
 					<a
 						href={resolve('/app/households')}
+						onclick={closeMobileNavigation}
 						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
 					>
 						Households
 					</a>
 					<a
 						href={resolve('/app/assignments')}
+						onclick={closeMobileNavigation}
 						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
 					>
 						Assignments
 					</a>
 				{/if}
-				{#if data.user.role === 'participant'}
+				{#if data.user.isParticipating}
 					<a
 						href={resolve('/app/wishlist')}
+						onclick={closeMobileNavigation}
 						class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
 					>
 						Wishlist
 					</a>
 					<a
 						href={resolve('/app/messages')}
+						onclick={closeMobileNavigation}
 						aria-label={unreadMessageCount > 0
 							? `Messages, ${unreadMessageCount} unread`
 							: 'Messages'}
@@ -149,6 +164,7 @@
 				{/if}
 				<a
 					href={resolve('/app/profile')}
+					onclick={closeMobileNavigation}
 					class="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-stone-950"
 				>
 					Profile
@@ -157,8 +173,28 @@
 			<div class="flex items-center gap-4">
 				<div class="hidden text-right sm:block">
 					<p class="text-sm font-medium text-stone-900">{data.user.displayName}</p>
-					<p class="text-xs text-stone-500 capitalize">{data.user.role}</p>
+					<p class="text-xs text-stone-500">
+						{data.user.role === 'organizer' && data.user.isParticipating
+							? 'Organizer · Participant'
+							: data.user.role}
+					</p>
 				</div>
+				<ThemeToggle />
+				<Button
+					type="button"
+					variant="outline"
+					class="size-10 p-0 sm:hidden"
+					aria-controls="main-navigation"
+					aria-expanded={isMobileNavigationOpen}
+					aria-label={isMobileNavigationOpen ? 'Close navigation' : 'Open navigation'}
+					onclick={() => (isMobileNavigationOpen = !isMobileNavigationOpen)}
+				>
+					{#if isMobileNavigationOpen}
+						<X size={18} aria-hidden="true" />
+					{:else}
+						<Menu size={18} aria-hidden="true" />
+					{/if}
+				</Button>
 				<Button variant="outline" disabled={isSigningOut} onclick={handleLogout}>
 					{isSigningOut ? 'Signing out…' : 'Sign out'}
 				</Button>

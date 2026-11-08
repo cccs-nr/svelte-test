@@ -51,7 +51,8 @@ describe('tRPC access procedures', () => {
 				id: 'participant-id',
 				username: 'participant',
 				displayName: 'Participant',
-				role: 'participant'
+				role: 'participant',
+				isParticipating: true
 			})
 		);
 
@@ -65,7 +66,8 @@ describe('tRPC access procedures', () => {
 				id: 'organizer-id',
 				username: 'organizer',
 				displayName: 'Organizer',
-				role: 'organizer'
+				role: 'organizer',
+				isParticipating: false
 			})
 		);
 

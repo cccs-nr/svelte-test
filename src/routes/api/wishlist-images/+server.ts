@@ -1,6 +1,7 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
 import { MAX_IMAGE_BYTES } from '$app/env/private';
+import { isExchangeParticipant } from '#lib/auth.js';
 import { giftSuggestions } from '#lib/server/db/schema.js';
 import { db } from '#lib/server/db/index.js';
 import {
@@ -34,7 +35,7 @@ function isImageMimeType(value: string): value is WishlistImageMimeType {
 
 export const POST: RequestHandler = async ({ request, url, locals }) => {
 	if (!locals.user) return failure(401, 'Sign in to upload an image.');
-	if (locals.user.role !== 'participant') {
+	if (!isExchangeParticipant(locals.user)) {
 		return failure(403, 'Only participants can upload wishlist images.');
 	}
 	if (!hasSameOrigin(request, url)) {
@@ -133,7 +134,7 @@ export const POST: RequestHandler = async ({ request, url, locals }) => {
 
 export const DELETE: RequestHandler = async ({ request, url, locals }) => {
 	if (!locals.user) return failure(401, 'Sign in to manage wishlist images.');
-	if (locals.user.role !== 'participant') {
+	if (!isExchangeParticipant(locals.user)) {
 		return failure(403, 'Only participants can manage wishlist images.');
 	}
 	if (!hasSameOrigin(request, url)) {

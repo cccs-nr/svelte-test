@@ -25,4 +25,9 @@ export interface AuthenticatedUser {
 	username: string;
 	displayName: string;
 	role: UserRole;
+	isParticipating: boolean;
+}
+
+export function isExchangeParticipant(user: AuthenticatedUser): boolean {
+	return user.role === 'participant' || user.isParticipating;
 }

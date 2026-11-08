@@ -734,12 +734,15 @@ The first objective is a working MVP rather than implementing every possible fea
 
 ### Phase 6 — Polish and Deployment
 
-- Improve responsive layouts.
-- Add loading states and error handling.
-- Improve the overall visual experience.
-- Complete end-to-end testing.
-- Finalize Docker deployment.
-- Write installation and deployment documentation.
+- [x] Improve responsive layouts and mobile navigation.
+- [x] Add loading states and error handling.
+- [x] Improve the overall visual experience.
+- [ ] Complete end-to-end testing.
+- [x] Keep Docker deployment and uploaded data persistence working.
+- [x] Update installation and feature documentation.
+- [x] Add light and dark appearance modes.
+- [x] Allow organizers to opt into participant access.
+- [x] Open wishlist images in a dismissible full-size viewer.
 
 ## 18. Explicit Non-Goals
 

@@ -93,7 +93,8 @@ export function resolveSessionUser(
 			id: users.id,
 			username: users.username,
 			displayName: users.displayName,
-			role: users.role
+			role: users.role,
+			isParticipating: users.isParticipating
 		})
 		.from(users)
 		.where(and(eq(users.id, session.userId), eq(users.isActive, true)))
@@ -105,5 +106,8 @@ export function resolveSessionUser(
 		return null;
 	}
 
-	return user;
+	return {
+		...user,
+		isParticipating: user.role === 'participant' || user.isParticipating
+	};
 }

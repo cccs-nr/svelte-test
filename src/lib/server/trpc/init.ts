@@ -1,5 +1,5 @@
 import { initTRPC, TRPCError } from '@trpc/server';
-import type { AuthenticatedUser } from '#lib/auth.js';
+import { isExchangeParticipant, type AuthenticatedUser } from '#lib/auth.js';
 import type { TRPCContext } from './context.js';
 
 const t = initTRPC.context<TRPCContext>().create();
@@ -57,7 +57,7 @@ export const organizerProcedure = protectedProcedure.use(({ ctx, next }) => {
 	return next();
 });
 export const participantProcedure = protectedProcedure.use(({ ctx, next }) => {
-	if (ctx.user.role !== 'participant') {
+	if (!isExchangeParticipant(ctx.user)) {
 		throw new TRPCError({ code: 'FORBIDDEN', message: 'Participant access is required.' });
 	}
 

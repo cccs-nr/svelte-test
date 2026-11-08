@@ -72,6 +72,7 @@ export const users = sqliteTable(
 		role: text('role', { enum: ['organizer', 'participant'] })
 			.$type<UserRole>()
 			.notNull(),
+		isParticipating: integer('is_participating', { mode: 'boolean' }).notNull().default(false),
 		householdId: text('household_id').references(() => households.id, { onDelete: 'set null' }),
 		isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
 		createdAt: integer('created_at', { mode: 'timestamp_ms' })

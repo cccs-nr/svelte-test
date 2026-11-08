@@ -44,7 +44,8 @@ beforeEach(() => {
 			username: 'participant',
 			displayName: 'Participant',
 			passwordHash: 'not-used-by-session-test',
-			role: 'participant'
+			role: 'participant',
+			isParticipating: true
 		})
 		.run();
 });
@@ -73,7 +74,8 @@ describe('session management', () => {
 			id: 'participant-id',
 			username: 'participant',
 			displayName: 'Participant',
-			role: 'participant'
+			role: 'participant',
+			isParticipating: true
 		});
 	});
 

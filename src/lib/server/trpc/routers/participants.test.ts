@@ -45,14 +45,16 @@ const organizer: AuthenticatedUser = {
 	id: 'organizer-id',
 	username: 'organizer',
 	displayName: 'Organizer',
-	role: 'organizer'
+	role: 'organizer',
+	isParticipating: false
 };
 
 const participant: AuthenticatedUser = {
 	id: 'participant-id',
 	username: 'participant',
 	displayName: 'Participant',
-	role: 'participant'
+	role: 'participant',
+	isParticipating: true
 };
 
 beforeEach(() => {
@@ -91,6 +93,7 @@ describe('participant management', () => {
 			username: 'newmember',
 			displayName: 'New Member',
 			role: 'participant',
+			isParticipating: true,
 			isActive: true,
 			householdId: null,
 			householdName: null
@@ -102,6 +105,15 @@ describe('participant management', () => {
 		await expect(verifyPassword('a-strong-initial-password', savedUser.passwordHash)).resolves.toBe(
 			true
 		);
+
+		const organizerAccount = await caller.participants.create({
+			username: 'second-organizer',
+			displayName: 'Second Organizer',
+			password: 'a-strong-organizer-password',
+			role: 'organizer',
+			householdId: null
+		});
+		expect(organizerAccount.isParticipating).toBe(false);
 	});
 
 	it('prevents disabling or demoting the last active organizer', async () => {

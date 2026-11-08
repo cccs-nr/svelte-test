@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
+	import { X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import { formatEventBudget, formatBudgetInput } from '#lib/models/event.js';
 	import { trpc } from '#lib/trpc/client.js';
@@ -36,6 +37,8 @@
 	let successMessage = $state<string | null>(null);
 	let isLoadFailed = $state(false);
 	let isFormDisabled = $derived(isSaving || isLoading || isDeleting !== null);
+	let imageDialog = $state<HTMLDialogElement>();
+	let fullSizeImage = $state<{ src: string; alt: string } | null>(null);
 
 	onMount(() => {
 		void loadWishlists();
@@ -208,6 +211,35 @@
 
 	function imageUrl(imageKey: string): string {
 		return resolve('/api/wishlist-images/[imageKey]', { imageKey });
+	}
+
+	function openImage(src: string, alt: string): void {
+		fullSizeImage = { src, alt };
+		imageDialog?.showModal();
+	}
+
+	function openSuggestionImage(imageKey: string | null, title: string): void {
+		if (!imageKey) return;
+		openImage(imageUrl(imageKey), `Full-size image for ${title}`);
+	}
+
+	function closeImage(): void {
+		imageDialog?.close();
+	}
+
+	function handleImageDialogClick(event: MouseEvent): void {
+		if (event.target === event.currentTarget) closeImage();
+	}
+
+	function handleImageDialogKeydown(event: KeyboardEvent): void {
+		if (event.key === 'Escape') {
+			event.preventDefault();
+			closeImage();
+		}
+	}
+
+	function clearFullSizeImage(): void {
+		fullSizeImage = null;
 	}
 
 	function formatFileSize(bytes: number): string {
@@ -385,12 +417,19 @@
 						{#each suggestions as suggestion (suggestion.id)}
 							<li class="rounded-xl border border-stone-200 p-4">
 								{#if suggestion.imageKey}
-									<img
-										class="mb-4 max-h-56 w-full rounded-lg object-cover"
-										src={imageUrl(suggestion.imageKey)}
-										alt={`Image for ${suggestion.title}`}
-										loading="lazy"
-									/>
+									<button
+										type="button"
+										class="mb-4 block w-full cursor-zoom-in overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+										aria-label={`View full-size image for ${suggestion.title}`}
+										onclick={() => openSuggestionImage(suggestion.imageKey, suggestion.title)}
+									>
+										<img
+											class="max-h-56 w-full rounded-lg object-cover"
+											src={imageUrl(suggestion.imageKey)}
+											alt=""
+											loading="lazy"
+										/>
+									</button>
 								{/if}
 								<h3 class="font-semibold text-stone-950">{suggestion.title}</h3>
 								{#if suggestion.description}
@@ -479,12 +518,19 @@
 						{#each recipientWishlist.suggestions as suggestion (suggestion.id)}
 							<li class="rounded-xl border border-stone-200 p-4">
 								{#if suggestion.imageKey}
-									<img
-										class="mb-4 max-h-56 w-full rounded-lg object-cover"
-										src={imageUrl(suggestion.imageKey)}
-										alt={`Image for ${suggestion.title}`}
-										loading="lazy"
-									/>
+									<button
+										type="button"
+										class="mb-4 block w-full cursor-zoom-in overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+										aria-label={`View full-size image for ${suggestion.title}`}
+										onclick={() => openSuggestionImage(suggestion.imageKey, suggestion.title)}
+									>
+										<img
+											class="max-h-56 w-full rounded-lg object-cover"
+											src={imageUrl(suggestion.imageKey)}
+											alt=""
+											loading="lazy"
+										/>
+									</button>
 								{/if}
 								<h3 class="font-semibold text-stone-950">{suggestion.title}</h3>
 								{#if suggestion.description}
@@ -523,4 +569,32 @@
 			</CardContent>
 		</Card>
 	</div>
+
+	<dialog
+		bind:this={imageDialog}
+		class="m-auto max-h-[95vh] w-[95vw] max-w-6xl rounded-2xl bg-white p-3 text-stone-950 shadow-2xl backdrop:bg-black/85 sm:p-5"
+		aria-label="Full-size wishlist image"
+		onclick={handleImageDialogClick}
+		onkeydown={handleImageDialogKeydown}
+		onclose={clearFullSizeImage}
+	>
+		{#if fullSizeImage}
+			<div class="relative">
+				<Button
+					type="button"
+					variant="outline"
+					class="absolute top-2 right-2 z-10 size-10 rounded-full bg-white/90 p-0"
+					aria-label="Close full-size image"
+					onclick={closeImage}
+				>
+					<X size={18} aria-hidden="true" />
+				</Button>
+				<img
+					class="mx-auto max-h-[86vh] w-full rounded-lg object-contain"
+					src={fullSizeImage.src}
+					alt={fullSizeImage.alt}
+				/>
+			</div>
+		{/if}
+	</dialog>
 </section>

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { and, eq, isNotNull, isNull } from 'drizzle-orm';
+import { and, eq, isNotNull, isNull, or } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import {
@@ -15,7 +15,12 @@ function getActiveParticipants(database: AppDatabase) {
 	return database
 		.select({ id: users.id, householdId: users.householdId })
 		.from(users)
-		.where(and(eq(users.role, 'participant'), eq(users.isActive, true)))
+		.where(
+			and(
+				eq(users.isActive, true),
+				or(eq(users.role, 'participant'), eq(users.isParticipating, true))
+			)
+		)
 		.all();
 }
 
@@ -240,7 +245,7 @@ export const assignmentRouter = router({
 		return { success: true, removedCount: rows.length, wasFinalized: finalized };
 	}),
 	myRecipient: protectedProcedure.query(({ ctx }) => {
-		if (ctx.user.role !== 'participant') {
+		if (ctx.user.role !== 'participant' && !ctx.user.isParticipating) {
 			throw new TRPCError({
 				code: 'FORBIDDEN',
 				message: 'Only participants can view a gift recipient.'

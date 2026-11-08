@@ -38,14 +38,16 @@ const organizer: AuthenticatedUser = {
 	id: 'organizer-id',
 	username: 'organizer',
 	displayName: 'Organizer',
-	role: 'organizer'
+	role: 'organizer',
+	isParticipating: false
 };
 
 const participant: AuthenticatedUser = {
 	id: 'participant-id',
 	username: 'participant',
 	displayName: 'Participant',
-	role: 'participant'
+	role: 'participant',
+	isParticipating: true
 };
 
 beforeEach(() => {

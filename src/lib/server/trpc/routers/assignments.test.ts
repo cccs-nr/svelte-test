@@ -47,14 +47,27 @@ const organizer: AuthenticatedUser = {
 	id: 'organizer-id',
 	username: 'organizer',
 	displayName: 'Organizer',
-	role: 'organizer'
+	role: 'organizer',
+	isParticipating: false
 };
 
 const participants: AuthenticatedUser[] = [
-	{ id: 'alice', username: 'alice', displayName: 'Alice', role: 'participant' },
-	{ id: 'bob', username: 'bob', displayName: 'Bob', role: 'participant' },
-	{ id: 'carol', username: 'carol', displayName: 'Carol', role: 'participant' },
-	{ id: 'dave', username: 'dave', displayName: 'Dave', role: 'participant' }
+	{
+		id: 'alice',
+		username: 'alice',
+		displayName: 'Alice',
+		role: 'participant',
+		isParticipating: true
+	},
+	{ id: 'bob', username: 'bob', displayName: 'Bob', role: 'participant', isParticipating: true },
+	{
+		id: 'carol',
+		username: 'carol',
+		displayName: 'Carol',
+		role: 'participant',
+		isParticipating: true
+	},
+	{ id: 'dave', username: 'dave', displayName: 'Dave', role: 'participant', isParticipating: true }
 ];
 
 function seedEventAndParticipants(householdIds: readonly string[]): void {
@@ -99,6 +112,16 @@ afterEach(() => {
 describe('assignment router', () => {
 	it('generates a complete draft without exposing the mapping', async () => {
 		seedEventAndParticipants(['home-a', 'home-a', 'home-b', 'home-b']);
+		db.insert(users)
+			.values({
+				id: organizer.id,
+				username: organizer.username,
+				displayName: organizer.displayName,
+				passwordHash: 'not-used-by-assignment-test',
+				role: 'organizer',
+				isParticipating: false
+			})
+			.run();
 		const caller = appRouter.createCaller(createContext(organizer));
 
 		await expect(caller.assignments.generate()).resolves.toEqual({
@@ -143,6 +166,32 @@ describe('assignment router', () => {
 		const recipientUser = db.select().from(users).where(eq(users.id, assignment.receiverId)).get();
 		expect(recipient?.displayName).toBe(recipientUser?.displayName);
 		expect(recipientUser?.householdId).not.toBe('home-a');
+	});
+
+	it('includes an opted-in organizer in the draw and reveals only their own recipient', async () => {
+		seedEventAndParticipants(['home-a', 'home-a', 'home-b', 'home-b']);
+		db.insert(users)
+			.values({
+				id: organizer.id,
+				username: organizer.username,
+				displayName: organizer.displayName,
+				passwordHash: 'not-used-by-assignment-test',
+				role: 'organizer',
+				isParticipating: true
+			})
+			.run();
+		const participatingOrganizer = { ...organizer, isParticipating: true };
+		const caller = appRouter.createCaller(createContext(participatingOrganizer));
+		const organizerControl = appRouter.createCaller(createContext(organizer));
+
+		await expect(organizerControl.assignments.generate()).resolves.toMatchObject({
+			assignmentCount: participants.length + 1
+		});
+		await organizerControl.assignments.finalize();
+
+		const recipient = await caller.assignments.myRecipient();
+		expect(recipient).not.toBeNull();
+		expect(Object.keys(recipient ?? {})).toEqual(['displayName']);
 	});
 
 	it('reports impossible household constraints without creating assignments', async () => {

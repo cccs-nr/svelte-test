@@ -127,7 +127,11 @@
 					</div>
 					<CardTitle>Your account</CardTitle>
 					<CardDescription>
-						Signed in as {data.user.role === 'organizer' ? 'an organizer' : 'a participant'}.
+						Signed in as {data.user.role === 'organizer'
+							? data.user.isParticipating
+								? 'an organizer and participant'
+								: 'an organizer'
+							: 'a participant'}.
 					</CardDescription>
 				</CardHeader>
 				<CardContent class="space-y-2 text-sm text-stone-600">
@@ -144,7 +148,7 @@
 				</CardContent>
 			</Card>
 		</div>
-		{#if data.user.role === 'participant'}
+		{#if data.user.isParticipating}
 			<Card class="border-stone-200 bg-white">
 				<CardHeader>
 					<CardTitle>Your Secret Santa recipient</CardTitle>
@@ -162,7 +166,8 @@
 					{/if}
 				</CardContent>
 			</Card>
-		{:else if data.organizerStats}
+		{/if}
+		{#if data.user.role === 'organizer' && data.organizerStats}
 			<Card class="border-stone-200 bg-white">
 				<CardHeader>
 					<CardTitle>Gift assignments</CardTitle>

@@ -40,7 +40,8 @@ try {
 			username,
 			displayName,
 			passwordHash: await hashPassword(password),
-			role: 'organizer'
+			role: 'organizer',
+			isParticipating: false
 		})
 		.run();
 } finally {

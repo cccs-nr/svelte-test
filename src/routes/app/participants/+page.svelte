@@ -214,6 +214,11 @@
 						<option value="participant">Participant</option>
 						<option value="organizer">Organizer</option>
 					</select>
+					{#if createRole === 'organizer'}
+						<p class="text-xs text-stone-500">
+							New organizers start outside the draw and can opt in from their own profile.
+						</p>
+					{/if}
 				</div>
 				<div class="space-y-2 md:col-span-2">
 					<label class="text-sm font-medium" for="create-household">Household</label>
@@ -256,7 +261,8 @@
 							<div>
 								<p class="font-medium text-stone-950">{account.displayName}</p>
 								<p class="mt-1 text-sm text-stone-500">
-									@{account.username} · {account.role} · {account.isActive ? 'Active' : 'Disabled'}
+									@{account.username} · {account.role} · {account.isActive ? 'Active' : 'Disabled'} ·
+									{account.isParticipating ? 'In draw' : 'Not in draw'}
 									{#if account.householdName}
 										· {account.householdName}
 									{/if}

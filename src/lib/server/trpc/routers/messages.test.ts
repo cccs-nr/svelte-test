@@ -39,15 +39,28 @@ const organizer: AuthenticatedUser = {
 	id: 'organizer-id',
 	username: 'organizer',
 	displayName: 'Organizer',
-	role: 'organizer'
+	role: 'organizer',
+	isParticipating: false
 };
 
 const participants: AuthenticatedUser[] = [
-	{ id: 'alice', username: 'alice', displayName: 'Alice', role: 'participant' },
-	{ id: 'bob', username: 'bob', displayName: 'Bob', role: 'participant' },
-	{ id: 'carol', username: 'carol', displayName: 'Carol', role: 'participant' },
-	{ id: 'dave', username: 'dave', displayName: 'Dave', role: 'participant' },
-	{ id: 'erin', username: 'erin', displayName: 'Erin', role: 'participant' }
+	{
+		id: 'alice',
+		username: 'alice',
+		displayName: 'Alice',
+		role: 'participant',
+		isParticipating: true
+	},
+	{ id: 'bob', username: 'bob', displayName: 'Bob', role: 'participant', isParticipating: true },
+	{
+		id: 'carol',
+		username: 'carol',
+		displayName: 'Carol',
+		role: 'participant',
+		isParticipating: true
+	},
+	{ id: 'dave', username: 'dave', displayName: 'Dave', role: 'participant', isParticipating: true },
+	{ id: 'erin', username: 'erin', displayName: 'Erin', role: 'participant', isParticipating: true }
 ];
 
 function seedEventAndParticipants(): void {

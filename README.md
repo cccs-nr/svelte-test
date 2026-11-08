@@ -53,6 +53,12 @@ Generated assignments remain private until the organizer finalizes the draw. Reg
 
 After the draw is finalized, each participant can start a private conversation with their recipient and reply to their own Secret Santa. Recipients see giver messages only as **Your Secret Santa**; sender account IDs are not stored with messages or returned by the messaging API. Conversations are scoped to a finalized assignment, and resetting that assignment permanently deletes its conversation and messages. The app refreshes conversations and unread counts periodically; no external messaging service is used.
 
+### Organizer participation and appearance
+
+Organizer accounts are excluded from the draw by default. An organizer can opt in from **Profile** while keeping organizer access; they will see only their own recipient and assigned wishlist. Regular participant accounts remain in the draw. Participation cannot be changed while assignments exist.
+
+The appearance toggle follows the operating system theme until changed, then saves the selected light or dark mode in the browser. Wishlist images can be opened in an accessible full-size viewer and dismissed with Escape, the close button, or by selecting the backdrop. The app navigation collapses to a menu on narrow screens.
+
 ### Wishlists and gift ideas
 
 Participants can add, edit, and remove any number of gift ideas from **Wishlist**, including descriptions, notes, optional external product links, estimated CAD prices, and optional images. The configured gift budget is displayed as a guideline. Wishlists are private to their owner until assignments are finalized; afterward, each participant can view only their assigned recipient’s list.

@@ -15,6 +15,7 @@
 
 	let { data }: PageProps = $props();
 	let displayName = $derived(data.profile.displayName);
+	let isParticipating = $derived(data.profile.isParticipating);
 	let currentPassword = $state('');
 	let newPassword = $state('');
 	let confirmPassword = $state('');
@@ -31,7 +32,10 @@
 		successMessage = null;
 
 		try {
-			await trpc.auth.updateProfile.mutate({ displayName });
+			await trpc.auth.updateProfile.mutate({
+				displayName,
+				...(data.profile.role === 'organizer' ? { isParticipating } : {})
+			});
 			await invalidateAll();
 			successMessage = 'Profile updated.';
 		} catch (error) {
@@ -128,6 +132,30 @@
 						>
 					{/if}
 				</p>
+				{#if data.profile.role === 'organizer'}
+					<div class="space-y-2 rounded-xl border border-stone-200 bg-stone-50 p-4">
+						<label class="flex items-start gap-3 text-sm text-stone-700">
+							<input
+								class="mt-1"
+								type="checkbox"
+								bind:checked={isParticipating}
+								disabled={isSaving || !data.canChangeParticipation}
+							/>
+							<span>
+								<span class="font-medium text-stone-900">Also participate in the exchange</span>
+								<span class="mt-1 block text-stone-600">
+									You’ll be included in the draw and can see only your own recipient and their
+									wishlist. You’ll keep all organizer tools.
+								</span>
+							</span>
+						</label>
+						{#if !data.canChangeParticipation}
+							<p class="text-xs text-stone-500">
+								Reset assignments before changing your participation setting.
+							</p>
+						{/if}
+					</div>
+				{/if}
 				<Button type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Save profile'}</Button>
 			</form>
 		</CardContent>
