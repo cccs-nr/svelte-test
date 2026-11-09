@@ -76,6 +76,12 @@
 		sortDescending = key !== 'name';
 	}
 
+	function setMobileSort(value: string): void {
+		if (value !== 'name' && value !== 'ideas' && value !== 'messages') return;
+		sortKey = value;
+		sortDescending = value !== 'name';
+	}
+
 	function openCreateDialog(): void {
 		createName = '';
 		createPassword = '';
@@ -176,7 +182,7 @@
 	}
 </script>
 
-<Card id="participants" class="border-stone-200 bg-white">
+<Card id="participants">
 	<CardHeader class="flex flex-row flex-wrap items-center justify-between gap-4">
 		<div>
 			<CardTitle>Participants and accounts</CardTitle>
@@ -191,12 +197,91 @@
 	</CardHeader>
 	<CardContent class="space-y-4">
 		{#if notice}
-			<p class="text-sm text-emerald-800" role="status">{notice}</p>
+			<p class="app-notice" role="status">{notice}</p>
 		{/if}
 		{#if participants.length === 0}
 			<p class="text-sm text-stone-600">No accounts have registered yet.</p>
 		{:else}
-			<div class="-mx-2 overflow-x-auto px-2">
+			<div class="mb-3 flex items-center justify-between gap-3 xl:hidden">
+				<label class="text-sm font-medium text-foreground" for="mobile-participant-sort">
+					Sort participants
+				</label>
+				<select
+					id="mobile-participant-sort"
+					class="min-h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+					value={sortKey}
+					onchange={(event) => setMobileSort(event.currentTarget.value)}
+				>
+					<option value="name">Name</option>
+					<option value="ideas">Gift ideas</option>
+					<option value="messages">Messages</option>
+				</select>
+			</div>
+			<ul class="space-y-3 xl:hidden" aria-label="Participant accounts">
+				{#each sortedParticipants as participant (participant.id)}
+					<li class="app-surface rounded-xl border border-border p-3">
+						<div class="flex items-start justify-between gap-3">
+							<div class="min-w-0">
+								<p class="truncate font-semibold text-foreground">{participant.displayName}</p>
+								<p class="truncate text-xs text-muted-foreground">@{participant.username}</p>
+							</div>
+							<Button
+								type="button"
+								size="sm"
+								variant="outline"
+								aria-label={`Edit ${participant.displayName}`}
+								onclick={() => openEditDialog(participant)}
+							>
+								Edit
+							</Button>
+						</div>
+						<div class="mt-3 flex flex-wrap items-center gap-2">
+							<span
+								class={`rounded-full px-2 py-1 text-xs font-medium ${
+									participant.isActive
+										? 'bg-emerald-100 text-emerald-900'
+										: 'bg-secondary text-secondary-foreground'
+								}`}
+							>
+								{participant.isActive ? 'Active' : 'Inactive'}
+							</span>
+							<span class="text-xs text-muted-foreground capitalize">
+								{participant.role}{participant.isParticipating ? ' · Participating' : ''}
+							</span>
+							{#if participant.eventStatus}
+								<span class="text-xs text-muted-foreground">· {participant.eventStatus}</span>
+							{/if}
+						</div>
+						<dl class="mt-3 grid grid-cols-2 gap-3 border-t border-border pt-3 text-sm">
+							<div>
+								<dt class="text-xs text-muted-foreground">Household</dt>
+								<dd class="mt-0.5 truncate text-foreground">
+									{participant.householdName ?? 'None'}
+								</dd>
+							</div>
+							<div>
+								<dt class="text-xs text-muted-foreground">Gift ideas</dt>
+								<dd class="mt-0.5 text-foreground tabular-nums">{participant.wishlistCount}</dd>
+							</div>
+							<div>
+								<dt class="text-xs text-muted-foreground">Messages</dt>
+								<dd class="mt-0.5 text-foreground tabular-nums">{participant.messageCount}</dd>
+							</div>
+							<div>
+								<dt class="text-xs text-muted-foreground">Official gift</dt>
+								<dd class="mt-0.5 text-foreground">
+									{!participant.isParticipating
+										? '—'
+										: participant.giftPurchased
+											? 'Purchased'
+											: 'Not marked'}
+								</dd>
+							</div>
+						</dl>
+					</li>
+				{/each}
+			</ul>
+			<div class="app-table-scroll -mx-2 hidden overflow-x-auto px-2 xl:block">
 				<table class="w-full min-w-[1050px] border-collapse text-left text-sm">
 					<thead>
 						<tr class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase">
@@ -265,9 +350,7 @@
 									{#if !participant.isParticipating}
 										—
 									{:else if participant.giftPurchased}
-										<span class="rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-900">
-											Purchased
-										</span>
+										<span class="app-status app-status--success"> Purchased </span>
 									{:else}
 										<span class="text-stone-500">Not marked</span>
 									{/if}
@@ -309,7 +392,7 @@
 
 <dialog
 	bind:this={createDialog}
-	class="m-auto max-h-[92vh] w-[95vw] max-w-xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
+	class="app-dialog m-auto max-h-[92dvh] w-[min(95vw,36rem)] overflow-y-auto rounded-2xl shadow-2xl backdrop:bg-black/60"
 	aria-labelledby="create-account-title"
 	onclick={handleBackdropClick}
 >
@@ -331,10 +414,7 @@
 			</Button>
 		</div>
 		{#if errorMessage}
-			<p
-				class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-				role="alert"
-			>
+			<p class="app-alert app-alert--error mb-4" role="alert">
 				{errorMessage}
 			</p>
 		{/if}
@@ -368,7 +448,7 @@
 					id="create-account-role"
 					bind:value={createRole}
 					disabled={isSaving}
-					class="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm"
+					class="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
 				>
 					<option value="participant">Participant</option>
 					<option value="organizer">Organizer</option>
@@ -380,7 +460,7 @@
 					id="create-account-household"
 					bind:value={createHouseholdId}
 					disabled={isSaving}
-					class="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm"
+					class="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
 				>
 					<option value="">No household</option>
 					{#each households as household (household.id)}
@@ -407,7 +487,7 @@
 
 <dialog
 	bind:this={editDialog}
-	class="m-auto max-h-[92vh] w-[95vw] max-w-xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
+	class="app-dialog m-auto max-h-[92dvh] w-[min(95vw,36rem)] overflow-y-auto rounded-2xl shadow-2xl backdrop:bg-black/60"
 	aria-labelledby="edit-account-title"
 	onclick={handleBackdropClick}
 	onclose={() => (selectedParticipantId = null)}
@@ -428,10 +508,7 @@
 			</Button>
 		</div>
 		{#if errorMessage}
-			<p
-				class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-				role="alert"
-			>
+			<p class="app-alert app-alert--error mb-4" role="alert">
 				{errorMessage}
 			</p>
 		{/if}
@@ -452,7 +529,7 @@
 					id="edit-account-role"
 					bind:value={editRole}
 					disabled={isSaving || assignmentsExist}
-					class="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm"
+					class="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
 				>
 					<option value="participant">Participant</option>
 					<option value="organizer">Organizer</option>
@@ -464,7 +541,7 @@
 					id="edit-account-household"
 					bind:value={editHouseholdId}
 					disabled={isSaving || assignmentsExist}
-					class="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm"
+					class="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
 				>
 					<option value="">No household</option>
 					{#each households as household (household.id)}

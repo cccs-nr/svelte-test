@@ -164,10 +164,7 @@
 						</div>
 
 						{#if errorMessage}
-							<p
-								class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-								role="alert"
-							>
+							<p class="app-alert app-alert--error" role="alert">
 								{errorMessage}
 							</p>
 						{/if}

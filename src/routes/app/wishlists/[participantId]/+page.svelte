@@ -11,13 +11,12 @@
 
 <section class="space-y-8">
 	<header>
-		<p class="text-sm font-medium tracking-[0.18em] text-emerald-800 uppercase">Wishlist</p>
-		<h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">
+		<p class="app-page-kicker">Wishlist</p>
+		<h1 class="app-page-title">
 			{data.recipientDisplayName}
 		</h1>
-		<p class="mt-3 max-w-2xl text-stone-600">
-			Browse their gift ideas, reserve an optional Wishlist Gift, or start a conversation. The
-			Wishlist Recipient cannot see reservation or purchase details.
+		<p class="app-page-description">
+			Browse gift ideas or plan a gift. Reservation details are only visible to gift buyers.
 		</p>
 	</header>
 

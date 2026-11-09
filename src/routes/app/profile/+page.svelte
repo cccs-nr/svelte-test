@@ -218,28 +218,23 @@
 
 <section class="mx-auto max-w-3xl space-y-8">
 	<div>
-		<p class="text-sm font-medium tracking-[0.18em] text-emerald-800 uppercase">Account</p>
-		<h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">
-			Your profile
-		</h1>
+		<p class="app-page-kicker">Account</p>
+		<h1 class="app-page-title">Your profile</h1>
 		<p class="mt-3 text-stone-600">
 			Update the name other participants see and keep your password secure.
 		</p>
 	</div>
 
 	{#if errorMessage}
-		<p
-			class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-			role="alert"
-		>
+		<p class="app-alert app-alert--error" role="alert">
 			{errorMessage}
 		</p>
 	{/if}
 	{#if successMessage}
-		<p class="text-sm text-emerald-800" role="status">{successMessage}</p>
+		<p class="app-notice" role="status">{successMessage}</p>
 	{/if}
 
-	<Card class="border-stone-200 bg-white">
+	<Card>
 		<CardHeader>
 			<CardTitle>Profile picture</CardTitle>
 			<CardDescription>
@@ -292,13 +287,13 @@
 				<p class="text-sm text-rose-700" role="alert">{avatarErrorMessage}</p>
 			{/if}
 			{#if avatarSuccessMessage}
-				<p class="text-sm text-emerald-800" role="status">{avatarSuccessMessage}</p>
+				<p class="app-notice" role="status">{avatarSuccessMessage}</p>
 			{/if}
 		</CardContent>
 	</Card>
 
 	{#if data.profile.codename}
-		<Card class="border-stone-200 bg-white">
+		<Card>
 			<CardHeader>
 				<CardTitle>Your event codename</CardTitle>
 				<CardDescription>
@@ -317,7 +312,7 @@
 					<p class="text-sm text-rose-700" role="alert">{codenameErrorMessage}</p>
 				{/if}
 				{#if codenameSuccessMessage}
-					<p class="text-sm text-emerald-800" role="status">{codenameSuccessMessage}</p>
+					<p class="app-notice" role="status">{codenameSuccessMessage}</p>
 				{/if}
 				{#if data.canChangeCodename}
 					{#if data.availableCodenameCount > 0}
@@ -349,7 +344,7 @@
 		</Card>
 	{/if}
 
-	<Card class="border-stone-200 bg-white">
+	<Card>
 		<CardHeader>
 			<CardTitle>Profile details</CardTitle>
 			<CardDescription>
@@ -416,7 +411,7 @@
 		</CardContent>
 	</Card>
 
-	<Card class="border-stone-200 bg-white">
+	<Card>
 		<CardHeader>
 			<CardTitle>Change password</CardTitle>
 			<CardDescription>
@@ -434,7 +429,7 @@
 
 	<dialog
 		bind:this={passwordDialog}
-		class="m-auto max-h-[92vh] w-[95vw] max-w-xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
+		class="app-dialog m-auto max-h-[92dvh] w-[min(95vw,36rem)] overflow-y-auto rounded-2xl shadow-2xl backdrop:bg-black/60"
 		aria-labelledby="change-password-title"
 		onclick={handleDialogClick}
 	>

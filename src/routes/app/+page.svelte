@@ -48,12 +48,12 @@
 
 <section class="space-y-8">
 	<header>
-		<p class="text-sm font-medium tracking-[0.18em] text-emerald-800 uppercase">Your exchange</p>
-		<h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">
+		<p class="app-page-kicker">Your exchange</p>
+		<h1 class="app-page-title">
 			Welcome, {data.user.displayName}
 		</h1>
 		{#if !data.event}
-			<p class="mt-3 max-w-2xl text-stone-600">
+			<p class="app-page-description">
 				{data.user.role === 'organizer'
 					? 'Set up the event and invite participants to get started.'
 					: 'Your organizer is getting the exchange ready. Check back soon.'}
@@ -63,7 +63,7 @@
 
 	{#if data.event}
 		<div class="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.7fr)]">
-			<Card class="border-stone-200 bg-white lg:col-span-2">
+			<Card class="lg:col-span-2">
 				<CardHeader>
 					<CardTitle>{data.event.name}</CardTitle>
 				</CardHeader>
@@ -139,7 +139,7 @@
 			</Card>
 
 			{#if data.user.role === 'organizer'}
-				<Card class="border-stone-200 bg-white">
+				<Card>
 					<CardHeader>
 						<CardTitle>Organizer tools</CardTitle>
 						<CardDescription>
@@ -158,7 +158,7 @@
 			{/if}
 		</div>
 	{:else if data.user.role === 'organizer'}
-		<Card class="border-stone-200 bg-white">
+		<Card>
 			<CardHeader>
 				<CardTitle>Start with your event details</CardTitle>
 				<CardDescription>
@@ -175,7 +175,7 @@
 			</CardFooter>
 		</Card>
 	{:else}
-		<Card class="border-stone-200 bg-white">
+		<Card>
 			<CardHeader>
 				<CardTitle>The exchange is being prepared</CardTitle>
 				<CardDescription>

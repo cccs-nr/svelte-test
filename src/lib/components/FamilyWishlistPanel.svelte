@@ -269,7 +269,7 @@
 	}
 </script>
 
-<Card class="border-stone-200 bg-white">
+<Card>
 	<CardHeader>
 		<CardTitle>
 			{showDirectory ? 'Family wishlists' : 'Gift ideas'}
@@ -313,15 +313,12 @@
 	</CardHeader>
 	<CardContent class="space-y-5">
 		{#if errorMessage}
-			<p
-				class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-				role="alert"
-			>
+			<p class="app-alert app-alert--error" role="alert">
 				{errorMessage}
 			</p>
 		{/if}
 		{#if notice}
-			<p class="text-sm text-emerald-800" role="status">{notice}</p>
+			<p class="app-notice" role="status">{notice}</p>
 		{/if}
 		{#if revealedMapping}
 			<section
@@ -455,7 +452,126 @@
 							{wishlist.recipient.displayName} has not added any gift ideas yet.
 						</p>
 					{:else}
-						<div class="-mx-2 overflow-x-auto px-2">
+						<ul class="space-y-3 lg:hidden" aria-label="Gift ideas">
+							{#each wishlist.suggestions as suggestion (suggestion.id)}
+								<li class="app-surface rounded-xl border border-border p-3">
+									<div class="flex items-start gap-3">
+										{#if suggestion.imageKey}
+											<button
+												type="button"
+												class="size-16 shrink-0 cursor-zoom-in overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+												aria-label={`View full-size image for ${suggestion.title}`}
+												onclick={() => openImage(suggestion.imageKey, suggestion.title)}
+											>
+												<img
+													class="size-full object-cover"
+													src={imageUrl(suggestion.imageKey)}
+													alt=""
+													loading="lazy"
+												/>
+											</button>
+										{/if}
+										<div class="min-w-0 flex-1">
+											<p class="font-semibold text-foreground">
+												{#if suggestion.url}
+													<a
+														class="text-primary underline-offset-4 hover:underline"
+														href={suggestion.url}
+														target="_blank"
+														rel="noopener noreferrer external"
+													>
+														{suggestion.title}
+													</a>
+												{:else}
+													{suggestion.title}
+												{/if}
+											</p>
+											{#if suggestion.description}
+												<p class="mt-1 text-sm whitespace-pre-wrap text-muted-foreground">
+													{suggestion.description}
+												</p>
+											{/if}
+											{#if suggestion.notes}
+												<p class="mt-1 text-sm whitespace-pre-wrap text-muted-foreground">
+													Notes: {suggestion.notes}
+												</p>
+											{/if}
+										</div>
+									</div>
+									<div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+										<p class="text-sm font-medium text-foreground">
+											{suggestion.estimatedPriceCents === null
+												? 'No estimated price'
+												: formatEventBudget(suggestion.estimatedPriceCents, currency)}
+										</p>
+										{#if suggestion.reservationStatus === 'available'}
+											<span class="app-status app-status--success"> Available </span>
+										{:else if suggestion.reservationStatus === 'reserved' || suggestion.reservationStatus === 'purchased'}
+											<span class="app-status app-status--neutral">
+												{#if suggestion.reservationStatus === 'reserved' && suggestion.reservationCodename}
+													<CodenameAvatar codename={suggestion.reservationCodename} size="xs" />
+												{/if}
+												{suggestion.reservationStatus === 'purchased'
+													? 'Purchased'
+													: suggestion.reservedByMe
+														? 'Reserved by you'
+														: `Reserved by ${suggestion.reservedBy}`}
+											</span>
+										{/if}
+									</div>
+									{#if suggestion.reservationStatus === 'available'}
+										<Button
+											type="button"
+											class="mt-3 w-full"
+											size="sm"
+											onclick={() => void updateReservation(suggestion.id, null, 'reserve')}
+											disabled={actionId !== null}
+										>
+											{actionId === suggestion.id ? 'Reserving…' : 'Reserve Wishlist Gift'}
+										</Button>
+									{:else if suggestion.reservedByMe && suggestion.reservationStatus === 'reserved'}
+										<div class="mt-3 flex flex-wrap gap-2">
+											<Button
+												type="button"
+												class="flex-1"
+												size="sm"
+												onclick={() =>
+													void updateReservation(
+														suggestion.id,
+														suggestion.reservationId,
+														'purchase'
+													)}
+												disabled={actionId !== null || !suggestion.reservationId}
+											>
+												{actionId === suggestion.id ? 'Updating…' : 'Mark purchased'}
+											</Button>
+											<Button
+												type="button"
+												class="flex-1"
+												size="sm"
+												variant="outline"
+												onclick={() =>
+													void updateReservation(
+														suggestion.id,
+														suggestion.reservationId,
+														'release'
+													)}
+												disabled={actionId !== null || !suggestion.reservationId}
+											>
+												Release reservation
+											</Button>
+										</div>
+									{/if}
+									<time
+										class="mt-2 block text-xs text-muted-foreground"
+										datetime={suggestion.updatedAt}
+									>
+										Updated {formatTimestamp(suggestion.updatedAt)}
+									</time>
+								</li>
+							{/each}
+						</ul>
+						<div class="app-table-scroll -mx-2 hidden overflow-x-auto px-2 lg:block">
 							<table class="w-full min-w-[900px] border-collapse text-left text-sm">
 								<thead>
 									<tr
@@ -523,15 +639,9 @@
 											</td>
 											<td class="px-3 py-4 align-top">
 												{#if suggestion.reservationStatus === 'available'}
-													<span
-														class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800"
-													>
-														Available
-													</span>
+													<span class="app-status app-status--success"> Available </span>
 												{:else if suggestion.reservationStatus === 'reserved' || suggestion.reservationStatus === 'purchased'}
-													<span
-														class="inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700"
-													>
+													<span class="app-status app-status--neutral">
 														{#if suggestion.reservationStatus === 'reserved' && suggestion.reservationCodename}
 															<CodenameAvatar codename={suggestion.reservationCodename} size="xs" />
 														{/if}
@@ -608,14 +718,14 @@
 
 <dialog
 	bind:this={imageDialog}
-	class="m-auto max-h-[92vh] max-w-[95vw] rounded-2xl bg-transparent p-0 shadow-2xl backdrop:bg-black/80"
+	class="m-auto max-h-[92dvh] max-w-[95vw] rounded-2xl bg-transparent p-0 shadow-2xl backdrop:bg-black/80"
 	aria-label={fullSizeImage?.alt ?? 'Full-size gift image'}
 	onclick={handleImageDialogClick}
 	onclose={clearImage}
 >
 	{#if fullSizeImage}
 		<img
-			class="max-h-[92vh] max-w-[95vw] rounded-2xl object-contain"
+			class="max-h-[92dvh] max-w-[95vw] rounded-2xl object-contain"
 			src={fullSizeImage.src}
 			alt={fullSizeImage.alt}
 		/>

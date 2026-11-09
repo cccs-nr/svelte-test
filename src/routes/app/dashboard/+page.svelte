@@ -36,8 +36,8 @@
 
 <section class="space-y-6">
 	<div>
-		<p class="text-sm font-medium tracking-[0.18em] text-emerald-800 uppercase">Organizer</p>
-		<h1 class="mt-2 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">Dashboard</h1>
+		<p class="app-page-kicker">Organizer</p>
+		<h1 class="app-page-title mt-2">Dashboard</h1>
 	</div>
 
 	<EventOverviewCard
@@ -48,83 +48,102 @@
 	/>
 	<ConversationMigrationReviewCard items={data.conversationMigrationReviews} />
 
-	<Card id="event-stats" class="border-stone-200 bg-white">
+	<Card id="event-stats">
 		<CardHeader>
 			<CardTitle>Event statistics</CardTitle>
 			<CardDescription
-				>Live totals across the exchange; private conversations remain private.</CardDescription
+				>Aggregate progress only. Private conversations remain private.</CardDescription
 			>
 		</CardHeader>
-		<CardContent>
-			<dl class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-				<div class="rounded-xl bg-stone-50 p-3">
-					<dt class="text-xs text-stone-500">Participants</dt>
-					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
-						{data.stats.totalParticipants}
-					</dd>
-				</div>
-				<div class="rounded-xl bg-stone-50 p-3">
-					<dt class="text-xs text-stone-500">Active accounts</dt>
-					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
-						{data.stats.activeAccounts}
-					</dd>
-				</div>
-				<div class="rounded-xl bg-stone-50 p-3">
-					<dt class="text-xs text-stone-500">Households</dt>
-					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
-						{data.stats.householdCount}
-					</dd>
-				</div>
-				<div class="rounded-xl bg-stone-50 p-3">
-					<dt class="text-xs text-stone-500">Assignments finalized</dt>
-					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
-						{data.stats.finalizedAssignmentCount}/{data.stats.assignmentCount}
-					</dd>
-				</div>
-				<div class="rounded-xl bg-stone-50 p-3">
-					<dt class="text-xs text-stone-500">Gift ideas</dt>
-					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
-						{data.stats.wishlistIdeaCount}
-					</dd>
-				</div>
-				<div class="rounded-xl bg-stone-50 p-3">
-					<dt class="text-xs text-stone-500">Messages</dt>
-					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
-						{data.stats.messageCount}
-					</dd>
-					<p class="mt-1 text-[0.65rem] text-stone-500">Count only</p>
-				</div>
-				<div class="rounded-xl bg-stone-50 p-3">
-					<dt class="text-xs text-stone-500">Active reservations</dt>
-					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
-						{data.stats.totalReservations}
-					</dd>
-				</div>
-				<div class="rounded-xl bg-stone-50 p-3">
-					<dt class="text-xs text-stone-500">Purchased ideas</dt>
-					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
-						{data.stats.purchasedReservationCount}
-					</dd>
-				</div>
-				<div class="rounded-xl bg-stone-50 p-3">
-					<dt class="text-xs text-stone-500">Participants with purchases</dt>
-					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
-						{data.stats.participantsWithCompletedPurchases}
-					</dd>
-				</div>
-				<div class="rounded-xl bg-stone-50 p-3">
-					<dt class="text-xs text-stone-500">Private gift-planning conversations</dt>
-					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
-						{data.stats.coordinationConversationCount}
-					</dd>
-				</div>
-				<div class="rounded-xl bg-stone-50 p-3 sm:col-span-3 lg:col-span-6">
-					<dt class="text-xs text-stone-500">Participants who marked a gift purchased</dt>
-					<dd class="mt-1 text-xl font-semibold text-stone-950 tabular-nums">
-						{data.stats.purchasedGiftCount}
-					</dd>
-				</div>
-			</dl>
+		<CardContent class="grid gap-6 lg:grid-cols-3">
+			<section aria-labelledby="people-stats-title">
+				<h3 id="people-stats-title" class="mb-3 text-sm font-semibold text-foreground">
+					People & draw
+				</h3>
+				<dl class="grid grid-cols-2 gap-3">
+					<div class="app-surface-muted rounded-xl p-3">
+						<dt class="text-xs text-muted-foreground">Participants</dt>
+						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
+							{data.stats.totalParticipants}
+						</dd>
+					</div>
+					<div class="app-surface-muted rounded-xl p-3">
+						<dt class="text-xs text-muted-foreground">Active accounts</dt>
+						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
+							{data.stats.activeAccounts}
+						</dd>
+					</div>
+					<div class="app-surface-muted rounded-xl p-3">
+						<dt class="text-xs text-muted-foreground">Households</dt>
+						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
+							{data.stats.householdCount}
+						</dd>
+					</div>
+					<div class="app-surface-muted rounded-xl p-3">
+						<dt class="text-xs text-muted-foreground">Assignments finalized</dt>
+						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
+							{data.stats.finalizedAssignmentCount}/{data.stats.assignmentCount}
+						</dd>
+					</div>
+				</dl>
+			</section>
+			<section aria-labelledby="wishlist-stats-title">
+				<h3 id="wishlist-stats-title" class="mb-3 text-sm font-semibold text-foreground">
+					Wishlists & gifts
+				</h3>
+				<dl class="grid grid-cols-2 gap-3">
+					<div class="app-surface-muted rounded-xl p-3">
+						<dt class="text-xs text-muted-foreground">Gift ideas</dt>
+						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
+							{data.stats.wishlistIdeaCount}
+						</dd>
+					</div>
+					<div class="app-surface-muted rounded-xl p-3">
+						<dt class="text-xs text-muted-foreground">Active reservations</dt>
+						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
+							{data.stats.totalReservations}
+						</dd>
+					</div>
+					<div class="app-surface-muted rounded-xl p-3">
+						<dt class="text-xs text-muted-foreground">Purchased wishlist gifts</dt>
+						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
+							{data.stats.purchasedReservationCount}
+						</dd>
+					</div>
+					<div class="app-surface-muted rounded-xl p-3">
+						<dt class="text-xs text-muted-foreground">Participants with purchases</dt>
+						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
+							{data.stats.participantsWithCompletedPurchases}
+						</dd>
+					</div>
+				</dl>
+			</section>
+			<section aria-labelledby="communication-stats-title">
+				<h3 id="communication-stats-title" class="mb-3 text-sm font-semibold text-foreground">
+					Messages & official gifts
+				</h3>
+				<dl class="grid grid-cols-2 gap-3">
+					<div class="app-surface-muted rounded-xl p-3">
+						<dt class="text-xs text-muted-foreground">Messages</dt>
+						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
+							{data.stats.messageCount}
+						</dd>
+						<p class="mt-1 text-xs text-muted-foreground">Count only</p>
+					</div>
+					<div class="app-surface-muted rounded-xl p-3">
+						<dt class="text-xs text-muted-foreground">Private gift-planning conversations</dt>
+						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
+							{data.stats.coordinationConversationCount}
+						</dd>
+					</div>
+					<div class="app-surface-muted col-span-2 rounded-xl p-3">
+						<dt class="text-xs text-muted-foreground">Official Secret Santa gifts purchased</dt>
+						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
+							{data.stats.purchasedGiftCount}
+						</dd>
+					</div>
+				</dl>
+			</section>
 		</CardContent>
 	</Card>
 

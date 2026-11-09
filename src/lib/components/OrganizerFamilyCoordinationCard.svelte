@@ -180,7 +180,7 @@
 	}
 </script>
 
-<Card class="border-stone-200 bg-white">
+<Card>
 	<CardHeader>
 		<CardTitle>Gift purchase tracking</CardTitle>
 		<CardDescription>
@@ -190,15 +190,12 @@
 	</CardHeader>
 	<CardContent class="space-y-6">
 		{#if errorMessage}
-			<p
-				class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-				role="alert"
-			>
+			<p class="app-alert app-alert--error" role="alert">
 				{errorMessage}
 			</p>
 		{/if}
 		{#if notice}
-			<p class="text-sm text-emerald-800" role="status">{notice}</p>
+			<p class="app-notice" role="status">{notice}</p>
 		{/if}
 
 		<div class="flex flex-wrap items-center gap-3">
@@ -233,7 +230,54 @@
 					No active reservations or purchases to review.
 				</p>
 			{:else}
-				<div class="-mx-2 overflow-x-auto px-2">
+				<ul class="space-y-3 lg:hidden" aria-label="Gift reservations">
+					{#each reservations as reservation (reservation.id)}
+						<li class="app-surface rounded-xl border border-border p-3">
+							<div class="flex items-start justify-between gap-3">
+								<div class="min-w-0">
+									<p class="font-semibold text-foreground">{reservation.title}</p>
+									<p class="mt-1 text-sm text-muted-foreground">
+										For {reservation.ownerDisplayName}
+									</p>
+								</div>
+								<span
+									class="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground capitalize"
+								>
+									{reservation.status}
+								</span>
+							</div>
+							<div class="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
+								<span class="inline-flex min-w-0 items-center gap-2 text-sm text-foreground">
+									<CodenameAvatar codename={reservation.reserverCodename} size="xs" />
+									<span class="truncate">{reservation.reserverLabel}</span>
+								</span>
+								<div class="flex shrink-0 gap-2">
+									{#if reservation.status === 'reserved'}
+										<Button
+											type="button"
+											size="sm"
+											variant="outline"
+											onclick={() => openCorrection(reservation, 'purchased')}
+											disabled={isSaving}
+										>
+											Purchased
+										</Button>
+									{/if}
+									<Button
+										type="button"
+										size="sm"
+										variant="outline"
+										onclick={() => openCorrection(reservation, 'released')}
+										disabled={isSaving}
+									>
+										Release
+									</Button>
+								</div>
+							</div>
+						</li>
+					{/each}
+				</ul>
+				<div class="app-table-scroll -mx-2 hidden overflow-x-auto px-2 lg:block">
 					<table class="w-full min-w-[680px] border-collapse text-left text-sm">
 						<thead>
 							<tr class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase">
@@ -294,7 +338,7 @@
 
 <dialog
 	bind:this={mappingDialog}
-	class="m-auto max-h-[92vh] w-[95vw] max-w-3xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
+	class="app-dialog m-auto max-h-[92dvh] w-[min(95vw,48rem)] overflow-y-auto rounded-2xl shadow-2xl backdrop:bg-black/60"
 	aria-labelledby="codename-dialog-title"
 	onclick={handleDialogClick}
 >
@@ -308,7 +352,33 @@
 			</div>
 			<Button type="button" variant="outline" onclick={() => mappingDialog?.close()}>Close</Button>
 		</div>
-		<div class="-mx-2 overflow-x-auto px-2">
+		<ul class="space-y-3 md:hidden" aria-label="Participant codenames">
+			{#each mapping as row (row.userId)}
+				<li class="app-surface rounded-xl border border-border p-3">
+					<p class="mb-2 font-medium text-foreground">{row.displayName}</p>
+					<div class="flex items-center gap-2">
+						<Input
+							id={`codename-mobile-${row.userId}`}
+							bind:value={editedCodenames[row.userId]}
+							maxlength={60}
+							aria-label={`Codename for ${row.displayName}`}
+						/>
+						<Button
+							type="button"
+							size="sm"
+							variant="outline"
+							onclick={() => void saveCodename(row)}
+							disabled={isSaving ||
+								!editedCodenames[row.userId]?.trim() ||
+								editedCodenames[row.userId]?.trim() === row.codename}
+						>
+							Save
+						</Button>
+					</div>
+				</li>
+			{/each}
+		</ul>
+		<div class="app-table-scroll -mx-2 hidden overflow-x-auto px-2 md:block">
 			<table class="w-full min-w-[520px] border-collapse text-left text-sm">
 				<thead>
 					<tr class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase">
@@ -352,7 +422,7 @@
 
 <dialog
 	bind:this={correctionDialog}
-	class="m-auto w-[95vw] max-w-lg rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
+	class="app-dialog m-auto max-h-[92dvh] w-[min(95vw,32rem)] overflow-y-auto rounded-2xl shadow-2xl backdrop:bg-black/60"
 	aria-labelledby="reservation-correction-title"
 	onclick={handleDialogClick}
 >
@@ -368,7 +438,7 @@
 			<label class="text-sm font-medium" for="reservation-correction-reason">Reason</label>
 			<textarea
 				id="reservation-correction-reason"
-				class="min-h-24 w-full rounded-md border border-stone-300 bg-white p-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+				class="min-h-24 w-full rounded-md border border-input bg-background p-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
 				bind:value={correctionReason}
 				minlength="3"
 				maxlength="500"

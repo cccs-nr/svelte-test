@@ -304,39 +304,32 @@
 			size="lg"
 		/>
 		<div>
-			<p class="text-sm font-medium tracking-[0.18em] text-emerald-800 uppercase">My Wishlist</p>
-			<h1 class="mt-2 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">
+			<p class="app-page-kicker">My Wishlist</p>
+			<h1 class="app-page-title mt-2">
 				{data.user.displayName}
 			</h1>
 		</div>
 	</div>
-	<p class="max-w-2xl text-stone-600">
-		Manage gift ideas for Your Secret Santa and Wishlist Gifters. Reservation and purchase details
-		are hidden from you.
-	</p>
+	<p class="app-page-description">Add gift ideas for the people who may shop your wishlist.</p>
 
 	{#if errorMessage}
-		<p
-			class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-			role="alert"
-		>
+		<p class="app-alert app-alert--error" role="alert">
 			{errorMessage}
 		</p>
 	{/if}
 	{#if successMessage}
-		<p class="text-sm text-emerald-800" role="status">{successMessage}</p>
+		<p class="app-notice" role="status">{successMessage}</p>
 	{/if}
 	<div id="wishlist-panel" class="min-w-0">
-		<Card id="my-wishlist" class="border-stone-200 bg-white">
+		<Card id="my-wishlist">
 			<CardHeader class="flex flex-row flex-wrap items-center justify-between gap-4">
 				<div class="min-w-0">
 					<CardTitle>My Gift Ideas</CardTitle>
 					<CardDescription>
 						{#if data.giftBudgetCents !== null}
-							Event budget: {formatEventBudget(data.giftBudgetCents, data.currency)} (a guideline).
+							Event budget: {formatEventBudget(data.giftBudgetCents, data.currency)} as a guideline.
 						{:else}
-							Family members can browse your gift ideas. Reservation and purchase details remain
-							hidden from you.
+							Family members can browse your gift ideas.
 						{/if}
 					</CardDescription>
 				</div>
@@ -366,9 +359,93 @@
 						No ideas yet. Add your first gift idea to get started.
 					</p>
 				{:else}
+					<ul class="space-y-3 lg:hidden" aria-label="Your gift ideas">
+						{#each suggestions as suggestion (suggestion.id)}
+							<li class="app-surface rounded-xl border border-border p-3 sm:p-4">
+								<div class="flex items-start gap-3">
+									{#if suggestion.imageKey}
+										<button
+											type="button"
+											class="size-16 shrink-0 cursor-zoom-in overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+											aria-label={`View full-size image for ${suggestion.title}`}
+											onclick={() => openSuggestionImage(suggestion.imageKey, suggestion.title)}
+										>
+											<img
+												class="size-full object-cover"
+												src={imageUrl(suggestion.imageKey)}
+												alt=""
+												loading="lazy"
+											/>
+										</button>
+									{/if}
+									<div class="min-w-0 flex-1">
+										<p class="font-semibold text-foreground">
+											{#if suggestion.url}
+												<a
+													class="text-primary underline-offset-4 hover:underline"
+													href={suggestion.url}
+													target="_blank"
+													rel="noopener noreferrer external"
+												>
+													{suggestion.title}
+												</a>
+											{:else}
+												{suggestion.title}
+											{/if}
+										</p>
+										{#if suggestion.description}
+											<p class="mt-1 text-sm whitespace-pre-wrap text-muted-foreground">
+												{suggestion.description}
+											</p>
+										{/if}
+										{#if suggestion.notes}
+											<p class="mt-1 text-sm whitespace-pre-wrap text-muted-foreground">
+												Notes: {suggestion.notes}
+											</p>
+										{/if}
+									</div>
+								</div>
+								<div
+									class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3"
+								>
+									<div class="text-sm text-muted-foreground">
+										<span class="font-medium text-foreground">
+											{suggestion.estimatedPriceCents === null
+												? 'No estimated price'
+												: formatEventBudget(suggestion.estimatedPriceCents, 'CAD')}
+										</span>
+										<span aria-hidden="true"> · </span>
+										<time datetime={suggestion.updatedAt}>
+											{formatTimestamp(suggestion.updatedAt)}
+										</time>
+									</div>
+									<div class="flex gap-2">
+										<Button
+											type="button"
+											size="sm"
+											variant="outline"
+											onclick={() => startEditing(suggestion)}
+											disabled={isSaving || isDeleting !== null}
+										>
+											Edit
+										</Button>
+										<Button
+											type="button"
+											size="sm"
+											variant="destructive"
+											onclick={() => deleteSuggestion(suggestion)}
+											disabled={isSaving || isDeleting !== null}
+										>
+											{isDeleting === suggestion.id ? 'Deleting…' : 'Delete'}
+										</Button>
+									</div>
+								</div>
+							</li>
+						{/each}
+					</ul>
 					<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 					<div
-						class="-mx-2 overflow-x-auto px-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+						class="app-table-scroll -mx-2 hidden overflow-x-auto px-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:block"
 						role="region"
 						aria-label="Your gift ideas"
 						tabindex="0"
@@ -477,7 +554,7 @@
 
 	<dialog
 		bind:this={ideaDialog}
-		class="m-auto max-h-[92vh] w-[95vw] max-w-2xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
+		class="app-dialog m-auto max-h-[92dvh] w-[min(95vw,42rem)] overflow-y-auto rounded-2xl shadow-2xl backdrop:bg-black/60"
 		aria-labelledby="gift-idea-dialog-title"
 		onclick={handleIdeaDialogClick}
 		onclose={resetEditor}
@@ -502,10 +579,7 @@
 			</div>
 
 			{#if errorMessage}
-				<p
-					class="mb-5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-					role="alert"
-				>
+				<p class="app-alert app-alert--error mb-5" role="alert">
 					{errorMessage}
 				</p>
 			{/if}
@@ -605,7 +679,7 @@
 
 	<dialog
 		bind:this={imageDialog}
-		class="m-auto max-h-[95vh] w-[95vw] max-w-6xl rounded-2xl bg-white p-3 text-stone-950 shadow-2xl backdrop:bg-black/85 sm:p-5"
+		class="app-dialog m-auto max-h-[95dvh] w-[95vw] max-w-6xl rounded-2xl p-3 shadow-2xl backdrop:bg-black/85 sm:p-5"
 		aria-label="Full-size wishlist image"
 		onclick={handleImageDialogClick}
 		onkeydown={handleImageDialogKeydown}
@@ -616,14 +690,14 @@
 				<Button
 					type="button"
 					variant="outline"
-					class="absolute top-2 right-2 z-10 size-10 rounded-full bg-white/90 p-0"
+					class="absolute top-2 right-2 z-10 size-10 rounded-full border border-border bg-popover p-0 text-popover-foreground"
 					aria-label="Close full-size image"
 					onclick={closeImage}
 				>
 					<X size={18} aria-hidden="true" />
 				</Button>
 				<img
-					class="mx-auto max-h-[86vh] w-full rounded-lg object-contain"
+					class="mx-auto max-h-[86dvh] w-full rounded-lg object-contain"
 					src={fullSizeImage.src}
 					alt={fullSizeImage.alt}
 				/>

@@ -121,11 +121,7 @@
 	}
 </script>
 
-<Card
-	class={fullHeight
-		? 'flex min-h-0 flex-1 flex-col border-stone-200 bg-white'
-		: 'border-stone-200 bg-white'}
->
+<Card class={fullHeight ? 'flex min-h-0 flex-1 flex-col' : ''}>
 	<CardHeader class={fullHeight ? 'shrink-0' : undefined}>
 		<div class="flex flex-wrap items-start justify-between gap-3">
 			<div class="flex min-w-0 items-center gap-3">
@@ -172,15 +168,12 @@
 			: 'flex h-[min(70dvh,40rem)] min-h-[18rem] flex-col gap-3'}
 	>
 		{#if errorMessage}
-			<p
-				class="shrink-0 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-				role="alert"
-			>
+			<p class="app-alert app-alert--error shrink-0" role="alert">
 				{errorMessage}
 			</p>
 		{/if}
 		{#if notice}
-			<p class="shrink-0 text-sm text-emerald-800" role="status">{notice}</p>
+			<p class="app-notice shrink-0" role="status">{notice}</p>
 		{/if}
 
 		{#if thread}
@@ -274,7 +267,7 @@
 					<label class="sr-only" for="conversation-message-draft">Write a message</label>
 					<textarea
 						id="conversation-message-draft"
-						class="min-h-20 w-full resize-y rounded-lg border border-stone-300 bg-white p-3 text-sm text-stone-950 placeholder:text-stone-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+						class="min-h-20 w-full resize-y rounded-lg border border-input bg-background p-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
 						bind:value={draft}
 						maxlength="2000"
 						placeholder="Write a message…"

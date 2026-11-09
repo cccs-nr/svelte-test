@@ -92,20 +92,16 @@
 	<div class="flex flex-wrap items-end justify-between gap-4">
 		<div>
 			{#if !compact}
-				<p class="text-sm font-medium tracking-[0.18em] text-emerald-800 uppercase">
-					Conversations
-				</p>
+				<p class="app-page-kicker">Conversations</p>
 			{/if}
 			<h1
 				id="conversation-directory-title"
-				class={compact
-					? 'text-xl font-semibold text-stone-950'
-					: 'mt-3 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl'}
+				class={compact ? 'text-xl font-semibold text-stone-950' : 'app-page-title'}
 			>
 				{compact ? 'Recent conversations' : 'Messages'}
 			</h1>
 			{#if !compact}
-				<p class="mt-3 max-w-2xl text-stone-600">
+				<p class="app-page-description">
 					Every conversation is organized around a participant’s wishlist.
 				</p>
 			{/if}
@@ -151,10 +147,7 @@
 	{/if}
 
 	{#if errorMessage}
-		<p
-			class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-			role="alert"
-		>
+		<p class="app-alert app-alert--error" role="alert">
 			{errorMessage}
 		</p>
 	{/if}
@@ -162,7 +155,7 @@
 	{#if isLoading}
 		<p class="text-sm text-stone-500" role="status">Loading your conversations…</p>
 	{:else if displayedConversations.length === 0}
-		<div class="rounded-xl border border-dashed border-stone-300 bg-white p-6 text-center">
+		<div class="app-surface rounded-xl border border-dashed border-border p-6 text-center">
 			<p class="font-medium text-stone-900">
 				{conversations.length === 0 ? 'No conversations yet' : 'No matching conversations'}
 			</p>
@@ -177,7 +170,7 @@
 			{#each displayedConversations as conversation (conversation.id)}
 				<li>
 					<article
-						class="rounded-xl border border-stone-200 bg-white p-3 transition hover:border-emerald-300 hover:bg-emerald-50/40 sm:p-4"
+						class="app-surface rounded-xl border p-3 transition hover:border-emerald-300 hover:bg-emerald-50/40 sm:p-4"
 					>
 						<a
 							class="flex min-w-0 items-start gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800 sm:gap-4"
@@ -196,9 +189,7 @@
 								<span class="flex flex-wrap items-center justify-between gap-2">
 									<span class="font-semibold text-stone-950">{conversation.title}</span>
 									{#if conversation.unreadCount > 0}
-										<span
-											class="rounded-full bg-rose-700 px-2.5 py-1 text-xs font-semibold text-white"
-										>
+										<span class="app-status app-status--unread">
 											{conversation.unreadCount} unread
 										</span>
 									{/if}
@@ -239,14 +230,17 @@
 										</li>
 									{/each}
 								</ul>
+								{#if conversation.lastMessageAt}
+									<time
+										class="mt-3 block text-xs text-muted-foreground"
+										datetime={conversation.lastMessageAt}
+									>
+										{formatTimestamp(conversation.lastMessageAt)}
+									</time>
+								{/if}
 							</div>
 						</a>
-						<div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-							{#if conversation.lastMessageAt}
-								<time class="text-xs text-stone-500" datetime={conversation.lastMessageAt}>
-									{formatTimestamp(conversation.lastMessageAt)}
-								</time>
-							{/if}
+						<div class="mt-2 flex justify-end">
 							<a
 								class="ml-auto text-sm font-medium text-emerald-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
 								href={conversation.isWishlistOwner

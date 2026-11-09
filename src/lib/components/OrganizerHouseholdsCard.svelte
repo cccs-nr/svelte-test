@@ -154,7 +154,7 @@
 	}
 </script>
 
-<Card id="households" class="border-stone-200 bg-white">
+<Card id="households">
 	<CardHeader class="flex flex-row flex-wrap items-center justify-between gap-4">
 		<div>
 			<CardTitle>Households</CardTitle>
@@ -166,12 +166,38 @@
 	</CardHeader>
 	<CardContent class="space-y-4">
 		{#if notice}
-			<p class="text-sm text-emerald-800" role="status">{notice}</p>
+			<p class="app-notice" role="status">{notice}</p>
 		{/if}
 		{#if households.length === 0}
 			<p class="text-sm text-stone-600">No households have been created yet.</p>
 		{:else}
-			<div class="-mx-2 overflow-x-auto px-2">
+			<ul class="space-y-3 md:hidden" aria-label="Households">
+				{#each households as household (household.id)}
+					<li class="app-surface rounded-xl border border-border p-3">
+						<div class="flex items-start justify-between gap-3">
+							<div class="min-w-0">
+								<p class="font-semibold text-foreground">{household.name}</p>
+								<p class="mt-1 text-sm text-muted-foreground">
+									{household.memberCount}
+									{household.memberCount === 1 ? 'member' : 'members'}
+								</p>
+							</div>
+							<Button
+								type="button"
+								size="sm"
+								variant="outline"
+								onclick={() => openEditDialog(household)}
+							>
+								Edit
+							</Button>
+						</div>
+						<p class="mt-3 border-t border-border pt-3 text-sm text-foreground">
+							{household.members.map((member) => member.displayName).join(', ') || 'No members'}
+						</p>
+					</li>
+				{/each}
+			</ul>
+			<div class="app-table-scroll -mx-2 hidden overflow-x-auto px-2 md:block">
 				<table class="w-full min-w-[620px] border-collapse text-left text-sm">
 					<thead>
 						<tr class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase">
@@ -214,7 +240,7 @@
 
 <dialog
 	bind:this={createDialog}
-	class="m-auto max-h-[92vh] w-[95vw] max-w-xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
+	class="app-dialog m-auto max-h-[92dvh] w-[min(95vw,36rem)] overflow-y-auto rounded-2xl shadow-2xl backdrop:bg-black/60"
 	aria-labelledby="create-household-title"
 	onclick={handleBackdropClick}
 >
@@ -236,10 +262,7 @@
 			</Button>
 		</div>
 		{#if errorMessage}
-			<p
-				class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-				role="alert"
-			>
+			<p class="app-alert app-alert--error mb-4" role="alert">
 				{errorMessage}
 			</p>
 		{/if}
@@ -302,7 +325,7 @@
 
 <dialog
 	bind:this={editDialog}
-	class="m-auto max-h-[92vh] w-[95vw] max-w-xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
+	class="app-dialog m-auto max-h-[92dvh] w-[min(95vw,36rem)] overflow-y-auto rounded-2xl shadow-2xl backdrop:bg-black/60"
 	aria-labelledby="edit-household-title"
 	onclick={handleBackdropClick}
 	onclose={() => (selectedHouseholdId = null)}
@@ -323,10 +346,7 @@
 			</Button>
 		</div>
 		{#if errorMessage}
-			<p
-				class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-				role="alert"
-			>
+			<p class="app-alert app-alert--error mb-4" role="alert">
 				{errorMessage}
 			</p>
 		{/if}

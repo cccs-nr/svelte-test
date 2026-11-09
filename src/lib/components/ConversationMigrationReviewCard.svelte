@@ -41,7 +41,7 @@
 </script>
 
 {#if items.length > 0}
-	<Card class="border-amber-300 bg-white">
+	<Card class="border-amber-300">
 		<CardHeader>
 			<CardTitle>Conversation migration review</CardTitle>
 			<CardDescription>
@@ -50,10 +50,7 @@
 		</CardHeader>
 		<CardContent class="space-y-3">
 			{#if errorMessage}
-				<p
-					class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-					role="alert"
-				>
+				<p class="app-alert app-alert--error" role="alert">
 					{errorMessage}
 				</p>
 			{/if}

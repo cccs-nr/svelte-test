@@ -342,7 +342,7 @@
 						bind:this={accountMenu}
 						id="account-menu"
 						hidden={!isAccountMenuOpen}
-						class="absolute top-full right-0 z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] rounded-3xl border border-stone-200 bg-white p-2 text-stone-950 shadow-2xl"
+						class="app-surface absolute top-full right-0 z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] rounded-3xl border border-border p-2 shadow-2xl"
 						role="menu"
 						aria-labelledby="account-menu-title"
 						aria-orientation="vertical"
@@ -414,12 +414,15 @@
 	</header>
 
 	{#if logoutError}
-		<p class="mx-auto mt-4 max-w-6xl px-4 text-sm text-rose-700 sm:px-8" role="alert">
+		<p class="app-alert app-alert--error mx-auto mt-4 w-[calc(100%-2rem)] max-w-6xl" role="alert">
 			{logoutError}
 		</p>
 	{/if}
 	{#if realtimeError}
-		<p class="mx-auto mt-2 max-w-6xl px-4 text-sm text-amber-800" role="status">
+		<p
+			class="app-alert app-alert--warning mx-auto mt-2 w-[calc(100%-2rem)] max-w-6xl"
+			role="status"
+		>
 			{realtimeError}
 		</p>
 	{/if}

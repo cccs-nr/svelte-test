@@ -141,7 +141,7 @@
 	}
 </script>
 
-<Card class="border-stone-200 bg-white">
+<Card>
 	<CardHeader>
 		<CardTitle>Gift ideas</CardTitle>
 		<CardDescription>
@@ -165,15 +165,12 @@
 			</Button>
 		</div>
 		{#if errorMessage}
-			<p
-				class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-				role="alert"
-			>
+			<p class="app-alert app-alert--error" role="alert">
 				{errorMessage}
 			</p>
 		{/if}
 		{#if notice}
-			<p class="text-sm text-emerald-800" role="status">{notice}</p>
+			<p class="app-notice" role="status">{notice}</p>
 		{/if}
 		{#if isLoading}
 			<p class="text-sm text-stone-500">Loading Your Assigned Recipient’s gift ideas…</p>
@@ -278,7 +275,7 @@
 
 <dialog
 	bind:this={imageDialog}
-	class="m-auto max-h-[95vh] w-[95vw] max-w-6xl rounded-2xl bg-white p-3 text-stone-950 shadow-2xl backdrop:bg-black/85 sm:p-5"
+	class="app-dialog m-auto max-h-[95dvh] w-[95vw] max-w-6xl rounded-2xl p-3 shadow-2xl backdrop:bg-black/85 sm:p-5"
 	aria-label="Full-size recipient gift idea image"
 	onclick={handleImageDialogClick}
 	onkeydown={handleImageDialogKeydown}
@@ -289,14 +286,14 @@
 			<Button
 				type="button"
 				variant="outline"
-				class="absolute top-2 right-2 z-10 size-10 rounded-full bg-white/90 p-0"
+				class="absolute top-2 right-2 z-10 size-10 rounded-full border border-border bg-popover p-0 text-popover-foreground"
 				aria-label="Close full-size image"
 				onclick={closeImage}
 			>
 				<X size={18} aria-hidden="true" />
 			</Button>
 			<img
-				class="mx-auto max-h-[86vh] w-full rounded-lg object-contain"
+				class="mx-auto max-h-[86dvh] w-full rounded-lg object-contain"
 				src={fullSizeImage.src}
 				alt={fullSizeImage.alt}
 			/>

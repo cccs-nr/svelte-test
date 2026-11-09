@@ -53,15 +53,6 @@
 		status = event?.status === 'open' ? 'open' : 'setup';
 	});
 
-	$effect(() => {
-		name = event?.name ?? '';
-		description = event?.description ?? '';
-		exchangeDate = event?.exchangeDate ?? '';
-		giftBudget = event ? formatBudgetInput(event.giftBudgetCents) : '';
-		instructions = event?.instructions ?? '';
-		status = event?.status === 'open' ? 'open' : 'setup';
-	});
-
 	function formatDate(date: string): string {
 		return new Intl.DateTimeFormat('en-CA', { dateStyle: 'long' }).format(
 			new Date(`${date}T00:00:00`)
@@ -132,7 +123,7 @@
 	}
 </script>
 
-<Card id="event" class="border-stone-200 bg-white">
+<Card id="event">
 	<CardHeader class="flex flex-row flex-wrap items-start justify-between gap-4">
 		<div class="min-w-0">
 			<p class="text-xs font-medium tracking-[0.16em] text-emerald-800 uppercase">Event overview</p>
@@ -169,10 +160,7 @@
 	</CardHeader>
 	{#if errorMessage}
 		<div class="px-6">
-			<p
-				class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-				role="alert"
-			>
+			<p class="app-alert app-alert--error" role="alert">
 				{errorMessage}
 			</p>
 		</div>
@@ -197,9 +185,6 @@
 					</dd>
 				</div>
 			</dl>
-			{#if event.instructions}
-				<p class="text-sm whitespace-pre-wrap text-stone-600">{event.instructions}</p>
-			{/if}
 			{#if event.instructions}
 				<p class="text-sm whitespace-pre-wrap text-stone-600">{event.instructions}</p>
 			{/if}
@@ -241,7 +226,7 @@
 
 <dialog
 	bind:this={dialog}
-	class="m-auto max-h-[92vh] w-[95vw] max-w-2xl overflow-y-auto rounded-2xl bg-white text-stone-950 shadow-2xl backdrop:bg-black/60"
+	class="app-dialog m-auto max-h-[92dvh] w-[min(95vw,42rem)] overflow-y-auto rounded-2xl shadow-2xl backdrop:bg-black/60"
 	aria-labelledby="event-dialog-title"
 	onclick={handleDialogClick}
 >
@@ -261,10 +246,7 @@
 		</div>
 
 		{#if errorMessage}
-			<p
-				class="mb-5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
-				role="alert"
-			>
+			<p class="app-alert app-alert--error mb-5" role="alert">
 				{errorMessage}
 			</p>
 		{/if}
@@ -318,7 +300,7 @@
 					id="event-status"
 					bind:value={status}
 					disabled={isSaving}
-					class="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+					class="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
 				>
 					<option value="setup">Setup</option>
 					<option value="open">Open</option>

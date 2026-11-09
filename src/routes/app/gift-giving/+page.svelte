@@ -15,13 +15,13 @@
 
 <section class="space-y-8">
 	<header>
-		<p class="text-sm font-medium tracking-[0.18em] text-emerald-800 uppercase">
+		<p class="app-page-kicker">
 			{data.assignedRecipient ? 'You drew' : 'Your draw'}
 		</p>
-		<h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">
+		<h1 class="app-page-title">
 			{data.assignedRecipient ? data.assignedRecipient.displayName : 'Waiting for the draw'}
 		</h1>
-		<p class="mt-3 max-w-2xl text-stone-600">
+		<p class="app-page-description">
 			{#if data.assignedRecipient}
 				Your official gift is separate from optional Wishlist Gifts you choose as a Wishlist Gifter.
 			{:else}
