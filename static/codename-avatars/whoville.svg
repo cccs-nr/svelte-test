@@ -1,11 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Whoville</title>
+  <title id="title">Funny holiday mascot for Whoville</title>
   <circle cx="128" cy="128" r="124" fill="#e4f2ee"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#245b52" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M46 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#efc34d"/>
-  <path d="M197 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#b92342"/>
-  <path d="M48 186h160" stroke="#245b52" stroke-width="8" stroke-linecap="round"/>
-<path d="M62 149h47v37H62zM116 121h55v65h-55zM177 154h26v32h-26z" fill="#b92342"/>
-<path d="M57 149l29-30 29 30M110 121l33-35 34 35M172 154l18-21 18 21" fill="#efc34d"/>
-<path d="M76 160h10v13H76zM136 141h12v15h-12zM155 141h9v15h-9z" fill="#245b52"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#245b52" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 49l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#efc34d"/>
+  <path d="M204 60l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#b92342"/>
+  <path d="M58 120l70-63 70 63v82H58z" fill="#245b52" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M46 121l82-75 82 75" fill="none" stroke="#b92342" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="113" y="158" width="30" height="44" rx="8" fill="#efc34d" stroke="#563622" stroke-width="5"/>
+<path d="M67 80q-23-31 6-40 17-6 23 11 6-24 26-18 18 6 7 24 22-21 39-4 15 14-2 28" fill="none" stroke="#b92342" stroke-width="9" stroke-linecap="round"/>
+<path d="M102 128q6-8 12 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><circle cx="148" cy="128" r="6" fill="#563622"/><circle cx="91" cy="145" r="7" fill="#e88778"/><circle cx="165" cy="145" r="7" fill="#e88778"/><path d="M114 150q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

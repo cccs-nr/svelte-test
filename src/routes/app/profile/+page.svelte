@@ -295,7 +295,7 @@
 	{#if data.profile.codename}
 		<Card>
 			<CardHeader>
-				<CardTitle>Your event codename</CardTitle>
+				<CardTitle>Your codename</CardTitle>
 				<CardDescription>
 					Other gift givers see your codename. Your assigned recipient sees “Secret Santa” instead.
 				</CardDescription>

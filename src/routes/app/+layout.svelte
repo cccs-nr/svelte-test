@@ -187,7 +187,7 @@
 		: 'min-h-screen bg-transparent'}
 >
 	<header
-		class={`holiday-topnav sticky top-0 z-40 border-b-4 border-rose-800 bg-[#123b2b]/95 shadow-sm backdrop-blur ${isConversationPage ? 'shrink-0' : ''}`}
+		class={`holiday-topnav sticky top-0 z-40 border-b-4 border-rose-800 bg-[#123b2b]/95 shadow-sm backdrop-blur ${isConversationPage ? 'shrink-0 max-sm:hidden' : ''}`}
 	>
 		<div
 			class="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-2 px-3 py-2 sm:gap-4 sm:px-8"
@@ -374,7 +374,7 @@
 								<CodenameAvatar codename={data.user.codename} size="md" />
 								<div class="min-w-0">
 									<p class="text-xs font-medium tracking-wide text-emerald-800 uppercase">
-										Codename
+										Your codename
 									</p>
 									<p class="mt-0.5 truncate font-semibold text-stone-950">
 										{data.user.codename}
@@ -420,15 +420,18 @@
 	{/if}
 	{#if realtimeError}
 		<p
-			class="app-alert app-alert--warning mx-auto mt-2 w-[calc(100%-2rem)] max-w-6xl"
+			class={`app-alert app-alert--warning mx-auto w-full max-w-6xl ${
+				isConversationPage ? 'mt-1 px-3 py-1 text-xs sm:mt-2 sm:px-4 sm:py-2 sm:text-sm' : 'mt-2'
+			}`}
 			role="status"
+			aria-live="polite"
 		>
-			{realtimeError}
+			{isConversationPage ? 'Live updates unavailable; badges may be out of date.' : realtimeError}
 		</p>
 	{/if}
 	<main
 		class={isConversationPage
-			? 'mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col px-4 py-4 sm:px-8'
+			? 'mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col px-0 py-0 sm:px-8 sm:py-4'
 			: 'mx-auto max-w-6xl px-4 py-10 sm:px-8'}
 	>
 		{@render children()}

@@ -1,10 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Ginger Snap</title>
+  <title id="title">Funny holiday mascot for Ginger Snap</title>
   <circle cx="128" cy="128" r="124" fill="#fff2d6"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#744210" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M42 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#c92d4b"/>
-  <path d="M206 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#17603a"/>
-  <path d="M128 57v142M67 93l122 70M67 163l122-70" stroke="#744210" stroke-width="11" stroke-linecap="round"/>
-<path d="M108 76l20 18 20-18M108 180l20-18 20 18M73 109l18 19-18 19M183 109l-18 19 18 19" fill="none" stroke="#17603a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="128" cy="128" r="13" fill="#c92d4b"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#744210" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 56l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#c92d4b"/>
+  <path d="M204 46l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#17603a"/>
+  <path d="M128 124c-18 0-29 11-29 30v28l-31 31c-10 10-1 26 12 20l39-20 9-22 9 22 39 20c13 6 22-10 12-20l-31-31v-28c0-19-11-30-29-30z" fill="#744210" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<circle cx="128" cy="89" r="43" fill="#744210" stroke="#563622" stroke-width="7"/>
+<path d="M107 154h42M110 173h36" stroke="#fff8e9" stroke-width="7" stroke-linecap="round"/>
+<circle cx="128" cy="150" r="6" fill="#17603a"/>
+<circle cx="84" cy="56" r="6" fill="#c92d4b"/><circle cx="105" cy="42" r="5" fill="#17603a"/><circle cx="173" cy="51" r="7" fill="#c92d4b"/><circle cx="151" cy="39" r="5" fill="#17603a"/>
+<path d="M102 81q6-8 12 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><circle cx="148" cy="81" r="5" fill="#563622"/><circle cx="91" cy="98" r="6" fill="#e88778"/><circle cx="165" cy="98" r="6" fill="#e88778"/><path d="M114 103q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><path d="M112 95q16 13 32 0" fill="none" stroke="#fff8e9" stroke-width="4" stroke-linecap="round"/>
 </svg>

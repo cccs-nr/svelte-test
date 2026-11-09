@@ -1,9 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Charlie Brown</title>
+  <title id="title">Funny holiday mascot for Charlie Brown</title>
   <circle cx="128" cy="128" r="124" fill="#f8eadc"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#7a452a" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M56 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#d52f4b"/>
-  <path d="M212 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#237247"/>
-  <path d="M128 52l19 52 55 2-43 34 15 53-46-31-46 31 15-53-43-34 55-2z" fill="#d52f4b" stroke="#7a452a" stroke-width="7" stroke-linejoin="round"/>
-<circle cx="128" cy="127" r="14" fill="#237247"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#7a452a" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 49l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#d52f4b"/>
+  <path d="M204 60l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#237247"/>
+  <path d="M80 105c-8-42 21-68 55-58 31 9 47 40 37 75l-15 28H93z" fill="#7a452a" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M75 189c9-29 28-43 53-43s44 14 53 43v18H75z" fill="#237247" stroke="#563622" stroke-width="7"/>
+<path d="M80 187l16 16 16-16 16 16 16-16 16 16 16-16" fill="none" stroke="#d52f4b" stroke-width="7" stroke-linejoin="round"/>
+<path d="M77 70l18 13 18-13 18 13 18-13 18 13 18-13" fill="none" stroke="#d52f4b" stroke-width="9" stroke-linejoin="round"/>
+<circle cx="108" cy="105" r="5" fill="#563622"/><circle cx="148" cy="105" r="5" fill="#563622"/><circle cx="106" cy="103" r="2" fill="#fff8e9"/><circle cx="146" cy="103" r="2" fill="#fff8e9"/><circle cx="91" cy="122" r="6" fill="#e88778"/><circle cx="165" cy="122" r="6" fill="#e88778"/><path d="M114 127q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

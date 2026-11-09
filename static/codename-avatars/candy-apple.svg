@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Candy Apple</title>
+  <title id="title">Funny holiday mascot for Candy Apple</title>
   <circle cx="128" cy="128" r="124" fill="#fff2d6"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#744210" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M42 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#c92d4b"/>
-  <path d="M206 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#17603a"/>
-  <path d="M128 95c-30-28-70-2-58 43 9 35 37 61 58 61s49-26 58-61c12-45-28-71-58-43z" fill="#17603a" stroke="#744210" stroke-width="7"/>
-<path d="M128 99c-3-21 3-34 16-44" fill="none" stroke="#744210" stroke-width="9" stroke-linecap="round"/>
-<path d="M143 61c18-12 34-3 35 12-15 8-29 5-35-12z" fill="#c92d4b"/>
-<ellipse cx="100" cy="122" rx="9" ry="16" fill="#c92d4b" opacity=".72"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#744210" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 57l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#c92d4b"/>
+  <path d="M204 59l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#17603a"/>
+  <path d="M128 97c-40-35-79 4-61 54 14 40 39 62 61 47 22 15 47-7 61-47 18-50-21-89-61-54z" fill="#744210" stroke="#563622" stroke-width="7"/>
+<path d="M128 98c-4-24 5-37 23-45" fill="none" stroke="#563622" stroke-width="8" stroke-linecap="round"/>
+<path d="M127 76q-28-39-50-12 7 31 50 26M131 76q28-39 50-12-7 31-50 26" fill="#c92d4b" stroke="#563622" stroke-width="5"/><path d="M128 82V42" stroke="#563622" stroke-width="6" stroke-linecap="round"/>
+<circle cx="108" cy="130" r="6" fill="#563622"/><circle cx="148" cy="130" r="6" fill="#563622"/><circle cx="106" cy="128" r="2" fill="#fff8e9"/><circle cx="146" cy="128" r="2" fill="#fff8e9"/><circle cx="91" cy="147" r="7" fill="#e88778"/><circle cx="165" cy="147" r="7" fill="#e88778"/><ellipse cx="128" cy="156" rx="7" ry="9" fill="#563622"/>
 </svg>

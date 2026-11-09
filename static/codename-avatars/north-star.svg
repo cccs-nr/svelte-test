@@ -1,8 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for North Star</title>
+  <title id="title">Funny holiday mascot for North Star</title>
   <circle cx="128" cy="128" r="124" fill="#e8f4eb"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#17603a" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M60 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#f4c95d"/>
-  <path d="M203 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
-  <polygon points="128.0,58.0 146.2,102.9 194.6,106.4 157.5,137.6 169.1,184.6 128.0,159.0 86.9,184.6 98.5,137.6 61.4,106.4 109.8,102.9" fill="#f4c95d"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#17603a" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 59l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#f4c95d"/>
+  <path d="M204 54l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <polygon points="128.0,44.0 152.7,98.0 211.7,104.8 167.9,145.0 179.7,203.2 128.0,174.0 76.3,203.2 88.1,145.0 44.3,104.8 103.3,98.0" fill="#17603a" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<ellipse cx="128" cy="37" rx="42" ry="12" fill="none" stroke="#f4c95d" stroke-width="7"/><path d="M101 43l-8 16M155 43l8 16" stroke="#f4c95d" stroke-width="5" stroke-linecap="round"/>
+<path d="M102 122q6-8 12 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><circle cx="148" cy="122" r="6" fill="#563622"/><circle cx="91" cy="139" r="7" fill="#e88778"/><circle cx="165" cy="139" r="7" fill="#e88778"/><path d="M114 144q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

@@ -1,11 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for All Is Bright</title>
+  <title id="title">Funny holiday mascot for All Is Bright</title>
   <circle cx="128" cy="128" r="124" fill="#eee8f5"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M56 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#e0b85b"/>
-  <path d="M212 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
-  <path d="M62 88c35 28 97 28 132 0" fill="none" stroke="#5b3b76" stroke-width="8" stroke-linecap="round"/>
-<path d="M77 99v20M103 109v20M128 113v20M153 109v20M179 99v20" stroke="#c92d4b" stroke-width="5"/>
-<circle cx="77" cy="126" r="10" fill="#e0b85b"/><circle cx="103" cy="136" r="10" fill="#c92d4b"/>
-<circle cx="128" cy="140" r="10" fill="#e0b85b"/><circle cx="153" cy="136" r="10" fill="#c92d4b"/><circle cx="179" cy="126" r="10" fill="#e0b85b"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 59l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#e0b85b"/>
+  <path d="M204 46l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <path d="M128 54c-39 0-66 29-62 65 3 21 16 32 28 46 7 9 10 18 11 25h46c1-7 4-16 11-25 12-14 25-25 28-46 4-36-23-65-62-65z" fill="#5b3b76" stroke="#563622" stroke-width="7"/>
+<path d="M104 198h48M108 211h40" stroke="#c92d4b" stroke-width="9" stroke-linecap="round"/>
+<path d="M110 56c7-17 29-17 36 0" fill="none" stroke="#e0b85b" stroke-width="7" stroke-linecap="round"/>
+<circle cx="128" cy="49" r="23" fill="#e0b85b" stroke="#563622" stroke-width="5"/><path d="M128 12v13M76 28l10 10M180 28l-10 10M56 70h15M185 70h15" stroke="#e0b85b" stroke-width="5" stroke-linecap="round"/>
+<path d="M102 112q6-8 12 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><circle cx="148" cy="112" r="6" fill="#563622"/><circle cx="91" cy="129" r="7" fill="#e88778"/><circle cx="165" cy="129" r="7" fill="#e88778"/><path d="M114 134q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

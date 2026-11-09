@@ -1,11 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Yule</title>
+  <title id="title">Funny holiday mascot for Yule</title>
   <circle cx="128" cy="128" r="124" fill="#eee8f5"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M43 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#e0b85b"/>
-  <path d="M205 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
-  <path d="M88 91h80v92H88z" fill="#c92d4b" stroke="#5b3b76" stroke-width="7"/>
-<path d="M101 91V75h54v16" fill="#e0b85b" stroke="#5b3b76" stroke-width="6"/>
-<path d="M112 125h32M128 109v33" stroke="#e0b85b" stroke-width="8" stroke-linecap="round"/>
-<path d="M104 196h48" stroke="#5b3b76" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 59l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#e0b85b"/>
+  <path d="M204 47l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <path d="M76 86h103c15 0 26 12 26 26v55c0 15-11 26-26 26H76c-15 0-26-11-26-26v-55c0-14 11-26 26-26z" fill="#5b3b76" stroke="#563622" stroke-width="7"/>
+<ellipse cx="79" cy="139" rx="21" ry="39" fill="#e0b85b" stroke="#563622" stroke-width="6"/>
+<path d="M65 139c0-18 22-18 22 0s-22 18-22 0z" fill="#c92d4b" stroke="#563622" stroke-width="4"/>
+<path d="M128 74V35M114 43q14-24 28 0" fill="none" stroke="#c92d4b" stroke-width="7" stroke-linecap="round"/><path d="M128 55c-14-13 9-19 0-34 22 15 15 29 0 34z" fill="#e0b85b" stroke="#563622" stroke-width="4"/>
+<circle cx="108" cy="128" r="6" fill="#563622"/><circle cx="148" cy="128" r="6" fill="#563622"/><circle cx="106" cy="126" r="2" fill="#fff8e9"/><circle cx="146" cy="126" r="2" fill="#fff8e9"/><circle cx="91" cy="145" r="7" fill="#e88778"/><circle cx="165" cy="145" r="7" fill="#e88778"/><path d="M114 150q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

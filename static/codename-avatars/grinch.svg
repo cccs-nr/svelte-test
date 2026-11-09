@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Grinch</title>
+  <title id="title">Funny holiday mascot for Grinch</title>
   <circle cx="128" cy="128" r="124" fill="#e4f2ee"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#245b52" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M57 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#efc34d"/>
-  <path d="M211 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#b92342"/>
-  <path d="M72 122c-11-25 7-44 31-34 3-27 29-34 43-12 21-16 45-2 38 24 25 8 28 33 5 44 5 24-19 38-39 24-17 20-45 11-45-14-26 2-41-13-33-32z" fill="#245b52"/>
-<circle cx="116" cy="126" r="12" fill="#b92342"/><circle cx="138" cy="116" r="12" fill="#b92342"/><circle cx="142" cy="140" r="12" fill="#b92342"/>
-<path d="M128 94l-2-21" stroke="#efc34d" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#245b52" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 56l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#efc34d"/>
+  <path d="M204 46l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#b92342"/>
+  <path d="M65 116c-8-35 27-60 55-39 17-31 57-19 59 14 37 6 49 45 18 63 7 32-27 55-55 37-31 27-70 3-64-31-28-4-37-29-13-44z" fill="#245b52" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M78 104c20 8 38 8 54 0M130 105c17 9 32 9 48 1" fill="none" stroke="#b92342" stroke-width="8" stroke-linecap="round"/>
+<path d="M92 79q-23-30 5-38 11-3 20 9 3-29 23-27 17 1 17 22 27-15 34 7 5 16-18 27" fill="#b92342" stroke="#563622" stroke-width="5" stroke-linejoin="round"/>
+<circle cx="108" cy="125" r="6" fill="#563622"/><circle cx="148" cy="125" r="6" fill="#563622"/><circle cx="106" cy="123" r="2" fill="#fff8e9"/><circle cx="146" cy="123" r="2" fill="#fff8e9"/><circle cx="91" cy="142" r="7" fill="#e88778"/><circle cx="165" cy="142" r="7" fill="#e88778"/><path d="M114 147q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

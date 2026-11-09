@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Blizzard</title>
+  <title id="title">Funny holiday mascot for Blizzard</title>
   <circle cx="128" cy="128" r="124" fill="#e6f1f8"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#145374" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M46 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#f4c95d"/>
-  <path d="M197 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
-  <path d="M128 57v142M67 93l122 70M67 163l122-70" stroke="#145374" stroke-width="11" stroke-linecap="round"/>
-<path d="M108 76l20 18 20-18M108 180l20-18 20 18M73 109l18 19-18 19M183 109l-18 19 18 19" fill="none" stroke="#c92d4b" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="128" cy="128" r="13" fill="#f4c95d"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#145374" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 51l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#f4c95d"/>
+  <path d="M204 55l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <path d="M70 171c-26-3-37-34-17-52 8-7 18-10 28-8 7-35 52-45 72-16 28-11 57 14 47 42 20 25-2 57-31 54H76c-2 0-4 0-6-1z" fill="#145374" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M91 41v25M80 47l11 8 11-8M171 50v25M160 56l11 8 11-8" fill="none" stroke="#f4c95d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="108" cy="123" r="6" fill="#563622"/><circle cx="148" cy="123" r="6" fill="#563622"/><circle cx="106" cy="121" r="2" fill="#fff8e9"/><circle cx="146" cy="121" r="2" fill="#fff8e9"/><circle cx="91" cy="140" r="7" fill="#e88778"/><circle cx="165" cy="140" r="7" fill="#e88778"/><path d="M114 145q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

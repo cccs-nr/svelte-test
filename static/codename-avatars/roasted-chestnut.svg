@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Roasted Chestnut</title>
+  <title id="title">Funny holiday mascot for Roasted Chestnut</title>
   <circle cx="128" cy="128" r="124" fill="#f8eadc"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#7a452a" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M52 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#d52f4b"/>
-  <path d="M201 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#237247"/>
-  <path d="M72 159c4-48 24-80 56-80s52 32 56 80c-28 30-84 30-112 0z" fill="#237247" stroke="#7a452a" stroke-width="8"/>
-<path d="M91 125c18-21 56-27 79-8" fill="none" stroke="#d52f4b" stroke-width="10" stroke-linecap="round"/>
-<path d="M128 79c-5-18 5-27 19-30" fill="none" stroke="#7a452a" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#7a452a" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 55l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#d52f4b"/>
+  <path d="M204 61l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#237247"/>
+  <path d="M65 158c5-50 30-82 63-82s58 32 63 82c-31 34-95 34-126 0z" fill="#7a452a" stroke="#563622" stroke-width="7"/>
+<path d="M79 129c22-22 75-25 98-3" fill="none" stroke="#237247" stroke-width="9" stroke-linecap="round"/>
+<path d="M101 71c-14-17 11-22-2-40M128 71c-14-17 11-22-2-40M155 71c-14-17 11-22-2-40" fill="none" stroke="#fff8e9" stroke-width="6" stroke-linecap="round"/>
+<circle cx="108" cy="129" r="6" fill="#563622"/><circle cx="148" cy="129" r="6" fill="#563622"/><circle cx="106" cy="127" r="2" fill="#fff8e9"/><circle cx="146" cy="127" r="2" fill="#fff8e9"/><circle cx="91" cy="146" r="7" fill="#e88778"/><circle cx="165" cy="146" r="7" fill="#e88778"/><ellipse cx="128" cy="155" rx="7" ry="9" fill="#563622"/>
 </svg>

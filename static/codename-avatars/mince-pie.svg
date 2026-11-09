@@ -1,10 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Mince Pie</title>
+  <title id="title">Funny holiday mascot for Mince Pie</title>
   <circle cx="128" cy="128" r="124" fill="#e6f1f8"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#145374" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M53 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#f4c95d"/>
-  <path d="M200 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
-  <path d="M67 158h122l-15 34H82z" fill="#c92d4b" stroke="#145374" stroke-width="7" stroke-linejoin="round"/>
-<path d="M75 155c9-40 29-62 53-62s44 22 53 62z" fill="#f4c95d" stroke="#145374" stroke-width="7"/>
-<path d="M101 123l13 9M141 112l-7 13M157 135l-11 4" stroke="#c92d4b" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#145374" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 55l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#f4c95d"/>
+  <path d="M204 59l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <path d="M65 161c8-55 33-84 63-84s55 29 63 84H65z" fill="#145374" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M74 151l103-42M94 95l46 65M140 85l37 56" stroke="#f4c95d" stroke-width="8" stroke-linecap="round"/>
+<path d="M61 166h134" stroke="#563622" stroke-width="10" stroke-linecap="round"/>
+<path d="M92 70l72-36M88 52l55 33M118 35l48 30" stroke="#fff8e9" stroke-width="7" stroke-linecap="round"/>
+<path d="M102 126q6-8 12 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><circle cx="148" cy="126" r="6" fill="#563622"/><circle cx="91" cy="143" r="7" fill="#e88778"/><circle cx="165" cy="143" r="7" fill="#e88778"/><path d="M114 148q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

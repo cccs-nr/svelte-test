@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Evergreen</title>
+  <title id="title">Funny holiday mascot for Evergreen</title>
   <circle cx="128" cy="128" r="124" fill="#e6f1f8"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#145374" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M53 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#f4c95d"/>
-  <path d="M200 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
-  <path d="M128 51l-35 47h22l-35 44h30l-39 49h114l-39-49h30l-35-44h22z" fill="#145374"/>
-<path d="M119 191h18v26h-18z" fill="#c92d4b"/>
-<circle cx="129" cy="91" r="7" fill="#f4c95d"/><circle cx="105" cy="139" r="7" fill="#c92d4b"/><circle cx="151" cy="155" r="7" fill="#f4c95d"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#145374" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 49l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#f4c95d"/>
+  <path d="M204 45l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <path d="M128 43l-40 50h22l-38 44h31l-42 51h134l-42-51h31l-38-44h22z" fill="#145374" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M118 186h20v31h-20z" fill="#c92d4b" stroke="#563622" stroke-width="5"/>
+<path d="M81 36v57M128 25v54M174 38v56" stroke="#563622" stroke-width="5"/><circle cx="81" cy="104" r="12" fill="#c92d4b" stroke="#563622" stroke-width="4"/><circle cx="128" cy="89" r="12" fill="#f4c95d" stroke="#563622" stroke-width="4"/><circle cx="174" cy="104" r="12" fill="#c92d4b" stroke="#563622" stroke-width="4"/>
+<path d="M102 127q6-8 12 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><circle cx="148" cy="127" r="6" fill="#563622"/><circle cx="91" cy="144" r="7" fill="#e88778"/><circle cx="165" cy="144" r="7" fill="#e88778"/><path d="M114 149q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

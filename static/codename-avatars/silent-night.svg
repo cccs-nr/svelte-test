@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Silent Night</title>
+  <title id="title">Funny holiday mascot for Silent Night</title>
   <circle cx="128" cy="128" r="124" fill="#e6f1f8"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#145374" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M49 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#f4c95d"/>
-  <path d="M209 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
-  <path d="M154 65c-31 5-49 32-41 62 6 23 25 37 49 36-16 17-44 22-66 10-29-16-39-54-23-83 16-29 52-41 81-25z" fill="#f4c95d"/>
-<path d="M88 173h79" stroke="#145374" stroke-width="8" stroke-linecap="round"/>
-<circle cx="177" cy="90" r="6" fill="#c92d4b"/><circle cx="191" cy="119" r="4" fill="#c92d4b"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#145374" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 48l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#f4c95d"/>
+  <path d="M204 45l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <path d="M155 55c-43 6-69 45-58 87 9 36 42 57 77 48-18 24-51 34-82 22-39-15-58-59-43-98 15-40 59-61 99-46z" fill="#145374" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M88 56l5 12 12 5-12 5-5 12-5-12-12-5 12-5zM176 44l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#f4c95d"/>
+<circle cx="108" cy="123" r="6" fill="#563622"/><circle cx="148" cy="123" r="6" fill="#563622"/><circle cx="106" cy="121" r="2" fill="#fff8e9"/><circle cx="146" cy="121" r="2" fill="#fff8e9"/><circle cx="91" cy="140" r="7" fill="#e88778"/><circle cx="165" cy="140" r="7" fill="#e88778"/><path d="M114 145q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

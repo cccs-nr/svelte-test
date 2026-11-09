@@ -1,11 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Jingle Bells</title>
+  <title id="title">Funny holiday mascot for Jingle Bells</title>
   <circle cx="128" cy="128" r="124" fill="#e6f1f8"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#145374" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M49 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#f4c95d"/>
-  <path d="M209 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
-  <path d="M82 169c13-18 18-31 18-57 0-23 12-40 28-40s28 17 28 40c0 26 5 39 18 57z" fill="#f4c95d" stroke="#145374" stroke-width="8" stroke-linejoin="round"/>
-<path d="M75 170h106" stroke="#c92d4b" stroke-width="15" stroke-linecap="round"/>
-<circle cx="128" cy="194" r="12" fill="#145374"/>
-<path d="M105 67l-10-13M151 67l10-13" stroke="#c92d4b" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#145374" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 59l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#f4c95d"/>
+  <path d="M204 48l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <path d="M75 160c13-17 18-31 18-57 0-27 15-46 35-46s35 19 35 46c0 26 5 40 18 57z" fill="#145374" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M68 162h120" stroke="#c92d4b" stroke-width="14" stroke-linecap="round"/>
+<circle cx="128" cy="181" r="12" fill="#f4c95d" stroke="#563622" stroke-width="5"/>
+<path d="M93 70c9-25 38-25 47 0M142 70c9-25 38-25 47 0" fill="none" stroke="#f4c95d" stroke-width="8"/><circle cx="116" cy="77" r="10" fill="#c92d4b"/><circle cx="166" cy="77" r="10" fill="#c92d4b"/>
+<path d="M102 115q6-8 12 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><circle cx="148" cy="115" r="6" fill="#563622"/><circle cx="91" cy="132" r="7" fill="#e88778"/><circle cx="165" cy="132" r="7" fill="#e88778"/><path d="M114 137q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

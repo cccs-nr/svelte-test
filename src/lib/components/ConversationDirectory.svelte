@@ -170,7 +170,7 @@
 			{#each displayedConversations as conversation (conversation.id)}
 				<li>
 					<article
-						class="app-surface rounded-xl border p-3 transition hover:border-emerald-300 hover:bg-emerald-50/40 sm:p-4"
+						class="app-surface rounded-xl border p-3 transition hover:border-emerald-300 hover:bg-emerald-50 sm:p-4"
 					>
 						<a
 							class="flex min-w-0 items-start gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800 sm:gap-4"

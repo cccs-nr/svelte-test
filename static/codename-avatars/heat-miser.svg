@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Heat Miser</title>
+  <title id="title">Funny holiday mascot for Heat Miser</title>
   <circle cx="128" cy="128" r="124" fill="#eee8f5"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M60 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#e0b85b"/>
-  <path d="M203 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
-  <path d="M128 49c4 31-23 42-9 68-22-8-37 16-34 37 3 25 22 43 45 43s43-19 45-44c3-29-17-44-31-64-7-10-13-24-16-40z" fill="#c92d4b"/>
-<path d="M128 112c1 20-16 30-13 47 2 12 7 20 15 20s16-9 16-21c0-15-12-28-18-46z" fill="#e0b85b"/>
-<circle cx="128" cy="179" r="7" fill="#5b3b76"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 54l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#e0b85b"/>
+  <path d="M204 47l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <path d="M128 47c16 34-9 47 18 75 4-20 21-29 18-48 38 33 49 76 25 110-26 37-95 38-124 0-28-37-8-83 33-111-5 26 4 37 15 44 14-27-4-44 15-70z" fill="#5b3b76" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M128 131c16 18 20 30 13 49-7 17-27 19-38 5-12-15 0-39 25-54z" fill="#e0b85b"/>
+<path d="M90 76c-13-23 15-28 5-48 24 9 14 25 29 29 19-23 31-25 32-44 27 33-4 53 11 64z" fill="#c92d4b" stroke="#563622" stroke-width="5" stroke-linejoin="round"/>
+<path d="M102 125q6-8 12 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><circle cx="148" cy="125" r="6" fill="#563622"/><circle cx="91" cy="142" r="7" fill="#e88778"/><circle cx="165" cy="142" r="7" fill="#e88778"/><path d="M114 147q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

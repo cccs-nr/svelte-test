@@ -1,11 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Nutcracker</title>
+  <title id="title">Funny holiday mascot for Nutcracker</title>
   <circle cx="128" cy="128" r="124" fill="#e4f2ee"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#245b52" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M60 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#efc34d"/>
-  <path d="M203 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#b92342"/>
-  <path d="M82 115c0-26 20-45 46-45s46 19 46 45v45c0 24-20 39-46 39s-46-15-46-39z" fill="#b92342" stroke="#245b52" stroke-width="7"/>
-<path d="M76 110h104M90 148h76M101 172h54" stroke="#efc34d" stroke-width="8" stroke-linecap="round"/>
-<circle cx="111" cy="122" r="6" fill="#245b52"/><circle cx="145" cy="122" r="6" fill="#245b52"/>
-<path d="M106 91h44" stroke="#245b52" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#245b52" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 50l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#efc34d"/>
+  <path d="M204 60l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#b92342"/>
+  <path d="M87 116c0-28 18-47 41-47s41 19 41 47v50c0 21-18 37-41 37s-41-16-41-37z" fill="#245b52" stroke="#563622" stroke-width="7"/>
+<path d="M79 112h98M94 159h68" stroke="#b92342" stroke-width="9" stroke-linecap="round"/>
+<path d="M106 176h44" stroke="#efc34d" stroke-width="8" stroke-linecap="round"/>
+<path d="M97 70h62" stroke="#563622" stroke-width="13" stroke-linecap="round"/>
+<path d="M82 75q5-47 46-47t46 47z" fill="#b92342" stroke="#563622" stroke-width="6"/><path d="M75 77h106" stroke="#efc34d" stroke-width="11" stroke-linecap="round"/><circle cx="128" cy="39" r="8" fill="#efc34d"/>
+<circle cx="108" cy="111" r="5" fill="#563622"/><circle cx="148" cy="111" r="5" fill="#563622"/><circle cx="106" cy="109" r="2" fill="#fff8e9"/><circle cx="146" cy="109" r="2" fill="#fff8e9"/><circle cx="91" cy="128" r="6" fill="#e88778"/><circle cx="165" cy="128" r="6" fill="#e88778"/><ellipse cx="128" cy="137" rx="7" ry="9" fill="#563622"/>
 </svg>

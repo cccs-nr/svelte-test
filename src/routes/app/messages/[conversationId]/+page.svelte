@@ -11,10 +11,12 @@
 	<title>Conversation | Secret Santa</title>
 </svelte:head>
 
-<section class="flex min-h-0 flex-1 flex-col gap-3">
-	<div class="flex shrink-0 flex-wrap items-center justify-between gap-2">
+<section class="flex min-h-0 flex-1 flex-col gap-0 sm:gap-3">
+	<div
+		class="flex min-h-12 shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border bg-card px-4 py-2 sm:min-h-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+	>
 		<a
-			class="inline-flex rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
+			class="inline-flex min-h-9 items-center rounded-lg px-2 text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:min-h-0 sm:border sm:border-border sm:px-3 sm:py-2 sm:text-foreground sm:no-underline sm:hover:bg-muted"
 			href={resolve('/app/messages')}
 		>
 			Back to Messages

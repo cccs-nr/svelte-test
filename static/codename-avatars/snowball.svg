@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Snowball</title>
+  <title id="title">Funny holiday mascot for Snowball</title>
   <circle cx="128" cy="128" r="124" fill="#e4f2ee"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#245b52" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M46 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#efc34d"/>
-  <path d="M197 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#b92342"/>
-  <path d="M128 57v142M67 93l122 70M67 163l122-70" stroke="#245b52" stroke-width="11" stroke-linecap="round"/>
-<path d="M108 76l20 18 20-18M108 180l20-18 20 18M73 109l18 19-18 19M183 109l-18 19 18 19" fill="none" stroke="#b92342" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="128" cy="128" r="13" fill="#efc34d"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#245b52" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 58l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#efc34d"/>
+  <path d="M204 50l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#b92342"/>
+  <circle cx="128" cy="133" r="68" fill="#245b52" stroke="#563622" stroke-width="7"/>
+<path d="M78 76q9-40 50-40t50 40z" fill="#fff8e9" stroke="#563622" stroke-width="6"/><path d="M75 77h106" stroke="#efc34d" stroke-width="10" stroke-linecap="round"/><circle cx="128" cy="35" r="8" fill="#fff8e9"/>
+<circle cx="108" cy="122" r="6" fill="#563622"/><circle cx="148" cy="122" r="6" fill="#563622"/><circle cx="106" cy="120" r="2" fill="#fff8e9"/><circle cx="146" cy="120" r="2" fill="#fff8e9"/><circle cx="91" cy="139" r="7" fill="#e88778"/><circle cx="165" cy="139" r="7" fill="#e88778"/><path d="M114 144q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

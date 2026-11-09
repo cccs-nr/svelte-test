@@ -121,10 +121,16 @@
 	}
 </script>
 
-<Card class={fullHeight ? 'flex min-h-0 flex-1 flex-col' : ''}>
-	<CardHeader class={fullHeight ? 'shrink-0' : undefined}>
-		<div class="flex flex-wrap items-start justify-between gap-3">
-			<div class="flex min-w-0 items-center gap-3">
+<Card
+	class={fullHeight
+		? 'flex min-h-0 flex-1 flex-col rounded-none border-0 shadow-none sm:rounded-xl sm:border sm:shadow-sm'
+		: ''}
+>
+	<CardHeader
+		class={fullHeight ? 'shrink-0 border-b border-border px-4 py-2 sm:border-0 sm:py-0' : undefined}
+	>
+		<div class="flex w-full flex-nowrap items-start justify-between gap-2 sm:gap-3">
+			<div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
 				{#if thread}
 					<ProfileAvatar
 						displayName={thread.wishlistOwner.displayName}
@@ -138,7 +144,7 @@
 					<CardTitle
 						>{thread?.title ?? (isLoading ? 'Loading conversation…' : 'Conversation')}</CardTitle
 					>
-					<CardDescription>
+					<CardDescription class="text-xs leading-snug sm:text-sm sm:leading-normal">
 						{#if thread}
 							{#if thread.type === 'wishlist_discussion'}
 								The wishlist owner and invited gift givers can read and reply.
@@ -177,12 +183,15 @@
 		{/if}
 
 		{#if thread}
-			<div class="shrink-0 border-b border-stone-200 pb-3">
-				<p class="mb-2 text-xs font-medium text-stone-500">Participants</p>
-				<ul class="flex flex-wrap gap-2" aria-label="Conversation participants">
+			<div class="app-table-scroll shrink-0 border-b border-border pb-2 sm:pb-3">
+				<p class="mb-2 hidden text-xs font-medium text-muted-foreground sm:block">Participants</p>
+				<ul
+					class="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0"
+					aria-label="Conversation participants"
+				>
 					{#each thread.participants as participant, index (`${participant.label}-${index}`)}
 						<li
-							class="inline-flex items-center gap-2 rounded-full bg-stone-100 py-1 pr-3 pl-1 text-sm text-stone-700"
+							class="inline-flex shrink-0 items-center gap-2 rounded-full bg-secondary py-1 pr-3 pl-1 text-xs text-secondary-foreground sm:text-sm"
 						>
 							{#if participant.avatar.type === 'profile'}
 								<ProfileAvatar
@@ -210,7 +219,7 @@
 			</div>
 
 			{#if (thread.messages?.length ?? 0) === 0}
-				<p class="min-h-0 flex-1 overflow-y-auto py-4 text-sm text-stone-600">
+				<p class="min-h-0 flex-1 overflow-y-auto py-4 text-sm text-muted-foreground">
 					No messages yet. Send the first note.
 				</p>
 			{:else}

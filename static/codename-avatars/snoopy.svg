@@ -1,11 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Snoopy</title>
+  <title id="title">Funny holiday mascot for Snoopy</title>
   <circle cx="128" cy="128" r="124" fill="#e4f2ee"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#245b52" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M57 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#efc34d"/>
-  <path d="M211 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#b92342"/>
-  <circle cx="128" cy="127" r="65" fill="#efc34d" stroke="#245b52" stroke-width="7"/>
-<circle cx="103" cy="119" r="7" fill="#245b52"/><circle cx="153" cy="119" r="7" fill="#245b52"/>
-<path d="M100 149c17 19 39 19 56 0" fill="none" stroke="#b92342" stroke-width="8" stroke-linecap="round"/>
-<path d="M82 181h92" stroke="#245b52" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#245b52" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 52l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#efc34d"/>
+  <path d="M204 54l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#b92342"/>
+  <path d="M82 101c-34-47-57 1-41 57 10 35 34 31 51 8zM174 101c34-47 57 1 41 57-10 35-34 31-51 8z" fill="#b92342" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<ellipse cx="128" cy="137" rx="61" ry="62" fill="#245b52" stroke="#563622" stroke-width="7"/>
+<ellipse cx="128" cy="157" rx="29" ry="22" fill="#efc34d"/>
+<ellipse cx="128" cy="149" rx="10" ry="8" fill="#563622"/>
+<path d="M93 103c-36-50-54-9-38 31 9 21 24 23 43 2M163 103c36-50 54-9 38 31-9 21-24 23-43 2" fill="#b92342" stroke="#563622" stroke-width="6" stroke-linejoin="round"/>
+<circle cx="108" cy="126" r="5" fill="#563622"/><circle cx="148" cy="126" r="5" fill="#563622"/><circle cx="106" cy="124" r="2" fill="#fff8e9"/><circle cx="146" cy="124" r="2" fill="#fff8e9"/><circle cx="91" cy="143" r="6" fill="#e88778"/><circle cx="165" cy="143" r="6" fill="#e88778"/><ellipse cx="128" cy="152" rx="7" ry="9" fill="#563622"/><path d="M110 144q18 19 36 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

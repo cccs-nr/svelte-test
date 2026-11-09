@@ -1,10 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Fruitcake</title>
+  <title id="title">Funny holiday mascot for Fruitcake</title>
   <circle cx="128" cy="128" r="124" fill="#e4f2ee"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#245b52" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M53 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#efc34d"/>
-  <path d="M200 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#b92342"/>
-  <path d="M67 158h122l-15 34H82z" fill="#b92342" stroke="#245b52" stroke-width="7" stroke-linejoin="round"/>
-<path d="M75 155c9-40 29-62 53-62s44 22 53 62z" fill="#efc34d" stroke="#245b52" stroke-width="7"/>
-<path d="M101 123l13 9M141 112l-7 13M157 135l-11 4" stroke="#b92342" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#245b52" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 49l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#efc34d"/>
+  <path d="M204 57l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#b92342"/>
+  <path d="M69 127h118v68H69z" fill="#245b52" stroke="#563622" stroke-width="7"/>
+<path d="M69 127l29-48h89v48" fill="#efc34d" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M83 153h90M83 177h90" stroke="#b92342" stroke-width="7" stroke-linecap="round"/>
+<circle cx="101" cy="105" r="7" fill="#b92342"/><circle cx="150" cy="102" r="8" fill="#b92342"/>
+<circle cx="97" cy="59" r="9" fill="#b92342"/><circle cx="128" cy="43" r="8" fill="#efc34d"/><circle cx="159" cy="59" r="9" fill="#b92342"/>
+<path d="M102 119q6-8 12 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><circle cx="148" cy="119" r="6" fill="#563622"/><circle cx="91" cy="136" r="7" fill="#e88778"/><circle cx="165" cy="136" r="7" fill="#e88778"/><path d="M114 141q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
 </svg>

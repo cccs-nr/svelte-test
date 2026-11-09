@@ -1,10 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Figgy Pudding</title>
+  <title id="title">Funny holiday mascot for Figgy Pudding</title>
   <circle cx="128" cy="128" r="124" fill="#fff2d6"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#744210" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M56 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#c92d4b"/>
-  <path d="M212 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#17603a"/>
-  <path d="M67 158h122l-15 34H82z" fill="#17603a" stroke="#744210" stroke-width="7" stroke-linejoin="round"/>
-<path d="M75 155c9-40 29-62 53-62s44 22 53 62z" fill="#c92d4b" stroke="#744210" stroke-width="7"/>
-<path d="M101 123l13 9M141 112l-7 13M157 135l-11 4" stroke="#17603a" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#744210" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 55l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#c92d4b"/>
+  <path d="M204 57l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#17603a"/>
+  <path d="M68 160c5-53 28-83 60-83s55 30 60 83c-29 27-91 27-120 0z" fill="#744210" stroke="#563622" stroke-width="7"/>
+<path d="M76 157c30 17 74 17 104 0" fill="none" stroke="#17603a" stroke-width="11" stroke-linecap="round"/>
+<circle cx="128" cy="72" r="12" fill="#c92d4b" stroke="#563622" stroke-width="5"/>
+<path d="M117 75q-32-37-52-5 7 28 52 20M137 75q32-37 52-5-7 28-52 20" fill="#c92d4b" stroke="#563622" stroke-width="5"/><circle cx="124" cy="86" r="8" fill="#17603a"/><circle cx="139" cy="88" r="8" fill="#17603a"/>
+<circle cx="108" cy="127" r="6" fill="#563622"/><circle cx="148" cy="127" r="6" fill="#563622"/><circle cx="106" cy="125" r="2" fill="#fff8e9"/><circle cx="146" cy="125" r="2" fill="#fff8e9"/><circle cx="91" cy="144" r="7" fill="#e88778"/><circle cx="165" cy="144" r="7" fill="#e88778"/><ellipse cx="128" cy="153" rx="7" ry="9" fill="#563622"/>
 </svg>

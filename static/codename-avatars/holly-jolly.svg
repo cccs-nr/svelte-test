@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Holly Jolly</title>
+  <title id="title">Funny holiday mascot for Holly Jolly</title>
   <circle cx="128" cy="128" r="124" fill="#eee8f5"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M42 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#e0b85b"/>
-  <path d="M206 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
-  <path d="M72 122c-11-25 7-44 31-34 3-27 29-34 43-12 21-16 45-2 38 24 25 8 28 33 5 44 5 24-19 38-39 24-17 20-45 11-45-14-26 2-41-13-33-32z" fill="#5b3b76"/>
-<circle cx="116" cy="126" r="12" fill="#c92d4b"/><circle cx="138" cy="116" r="12" fill="#c92d4b"/><circle cx="142" cy="140" r="12" fill="#c92d4b"/>
-<path d="M128 94l-2-21" stroke="#e0b85b" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 57l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#e0b85b"/>
+  <path d="M204 50l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <circle cx="128" cy="133" r="68" fill="#5b3b76" stroke="#563622" stroke-width="7"/>
+<path d="M73 69q24 22 54 5 31 17 56-5" fill="none" stroke="#c92d4b" stroke-width="8" stroke-linecap="round"/><path d="M96 60q-10-25-29-12 5 21 30 22M156 60q10-25 29-12-5 21-30 22" fill="#e0b85b" stroke="#563622" stroke-width="4"/><circle cx="127" cy="63" r="8" fill="#c92d4b"/>
+<circle cx="108" cy="122" r="6" fill="#563622"/><circle cx="148" cy="122" r="6" fill="#563622"/><circle cx="106" cy="120" r="2" fill="#fff8e9"/><circle cx="146" cy="120" r="2" fill="#fff8e9"/><circle cx="91" cy="139" r="7" fill="#e88778"/><circle cx="165" cy="139" r="7" fill="#e88778"/><ellipse cx="128" cy="148" rx="7" ry="9" fill="#563622"/>
 </svg>

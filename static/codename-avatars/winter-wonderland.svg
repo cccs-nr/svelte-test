@@ -1,11 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Winter Wonderland</title>
+  <title id="title">Funny holiday mascot for Winter Wonderland</title>
   <circle cx="128" cy="128" r="124" fill="#eee8f5"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M59 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#e0b85b"/>
-  <path d="M204 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#c92d4b"/>
-  <path d="M58 179h140" stroke="#5b3b76" stroke-width="8" stroke-linecap="round"/>
-<path d="M80 163l25-36 25 36zM117 163l32-52 32 52z" fill="#c92d4b" stroke="#5b3b76" stroke-width="6" stroke-linejoin="round"/>
-<path d="M101 139l4-12 5 12M144 133l5-22 6 22" fill="none" stroke="#e0b85b" stroke-width="7"/>
-<circle cx="94" cy="91" r="5" fill="#e0b85b"/><circle cx="166" cy="82" r="6" fill="#e0b85b"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 52l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#e0b85b"/>
+  <path d="M204 54l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <circle cx="128" cy="174" r="48" fill="#5b3b76" stroke="#563622" stroke-width="7"/>
+<path d="M92 154c17 13 55 13 72 0" fill="none" stroke="#c92d4b" stroke-width="12" stroke-linecap="round"/>
+<circle cx="128" cy="102" r="59" fill="#5b3b76" stroke="#563622" stroke-width="7"/>
+<path d="M98 153l30 9 30-9" fill="none" stroke="#e0b85b" stroke-width="5" stroke-linecap="round"/>
+<path d="M78 84l18-29 18 29zM144 82l20-33 20 33z" fill="#e0b85b" stroke="#563622" stroke-width="4" stroke-linejoin="round"/>
+<circle cx="108" cy="93" r="6" fill="#563622"/><circle cx="148" cy="93" r="6" fill="#563622"/><circle cx="106" cy="91" r="2" fill="#fff8e9"/><circle cx="146" cy="91" r="2" fill="#fff8e9"/><circle cx="91" cy="110" r="7" fill="#e88778"/><circle cx="165" cy="110" r="7" fill="#e88778"/><ellipse cx="128" cy="119" rx="7" ry="9" fill="#563622"/><path d="M129 107l21 7-19 7z" fill="#ee883c" stroke="#563622" stroke-width="3" stroke-linejoin="round"/>
 </svg>

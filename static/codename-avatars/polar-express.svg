@@ -1,13 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">Original Christmas avatar for Polar Express</title>
+  <title id="title">Funny holiday mascot for Polar Express</title>
   <circle cx="128" cy="128" r="124" fill="#e7e9f4"/>
-  <circle cx="128" cy="128" r="120" fill="none" stroke="#404c80" stroke-opacity=".22" stroke-width="4"/>
-  <path d="M56 42l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#e7be50"/>
-  <path d="M212 48l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="#b92745"/>
-  <path d="M50 183h156" stroke="#404c80" stroke-width="8" stroke-linecap="round"/>
-<path d="M69 118h88l22 27v33H69z" fill="#b92745" stroke="#404c80" stroke-width="7" stroke-linejoin="round"/>
-<path d="M139 118V85h18v33M134 80h28v9h-28z" fill="#404c80"/>
-<path d="M84 130h22v20H84zM116 130h20v20h-20z" fill="#e7be50"/>
-<circle cx="92" cy="178" r="15" fill="#404c80"/><circle cx="151" cy="178" r="15" fill="#404c80"/>
-<circle cx="92" cy="178" r="6" fill="#e7be50"/><circle cx="151" cy="178" r="6" fill="#e7be50"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#404c80" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 58l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#e7be50"/>
+  <path d="M204 45l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#b92745"/>
+  <path d="M59 106h113l28 36v42H59z" fill="#404c80" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M139 106V73h25v33M134 67h36v10h-36z" fill="#b92745" stroke="#563622" stroke-width="5"/>
+<rect x="77" y="118" width="30" height="24" rx="6" fill="#e7be50"/>
+<circle cx="91" cy="186" r="15" fill="#e7be50" stroke="#563622" stroke-width="6"/>
+<circle cx="165" cy="186" r="15" fill="#e7be50" stroke="#563622" stroke-width="6"/>
+<path d="M83 75q5-42 45-42t45 42z" fill="#b92745" stroke="#563622" stroke-width="6"/><path d="M78 76h100" stroke="#fff8e9" stroke-width="10" stroke-linecap="round"/><circle cx="128" cy="34" r="7" fill="#e7be50"/>
+<circle cx="108" cy="120" r="6" fill="#563622"/><circle cx="148" cy="120" r="6" fill="#563622"/><circle cx="106" cy="118" r="2" fill="#fff8e9"/><circle cx="146" cy="118" r="2" fill="#fff8e9"/><circle cx="91" cy="137" r="7" fill="#e88778"/><circle cx="165" cy="137" r="7" fill="#e88778"/><ellipse cx="128" cy="146" rx="7" ry="9" fill="#563622"/>
 </svg>
