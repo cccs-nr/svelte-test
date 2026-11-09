@@ -21,17 +21,14 @@
 	let isSigningOut = $state(false);
 	let logoutError = $state<string | null>(null);
 	let realtimeError = $state<string | null>(null);
-	let clientBadgeCounts = $state<{ wishlist: number; gift: number } | null>(null);
+	let clientBadgeCounts = $state<{ wishlist: number; gift: number; messages: number } | null>(null);
 	let badgeCounts = $derived(clientBadgeCounts ?? data.badgeCounts);
+	let isHomeActive = $derived(page.url.pathname === resolve('/app'));
 	let isDashboardActive = $derived(page.url.pathname === resolve('/app/dashboard'));
 	let isAssignmentsActive = $derived(page.url.pathname === resolve('/app/assignments'));
-	let isGiftActive = $derived(
-		page.url.pathname === resolve('/app/gift') ||
-			(page.url.pathname === resolve('/app/wishlist') &&
-				(page.url.searchParams.get('tab') === 'recipient' ||
-					page.state.wishlistTab === 'recipient'))
-	);
-	let isWishlistActive = $derived(page.url.pathname === resolve('/app/wishlist') && !isGiftActive);
+	let isGiftGivingActive = $derived(page.url.pathname.startsWith(resolve('/app/gift-giving')));
+	let isMessagesActive = $derived(page.url.pathname.startsWith(resolve('/app/messages')));
+	let isWishlistActive = $derived(page.url.pathname === resolve('/app/wishlist'));
 
 	onMount(() => {
 		const socket = connectRealtime();
@@ -132,15 +129,6 @@
 		isAccountMenuOpen = false;
 	}
 
-	function openWishlistNavigation(event: MouseEvent): void {
-		event.preventDefault();
-		closeMobileNavigation();
-		void goto(resolve('/app/wishlist'), {
-			replaceState: true,
-			state: { wishlistTab: 'ideas', wishlistMessageDirection: 'asRecipient' }
-		});
-	}
-
 	function navigationClass(isActive: boolean): string {
 		return `holiday-topnav__link rounded-lg px-3 py-2 transition-colors ${
 			isActive ? 'is-current shadow-sm' : ''
@@ -213,15 +201,23 @@
 				{/if}
 				{#if data.user.isParticipating}
 					<a
+						href={resolve('/app')}
+						onclick={closeMobileNavigation}
+						class={navigationClass(isHomeActive)}
+						aria-current={isHomeActive ? 'page' : undefined}
+					>
+						Home
+					</a>
+					<a
 						href={resolve('/app/wishlist')}
-						onclick={openWishlistNavigation}
+						onclick={closeMobileNavigation}
 						class={`${navigationClass(isWishlistActive)} inline-flex items-center gap-2`}
 						aria-current={isWishlistActive ? 'page' : undefined}
 						aria-label={badgeCounts.wishlist > 0
-							? `Wishlist, ${badgeCounts.wishlist} new updates`
-							: 'Wishlist'}
+							? `My Wishlist, ${badgeCounts.wishlist} new updates`
+							: 'My Wishlist'}
 					>
-						Wishlist
+						My Wishlist
 						{#if badgeCounts.wishlist > 0}
 							<span
 								class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
@@ -232,19 +228,40 @@
 						{/if}
 					</a>
 					<a
-						href={resolve('/app/gift')}
+						href={resolve('/app/gift-giving')}
 						onclick={closeMobileNavigation}
-						class={`${navigationClass(isGiftActive)} inline-flex items-center gap-2`}
-						aria-current={isGiftActive ? 'page' : undefined}
-						aria-label={badgeCounts.gift > 0 ? `Gift, ${badgeCounts.gift} new updates` : 'Gift'}
+						class={`${navigationClass(isGiftGivingActive)} inline-flex items-center gap-2`}
+						aria-current={isGiftGivingActive ? 'page' : undefined}
+						aria-label={badgeCounts.gift > 0
+							? `Your Draw, ${badgeCounts.gift} new updates`
+							: 'Your Draw'}
 					>
-						Gift
+						Your Draw
 						{#if badgeCounts.gift > 0}
 							<span
 								class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
 								aria-hidden="true"
 							>
 								{badgeCounts.gift}
+							</span>
+						{/if}
+					</a>
+					<a
+						href={resolve('/app/messages')}
+						onclick={closeMobileNavigation}
+						class={`${navigationClass(isMessagesActive)} inline-flex items-center gap-2`}
+						aria-current={isMessagesActive ? 'page' : undefined}
+						aria-label={badgeCounts.messages > 0
+							? `Messages, ${badgeCounts.messages} unread`
+							: 'Messages'}
+					>
+						Messages
+						{#if badgeCounts.messages > 0}
+							<span
+								class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
+								aria-hidden="true"
+							>
+								{badgeCounts.messages}
 							</span>
 						{/if}
 					</a>

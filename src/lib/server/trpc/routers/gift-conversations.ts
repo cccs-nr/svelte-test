@@ -321,7 +321,7 @@ function getConversationThread(database: AppDatabase, conversationId: string, vi
 				content: message.content,
 				sentAt: message.createdAt.toISOString(),
 				senderLabel,
-				senderCodename: message.senderCodename
+				senderCodename: message.revealedAt ? null : message.senderCodename
 			};
 		});
 
@@ -341,6 +341,7 @@ function getConversationThread(database: AppDatabase, conversationId: string, vi
 	return {
 		id: conversation.id,
 		type: conversation.type,
+		recipientId: conversation.recipientId,
 		recipientLabel: recipient.revealedAt ? recipient.displayName : recipient.codename,
 		canSend: event.status !== 'completed',
 		unreadCount,
@@ -392,25 +393,66 @@ export const giftConversationsRouter = router({
 			.orderBy(desc(giftConversations.updatedAt))
 			.all();
 
-		return conversations.map((conversation) => ({
-			id: conversation.id,
-			type: conversation.type,
-			recipientLabel: conversation.revealedAt
-				? conversation.recipientDisplayName
-				: conversation.recipientCodename,
-			unreadCount:
-				ctx.db
-					.select({ value: count() })
-					.from(giftMessages)
-					.where(
-						and(
-							eq(giftMessages.conversationId, conversation.id),
-							ne(giftMessages.senderId, ctx.user.id),
-							gt(giftMessages.createdAt, conversation.lastReadAt)
-						)
+		return conversations.map((conversation) => {
+			const lastMessage = ctx.db
+				.select({
+					content: giftMessages.content,
+					senderId: giftMessages.senderId,
+					createdAt: giftMessages.createdAt,
+					senderDisplayName: users.displayName,
+					senderCodename: participantCodenames.codename
+				})
+				.from(giftMessages)
+				.innerJoin(users, eq(users.id, giftMessages.senderId))
+				.leftJoin(
+					participantCodenames,
+					and(
+						eq(participantCodenames.userId, giftMessages.senderId),
+						eq(participantCodenames.eventId, SINGLE_EVENT_ID)
 					)
-					.get()?.value ?? 0
-		}));
+				)
+				.where(eq(giftMessages.conversationId, conversation.id))
+				.orderBy(desc(giftMessages.createdAt), desc(giftMessages.id))
+				.get();
+			const senderLabel = !lastMessage
+				? null
+				: lastMessage.senderId === ctx.user.id
+					? 'You'
+					: conversation.revealedAt
+						? lastMessage.senderDisplayName
+						: lastMessage.senderCodename;
+			if (lastMessage && !senderLabel) {
+				throw new TRPCError({
+					code: 'INTERNAL_SERVER_ERROR',
+					message: 'A conversation sender is missing their participant label.'
+				});
+			}
+
+			return {
+				id: conversation.id,
+				type: conversation.type,
+				recipientId: conversation.recipientId,
+				recipientCodename: conversation.revealedAt ? null : conversation.recipientCodename,
+				recipientLabel: conversation.revealedAt
+					? conversation.recipientDisplayName
+					: conversation.recipientCodename,
+				lastMessagePreview: lastMessage?.content ?? null,
+				lastMessageAt: lastMessage?.createdAt.toISOString() ?? null,
+				lastMessageSenderLabel: senderLabel,
+				unreadCount:
+					ctx.db
+						.select({ value: count() })
+						.from(giftMessages)
+						.where(
+							and(
+								eq(giftMessages.conversationId, conversation.id),
+								ne(giftMessages.senderId, ctx.user.id),
+								gt(giftMessages.createdAt, conversation.lastReadAt)
+							)
+						)
+						.get()?.value ?? 0
+			};
+		});
 	}),
 
 	openDiscussion: participantProcedure

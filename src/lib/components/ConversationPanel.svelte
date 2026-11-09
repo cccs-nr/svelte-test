@@ -23,9 +23,10 @@
 		displayName: string;
 		hasAvatar: boolean;
 		avatarVersion: number;
+		fullHeight?: boolean;
 	};
 
-	let { direction, displayName, hasAvatar, avatarVersion }: Props = $props();
+	let { direction, displayName, hasAvatar, avatarVersion, fullHeight = false }: Props = $props();
 	let conversations = $state<Conversations>({ asGiver: null, asRecipient: null });
 	let draft = $state('');
 	let isLoading = $state(true);
@@ -123,7 +124,7 @@
 		try {
 			await trpc.messages.send.mutate({ direction, content: draft.trim() });
 			draft = '';
-			notice = direction === 'asGiver' ? 'Message sent to your recipient.' : 'Reply sent.';
+			notice = direction === 'asGiver' ? 'Message sent to Your Assigned Recipient.' : 'Reply sent.';
 			await refreshConversation(true);
 		} catch (error) {
 			sendError =
@@ -144,22 +145,26 @@
 	}
 </script>
 
-<Card class="border-stone-200 bg-white">
-	<CardHeader>
+<Card
+	class={fullHeight
+		? 'flex min-h-0 flex-1 flex-col border-stone-200 bg-white'
+		: 'border-stone-200 bg-white'}
+>
+	<CardHeader class={fullHeight ? 'shrink-0' : undefined}>
 		<div class="flex flex-wrap items-start justify-between gap-3">
 			<div>
 				<CardTitle>
 					{#if direction === 'asGiver'}
 						{conversations.asGiver
 							? `Message ${conversations.asGiver.recipientDisplayName}`
-							: 'Message your recipient'}
+							: 'Message Your Assigned Recipient'}
 					{:else}
 						Your Secret Santa
 					{/if}
 				</CardTitle>
 				<CardDescription>
 					{#if direction === 'asGiver'}
-						Your recipient sees your messages as “Your Secret Santa.”
+						Your Assigned Recipient sees your messages as “Your Secret Santa.”
 					{:else}
 						Your Secret Santa’s identity stays private, including in message details.
 					{/if}
@@ -176,7 +181,11 @@
 			</Button>
 		</div>
 	</CardHeader>
-	<CardContent class="flex h-[min(70dvh,40rem)] min-h-[18rem] flex-col gap-4">
+	<CardContent
+		class={fullHeight
+			? 'flex min-h-0 flex-1 flex-col gap-4'
+			: 'flex h-[min(70dvh,40rem)] min-h-[18rem] flex-col gap-4'}
+	>
 		{#if loadError}
 			<p
 				class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
@@ -218,7 +227,7 @@
 				<ol
 					class="min-h-0 flex-1 space-y-4 overflow-y-auto"
 					aria-label={direction === 'asGiver'
-						? `Messages with ${conversations.asGiver?.recipientDisplayName ?? 'your recipient'}`
+						? `Messages with ${conversations.asGiver?.recipientDisplayName ?? 'Your Assigned Recipient'}`
 						: 'Messages with your Secret Santa'}
 					aria-live="polite"
 				>
@@ -257,7 +266,7 @@
 
 			{#if currentThread.canSend && (direction === 'asGiver' || currentThread.hasConversation)}
 				<form
-					class="sticky bottom-0 mt-auto space-y-3 border-t border-stone-100 bg-white pt-3"
+					class="sticky bottom-0 mt-auto shrink-0 space-y-3 border-t border-stone-100 bg-white pt-3 pb-[env(safe-area-inset-bottom)]"
 					onsubmit={sendMessage}
 				>
 					<label class="block space-y-2" for={`message-${direction}`}>

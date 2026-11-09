@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
 	import { formatEventBudget } from '#lib/models/event.js';
@@ -8,6 +9,7 @@
 	import { Button } from '#lib/components/ui/button/index.js';
 	import CodenameAvatar from '#lib/components/CodenameAvatar.svelte';
 	import {
+		CardAction,
 		Card,
 		CardContent,
 		CardDescription,
@@ -26,19 +28,31 @@
 		currentUserId: string;
 		giftBudgetCents: number | null;
 		currency: string;
+		initialRecipientId?: string | null;
+		showDirectory?: boolean;
+		showReservations?: boolean;
+		markAssignedRecipientViewed?: boolean;
 	};
 
-	let { currentUserId, giftBudgetCents, currency }: Props = $props();
+	let {
+		currentUserId,
+		giftBudgetCents,
+		currency,
+		initialRecipientId = null,
+		showDirectory = true,
+		showReservations = showDirectory,
+		markAssignedRecipientViewed = false
+	}: Props = $props();
 	let members = $state<FamilyMember[]>([]);
 	let selectedMemberId = $state<string | null>(null);
 	let wishlist = $state<FamilyWishlist | null>(null);
 	let myReservations = $state<Reservation[]>([]);
 	let revealedMapping = $state<CodenameMapping | null>(null);
 	let search = $state('');
-	let ideaSearch = $state('');
 	let isLoadingMembers = $state(true);
 	let isLoadingWishlist = $state(false);
 	let actionId = $state<string | null>(null);
+	let isOpeningConversation = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let notice = $state<string | null>(null);
 	let requestSequence = 0;
@@ -52,41 +66,38 @@
 				member.displayName.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())
 		)
 	);
-	let visibleSuggestions = $derived(
-		(wishlist?.suggestions ?? []).filter((suggestion) => {
-			const query = ideaSearch.trim().toLocaleLowerCase();
-			return (
-				!query ||
-				[suggestion.title, suggestion.description, suggestion.notes]
-					.join(' ')
-					.toLocaleLowerCase()
-					.includes(query)
-			);
-		})
-	);
 
 	onMount(() => {
 		isDisposed = false;
 		const socket = getRealtimeSocket();
 		const refreshSelectedWishlist = () => {
 			if (selectedMemberId) void loadWishlist(selectedMemberId);
-			void loadMyReservations();
+			if (showReservations) void loadMyReservations();
 		};
 		const refreshReveal = () => void loadRevealMapping();
 		const handleConnect = () => {
-			void loadMembers();
+			if (showDirectory) void loadMembers();
+			else if (initialRecipientId) void loadWishlist(initialRecipientId);
 			refreshSelectedWishlist();
 			refreshReveal();
 		};
 		socket.on('family-wishlist:changed', refreshSelectedWishlist);
+		socket.on('recipient-wishlist:changed', refreshSelectedWishlist);
+		socket.on('gift-status:changed', refreshSelectedWishlist);
 		socket.on('codenames:changed', refreshReveal);
 		socket.on('event:changed', refreshSelectedWishlist);
 		socket.on('connect', handleConnect);
-		void loadMembers();
+		if (showDirectory) void loadMembers();
+		else if (initialRecipientId) {
+			selectedMemberId = initialRecipientId;
+			void loadWishlist(initialRecipientId);
+		}
 		refreshReveal();
 		return () => {
 			isDisposed = true;
 			socket.off('family-wishlist:changed', refreshSelectedWishlist);
+			socket.off('recipient-wishlist:changed', refreshSelectedWishlist);
+			socket.off('gift-status:changed', refreshSelectedWishlist);
 			socket.off('codenames:changed', refreshReveal);
 			socket.off('event:changed', refreshSelectedWishlist);
 			socket.off('connect', handleConnect);
@@ -98,13 +109,17 @@
 		errorMessage = null;
 		try {
 			members = await trpc.wishlists.familyDirectory.query({ search: '' });
-			await loadMyReservations();
-			if (!selectedMemberId) {
-				const firstMember = members.find((member) => member.id !== currentUserId);
-				if (firstMember) {
-					selectedMemberId = firstMember.id;
-					await loadWishlist(firstMember.id);
-				}
+			if (showReservations) await loadMyReservations();
+			const targetMember = initialRecipientId
+				? members.find((member) => member.id === initialRecipientId)
+				: selectedMemberId
+					? members.find((member) => member.id === selectedMemberId)
+					: members.find((member) => member.id !== currentUserId);
+			if (targetMember) {
+				selectedMemberId = targetMember.id;
+				await loadWishlist(targetMember.id);
+			} else if (initialRecipientId) {
+				errorMessage = 'This family member could not be found.';
 			}
 		} catch (error) {
 			errorMessage =
@@ -144,6 +159,9 @@
 		errorMessage = null;
 		try {
 			const result = await trpc.wishlists.familyWishlist.query({ recipientId });
+			if (markAssignedRecipientViewed) {
+				await trpc.wishlists.markAssignedRecipientWishlistViewed.mutate();
+			}
 			if (!isDisposed && sequence === requestSequence) wishlist = result;
 		} catch (error) {
 			if (isDisposed || sequence !== requestSequence) return;
@@ -159,7 +177,6 @@
 	async function selectMember(member: FamilyMember): Promise<void> {
 		selectedMemberId = member.id;
 		wishlist = null;
-		ideaSearch = '';
 		notice = null;
 		await loadWishlist(member.id);
 	}
@@ -198,6 +215,33 @@
 		}
 	}
 
+	async function openGiftConversation(
+		type: 'recipient_visible' | 'private_coordination'
+	): Promise<void> {
+		if (!selectedMemberId || isOpeningConversation) return;
+		isOpeningConversation = true;
+		errorMessage = null;
+		notice = null;
+		try {
+			const thread =
+				type === 'recipient_visible'
+					? await trpc.giftConversations.openDiscussion.mutate({
+							recipientId: selectedMemberId
+						})
+					: await trpc.giftConversations.joinCoordination.mutate({
+							recipientId: selectedMemberId
+						});
+			await goto(resolve('/app/messages/[conversationId]', { conversationId: thread.id }));
+		} catch (error) {
+			errorMessage =
+				error instanceof TRPCClientError
+					? error.message
+					: 'Unable to open this conversation. Please try again.';
+		} finally {
+			isOpeningConversation = false;
+		}
+	}
+
 	function formatTimestamp(value: string): string {
 		return new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium' }).format(new Date(value));
 	}
@@ -227,14 +271,45 @@
 
 <Card class="border-stone-200 bg-white">
 	<CardHeader>
-		<CardTitle>Family wishlists</CardTitle>
+		<CardTitle>
+			{showDirectory ? 'Family wishlists' : 'Gift ideas'}
+		</CardTitle>
 		<CardDescription>
-			Browse gift ideas from other family members. Buyers appear by codename until the organizer
-			reveals identities.
+			{#if showDirectory}
+				Browse gift ideas from other family members. Wishlist Gifters appear by codename until the
+				organizer reveals identities.
+			{:else if wishlist}
+				{wishlist.suggestions.length}
+				{wishlist.suggestions.length === 1 ? ' gift idea' : ' gift ideas'} · Updated
+				{wishlist.suggestions[0] ? formatTimestamp(wishlist.suggestions[0].updatedAt) : 'not yet'}
+			{:else}
+				Review gift ideas and ask the Wishlist Recipient questions.
+			{/if}
 			{#if giftBudgetCents !== null}
-				Event budget: {formatEventBudget(giftBudgetCents, currency)} (a guideline).
+				<br />Event budget: {formatEventBudget(giftBudgetCents, currency)} (a guideline).
 			{/if}
 		</CardDescription>
+		{#if !showDirectory && wishlist}
+			<CardAction class="flex flex-wrap gap-2">
+				<Button
+					type="button"
+					size="sm"
+					variant="outline"
+					onclick={() => void openGiftConversation('recipient_visible')}
+					disabled={isOpeningConversation || isLoadingWishlist}
+				>
+					Open Wishlist Discussion
+				</Button>
+				<Button
+					type="button"
+					size="sm"
+					onclick={() => void openGiftConversation('private_coordination')}
+					disabled={isOpeningConversation || isLoadingWishlist}
+				>
+					Join Gift Coordination
+				</Button>
+			</CardAction>
+		{/if}
 	</CardHeader>
 	<CardContent class="space-y-5">
 		{#if errorMessage}
@@ -266,7 +341,7 @@
 			</section>
 		{/if}
 
-		{#if myReservations.length > 0}
+		{#if showReservations && myReservations.length > 0}
 			<section class="space-y-3" aria-labelledby="my-reservations-title">
 				<div>
 					<h3 id="my-reservations-title" class="font-semibold text-stone-900">Your reservations</h3>
@@ -322,107 +397,131 @@
 			</section>
 		{/if}
 
-		<div class="grid gap-5 lg:grid-cols-[minmax(12rem,0.3fr)_minmax(0,1fr)]">
-			<aside class="space-y-3">
-				<label class="block text-sm font-medium text-stone-800" for="family-wishlist-search">
-					Find a family member
-				</label>
-				<Input
-					id="family-wishlist-search"
-					bind:value={search}
-					type="search"
-					placeholder="Search names"
-				/>
-				{#if isLoadingMembers}
-					<p class="text-sm text-stone-500">Loading family members…</p>
-				{:else if visibleMembers.length === 0}
-					<p class="text-sm text-stone-600">No matching family members.</p>
-				{:else}
-					<ul class="max-h-80 space-y-1 overflow-y-auto" aria-label="Family members">
-						{#each visibleMembers as member (member.id)}
-							<li>
-								<button
-									type="button"
-									class={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors ${
-										selectedMemberId === member.id
-											? 'bg-emerald-800 text-white'
-											: 'text-stone-700 hover:bg-stone-100'
-									}`}
-									aria-pressed={selectedMemberId === member.id}
-									onclick={() => void selectMember(member)}
-								>
-									{member.displayName}
-								</button>
-							</li>
-						{/each}
-					</ul>
-				{/if}
-			</aside>
+		<div
+			class={showDirectory
+				? 'grid gap-5 lg:grid-cols-[minmax(12rem,0.3fr)_minmax(0,1fr)]'
+				: 'grid gap-5'}
+		>
+			{#if showDirectory}
+				<aside class="space-y-3">
+					<label class="block text-sm font-medium text-stone-800" for="family-wishlist-search">
+						Find a family member
+					</label>
+					<Input
+						id="family-wishlist-search"
+						bind:value={search}
+						type="search"
+						placeholder="Search names"
+					/>
+					{#if isLoadingMembers}
+						<p class="text-sm text-stone-500">Loading family members…</p>
+					{:else if visibleMembers.length === 0}
+						<p class="text-sm text-stone-600">No matching family members.</p>
+					{:else}
+						<ul class="max-h-80 space-y-1 overflow-y-auto" aria-label="Family members">
+							{#each visibleMembers as member (member.id)}
+								<li>
+									<button
+										type="button"
+										class={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors ${
+											selectedMemberId === member.id
+												? 'bg-emerald-800 text-white'
+												: 'text-stone-700 hover:bg-stone-100'
+										}`}
+										aria-pressed={selectedMemberId === member.id}
+										onclick={() => void selectMember(member)}
+									>
+										{member.displayName}
+									</button>
+								</li>
+							{/each}
+						</ul>
+					{/if}
+				</aside>
+			{/if}
 
 			<div class="min-w-0 space-y-4">
 				{#if isLoadingWishlist}
 					<p class="text-sm text-stone-500">Loading gift ideas…</p>
 				{:else if !wishlist}
-					<p class="text-sm text-stone-600">Choose a family member to view their ideas.</p>
-				{:else if wishlist.suggestions.length === 0}
-					<p class="rounded-xl border border-dashed border-stone-300 p-5 text-sm text-stone-600">
-						{wishlist.recipient.displayName} has not added any gift ideas yet.
+					<p class="text-sm text-stone-600">
+						{showDirectory
+							? 'Choose a family member to view their ideas.'
+							: 'This wishlist is not available.'}
 					</p>
-				{:else if visibleSuggestions.length === 0}
-					<div class="space-y-3">
-						<label class="block text-sm font-medium text-stone-800" for="family-gift-filter">
-							Filter gift ideas
-						</label>
-						<input
-							id="family-gift-filter"
-							class="w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-950 placeholder:text-stone-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
-							bind:value={ideaSearch}
-							type="search"
-							placeholder="Search titles and descriptions"
-						/>
-						<p class="text-sm text-stone-600">No gift ideas match that search.</p>
-					</div>
 				{:else}
-					<div class="space-y-3">
-						<label class="block text-sm font-medium text-stone-800" for="family-gift-filter">
-							Filter gift ideas
-						</label>
-						<input
-							id="family-gift-filter"
-							class="w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-950 placeholder:text-stone-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
-							bind:value={ideaSearch}
-							type="search"
-							placeholder="Search titles and descriptions"
-						/>
-						<ul class="space-y-3">
-							{#each visibleSuggestions as suggestion (suggestion.id)}
-								<li class="rounded-xl border border-stone-200 p-4">
-									<div class="flex flex-col gap-4 sm:flex-row">
-										{#if suggestion.imageKey}
-											<button
-												type="button"
-												class="size-20 shrink-0 cursor-zoom-in overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 sm:size-24"
-												aria-label={`View full-size image for ${suggestion.title}`}
-												onclick={() => openImage(suggestion.imageKey, suggestion.title)}
-											>
-												<img
-													class="size-full object-cover"
-													src={imageUrl(suggestion.imageKey)}
-													alt=""
-													loading="lazy"
-												/>
-											</button>
-										{/if}
-										<div class="min-w-0 flex-1">
-											<div class="flex flex-wrap items-start justify-between gap-3">
-												<div>
-													<h3 class="font-semibold text-stone-950">{suggestion.title}</h3>
-													{#if suggestion.description}
-														<p class="mt-1 text-sm whitespace-pre-wrap text-stone-600">
-															{suggestion.description}
-														</p>
+					{#if wishlist.suggestions.length === 0}
+						<p class="rounded-xl border border-dashed border-stone-300 p-5 text-sm text-stone-600">
+							{wishlist.recipient.displayName} has not added any gift ideas yet.
+						</p>
+					{:else}
+						<div class="-mx-2 overflow-x-auto px-2">
+							<table class="w-full min-w-[900px] border-collapse text-left text-sm">
+								<thead>
+									<tr
+										class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase"
+									>
+										<th scope="col" class="px-3 py-3 font-medium">Gift idea</th>
+										<th scope="col" class="px-3 py-3 font-medium">Price</th>
+										<th scope="col" class="px-3 py-3 font-medium">Status</th>
+										<th scope="col" class="px-3 py-3 font-medium">Updated</th>
+										<th scope="col" class="px-3 py-3 font-medium">Actions</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each wishlist.suggestions as suggestion (suggestion.id)}
+										<tr class="border-b border-stone-100 last:border-0">
+											<th scope="row" class="max-w-2xl px-3 py-4 font-normal">
+												<div class="flex items-start gap-3">
+													{#if suggestion.imageKey}
+														<button
+															type="button"
+															class="size-14 shrink-0 cursor-zoom-in overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+															aria-label={`View full-size image for ${suggestion.title}`}
+															onclick={() => openImage(suggestion.imageKey, suggestion.title)}
+														>
+															<img
+																class="size-full object-cover"
+																src={imageUrl(suggestion.imageKey)}
+																alt=""
+																loading="lazy"
+															/>
+														</button>
 													{/if}
+													<div class="min-w-0">
+														<p class="font-semibold">
+															{#if suggestion.url}
+																<a
+																	class="text-emerald-800 underline-offset-4 hover:underline"
+																	href={suggestion.url}
+																	target="_blank"
+																	rel="noopener noreferrer external"
+																>
+																	{suggestion.title}
+																</a>
+															{:else}
+																<span class="text-stone-950">{suggestion.title}</span>
+															{/if}
+														</p>
+														{#if suggestion.description}
+															<p class="mt-1 whitespace-pre-wrap text-stone-600">
+																{suggestion.description}
+															</p>
+														{/if}
+														{#if suggestion.notes}
+															<p class="mt-1 whitespace-pre-wrap text-stone-600">
+																Notes: {suggestion.notes}
+															</p>
+														{/if}
+													</div>
 												</div>
+											</th>
+											<td class="px-3 py-4 align-top text-stone-700">
+												{suggestion.estimatedPriceCents === null
+													? '—'
+													: formatEventBudget(suggestion.estimatedPriceCents, currency)}
+											</td>
+											<td class="px-3 py-4 align-top">
 												{#if suggestion.reservationStatus === 'available'}
 													<span
 														class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800"
@@ -442,80 +541,65 @@
 																? 'Reserved by you'
 																: `Reserved by ${suggestion.reservedBy}`}
 													</span>
+												{:else}
+													<span class="text-stone-500">—</span>
 												{/if}
-											</div>
-											{#if suggestion.notes}
-												<p class="mt-2 text-sm whitespace-pre-wrap text-stone-600">
-													Notes: {suggestion.notes}
-												</p>
-											{/if}
-											<div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-												{#if suggestion.estimatedPriceCents !== null}
-													<p class="text-stone-600">
-														{formatEventBudget(suggestion.estimatedPriceCents, currency)}
-													</p>
-												{/if}
-												{#if suggestion.url}
-													<a
-														class="font-medium text-emerald-800 underline-offset-4 hover:underline"
-														href={suggestion.url}
-														target="_blank"
-														rel="noopener noreferrer external"
-													>
-														View gift link
-													</a>
-												{/if}
-												<time class="text-xs text-stone-500" datetime={suggestion.updatedAt}>
-													Updated {formatTimestamp(suggestion.updatedAt)}
+											</td>
+											<td class="px-3 py-4 align-top text-stone-700">
+												<time datetime={suggestion.updatedAt}>
+													{formatTimestamp(suggestion.updatedAt)}
 												</time>
-											</div>
-											{#if suggestion.reservationStatus === 'available'}
-												<Button
-													class="mt-3"
-													type="button"
-													size="sm"
-													onclick={() => void updateReservation(suggestion.id, null, 'reserve')}
-													disabled={actionId !== null}
-												>
-													{actionId === suggestion.id ? 'Reserving…' : 'Reserve gift'}
-												</Button>
-											{:else if suggestion.reservedByMe && suggestion.reservationStatus === 'reserved'}
-												<div class="mt-3 flex flex-wrap gap-2">
+											</td>
+											<td class="px-3 py-4 align-top">
+												{#if suggestion.reservationStatus === 'available'}
 													<Button
 														type="button"
 														size="sm"
-														onclick={() =>
-															void updateReservation(
-																suggestion.id,
-																suggestion.reservationId,
-																'purchase'
-															)}
-														disabled={actionId !== null || !suggestion.reservationId}
+														onclick={() => void updateReservation(suggestion.id, null, 'reserve')}
+														disabled={actionId !== null}
 													>
-														{actionId === suggestion.id ? 'Updating…' : 'Mark purchased'}
+														{actionId === suggestion.id ? 'Reserving…' : 'Reserve Wishlist Gift'}
 													</Button>
-													<Button
-														type="button"
-														size="sm"
-														variant="outline"
-														onclick={() =>
-															void updateReservation(
-																suggestion.id,
-																suggestion.reservationId,
-																'release'
-															)}
-														disabled={actionId !== null || !suggestion.reservationId}
-													>
-														Release reservation
-													</Button>
-												</div>
-											{/if}
-										</div>
-									</div>
-								</li>
-							{/each}
-						</ul>
-					</div>
+												{:else if suggestion.reservedByMe && suggestion.reservationStatus === 'reserved'}
+													<div class="flex flex-wrap gap-2">
+														<Button
+															type="button"
+															size="sm"
+															onclick={() =>
+																void updateReservation(
+																	suggestion.id,
+																	suggestion.reservationId,
+																	'purchase'
+																)}
+															disabled={actionId !== null || !suggestion.reservationId}
+														>
+															{actionId === suggestion.id ? 'Updating…' : 'Mark purchased'}
+														</Button>
+														<Button
+															type="button"
+															size="sm"
+															variant="outline"
+															onclick={() =>
+																void updateReservation(
+																	suggestion.id,
+																	suggestion.reservationId,
+																	'release'
+																)}
+															disabled={actionId !== null || !suggestion.reservationId}
+														>
+															Release reservation
+														</Button>
+													</div>
+												{:else}
+													<span class="text-stone-500">—</span>
+												{/if}
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					{/if}
 				{/if}
 			</div>
 		</div>

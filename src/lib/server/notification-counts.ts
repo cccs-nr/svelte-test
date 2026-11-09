@@ -87,6 +87,7 @@ export function getParticipantBadgeCounts(database: AppDatabase, userId: string)
 
 	return {
 		wishlist: unread.asRecipient + unreadFamilyMessages + Number(hasUnseenPurchaseStatus),
-		gift: unread.asGiver + newIdeaCount
+		gift: unread.asGiver + newIdeaCount,
+		messages: unread.total + unreadFamilyMessages
 	};
 }

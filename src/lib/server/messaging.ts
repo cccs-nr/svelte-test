@@ -28,6 +28,7 @@ type MessageView = {
 type GiverThreadView = {
 	hasConversation: boolean;
 	canSend: boolean;
+	unreadCount: number;
 	recipientDisplayName: string;
 	recipientHasAvatar: boolean;
 	recipientAvatarVersion: number;
@@ -37,6 +38,7 @@ type GiverThreadView = {
 type RecipientThreadView = {
 	hasConversation: boolean;
 	canSend: boolean;
+	unreadCount: number;
 	messages: MessageView[];
 };
 
@@ -157,7 +159,7 @@ function getThread(
 		.where(eq(events.id, SINGLE_EVENT_ID))
 		.get();
 	const canSend = Boolean(event && event.status !== 'completed');
-	const messages = conversation
+	const threadMessages = conversation
 		? getThreadMessages(
 				database,
 				conversation.id,
@@ -167,20 +169,45 @@ function getThread(
 					: undefined
 			)
 		: [];
+	const unreadCount = conversation
+		? (database
+				.select({ value: count() })
+				.from(messages)
+				.where(
+					direction === 'asGiver'
+						? and(
+								eq(messages.conversationId, conversation.id),
+								eq(messages.senderSide, 'recipient'),
+								isNull(messages.giverReadAt)
+							)
+						: and(
+								eq(messages.conversationId, conversation.id),
+								eq(messages.senderSide, 'giver'),
+								isNull(messages.recipientReadAt)
+							)
+				)
+				.get()?.value ?? 0)
+		: 0;
 
 	if (direction === 'asGiver') {
 		return {
 			hasConversation: Boolean(conversation),
 			canSend,
+			unreadCount,
 			recipientDisplayName: 'recipientDisplayName' in context ? context.recipientDisplayName : '',
 			recipientHasAvatar: 'recipientHasAvatar' in context ? context.recipientHasAvatar : false,
 			recipientAvatarVersion:
 				'recipientAvatarVersion' in context ? context.recipientAvatarVersion : 0,
-			messages
+			messages: threadMessages
 		};
 	}
 
-	return { hasConversation: Boolean(conversation), canSend, messages };
+	return {
+		hasConversation: Boolean(conversation),
+		canSend,
+		unreadCount,
+		messages: threadMessages
+	};
 }
 
 export function getParticipantConversations(database: AppDatabase, userId: string) {

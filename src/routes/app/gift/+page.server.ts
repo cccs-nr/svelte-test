@@ -4,5 +4,5 @@ import { requireParticipantPage } from '#lib/server/page-guards.js';
 
 export const load: PageServerLoad = ({ locals }) => {
 	requireParticipantPage(locals.user);
-	redirect(303, '/app/wishlist?tab=recipient');
+	redirect(303, '/app/gift-giving');
 };

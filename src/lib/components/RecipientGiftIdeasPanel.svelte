@@ -72,7 +72,7 @@
 			errorMessage =
 				error instanceof TRPCClientError
 					? error.message
-					: 'Unable to load your recipient’s gift ideas. Please try again.';
+					: 'Unable to load Your Assigned Recipient’s gift ideas. Please try again.';
 			return false;
 		} finally {
 			if (loadPromise === request) loadPromise = null;
@@ -91,7 +91,7 @@
 				purchased: !giftStatus.purchased
 			});
 			notice = giftStatus.purchased
-				? 'Your recipient can now see that their gift has been purchased.'
+				? 'Your Assigned Recipient can now see that their official Secret Santa gift has been purchased.'
 				: 'The purchased status was removed.';
 		} catch (error) {
 			errorMessage =
@@ -143,11 +143,7 @@
 
 <Card class="border-stone-200 bg-white">
 	<CardHeader>
-		<CardTitle
-			>{wishlist.recipient
-				? `Ideas for ${wishlist.recipient.displayName}`
-				: 'Your recipient'}</CardTitle
-		>
+		<CardTitle>Gift ideas</CardTitle>
 		<CardDescription>
 			{#if giftBudgetCents !== null}
 				The event budget is {formatEventBudget(giftBudgetCents, currency)}, as a guideline.
@@ -180,10 +176,10 @@
 			<p class="text-sm text-emerald-800" role="status">{notice}</p>
 		{/if}
 		{#if isLoading}
-			<p class="text-sm text-stone-500">Loading your recipient’s gift ideas…</p>
+			<p class="text-sm text-stone-500">Loading Your Assigned Recipient’s gift ideas…</p>
 		{:else if !wishlist.recipient}
 			<p class="text-sm text-stone-600">
-				Your recipient’s wishlist will be available after the organizer finalizes the draw.
+				Your Assigned Recipient’s wishlist will be available after the organizer finalizes the draw.
 			</p>
 		{:else}
 			<div
@@ -216,7 +212,9 @@
 			</div>
 
 			{#if wishlist.suggestions.length === 0}
-				<p class="text-sm text-stone-600">Your recipient hasn’t added any gift ideas yet.</p>
+				<p class="text-sm text-stone-600">
+					Your Assigned Recipient hasn’t added any gift ideas yet.
+				</p>
 			{:else}
 				<ul class="space-y-3">
 					{#each wishlist.suggestions as suggestion (suggestion.id)}
@@ -237,21 +235,24 @@
 								</button>
 							{/if}
 							<div class="min-w-0 flex-1">
-								<h3 class="font-semibold text-stone-950">{suggestion.title}</h3>
+								<h3 class="font-semibold">
+									{#if suggestion.url}
+										<a
+											class="text-emerald-800 underline-offset-4 hover:underline"
+											href={suggestion.url}
+											target="_blank"
+											rel="noopener noreferrer external"
+										>
+											{suggestion.title}
+										</a>
+									{:else}
+										<span class="text-stone-950">{suggestion.title}</span>
+									{/if}
+								</h3>
 								{#if suggestion.description}
 									<p class="mt-1 text-sm whitespace-pre-wrap text-stone-600">
 										{suggestion.description}
 									</p>
-								{/if}
-								{#if suggestion.url}
-									<a
-										class="mt-2 inline-block text-sm font-medium text-emerald-800 underline-offset-4 hover:underline"
-										href={suggestion.url}
-										target="_blank"
-										rel="noopener noreferrer external"
-									>
-										View gift link
-									</a>
 								{/if}
 								{#if suggestion.estimatedPriceCents !== null}
 									<p class="mt-2 text-sm text-stone-600">

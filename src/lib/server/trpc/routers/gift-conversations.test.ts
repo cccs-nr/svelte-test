@@ -118,6 +118,17 @@ describe('family gift conversations', () => {
 			conversationId: aliceThread.id,
 			content: 'Which color would you prefer?'
 		});
+		const aliceDirectory = await alice.giftConversations.list();
+		expect(aliceDirectory[0]).toMatchObject({
+			recipientId: 'bob',
+			recipientCodename: 'Jingle',
+			recipientLabel: 'Jingle',
+			lastMessagePreview: 'Which color would you prefer?',
+			lastMessageSenderLabel: 'You',
+			lastMessageAt: expect.any(String)
+		});
+		expect(JSON.stringify(aliceDirectory)).not.toContain('alice');
+
 		const bobThread = await bob.giftConversations.openDiscussion({ recipientId: 'bob' });
 		expect(bobThread.id).toBe(aliceThread.id);
 		expect(bobThread.recipientLabel).toBe('Jingle');
@@ -137,6 +148,22 @@ describe('family gift conversations', () => {
 			'Jingle'
 		]);
 		expect(carolThread.unreadCount).toBe(2);
+
+		db.update(events).set({ revealedAt: new Date() }).where(eq(events.id, SINGLE_EVENT_ID)).run();
+		const revealedDirectory = await alice.giftConversations.list();
+		expect(revealedDirectory[0]).toMatchObject({
+			recipientLabel: 'Bob',
+			recipientCodename: null
+		});
+		expect(JSON.stringify(revealedDirectory)).not.toContain('Jingle');
+		const revealedThread = await alice.giftConversations.thread({
+			conversationId: aliceThread.id
+		});
+		expect(revealedThread.messages[0]).toMatchObject({
+			senderLabel: 'You',
+			senderCodename: null
+		});
+		expect(JSON.stringify(revealedThread)).not.toContain('Jingle');
 	});
 
 	it('keeps the recipient out of private coordination and restricts threads to members', async () => {

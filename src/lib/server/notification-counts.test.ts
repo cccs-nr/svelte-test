@@ -85,7 +85,7 @@ describe('participant notification counts', () => {
 		db.insert(giftSuggestions)
 			.values({ id: 'bob-idea', ownerId: 'bob', title: 'Warm mittens' })
 			.run();
-		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 0, gift: 1 });
+		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 0, gift: 1, messages: 0 });
 
 		db.update(assignments)
 			.set({ giverWishlistViewedAt: new Date() })
@@ -110,7 +110,7 @@ describe('participant notification counts', () => {
 			})
 			.run();
 
-		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 2, gift: 0 });
+		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 2, gift: 0, messages: 1 });
 
 		db.update(assignments)
 			.set({ receiverGiftStatusSeenAt: purchasedAt })
@@ -121,7 +121,7 @@ describe('participant notification counts', () => {
 			.where(and(eq(messages.id, 'santa-message'), eq(messages.senderSide, 'giver')))
 			.run();
 
-		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 0, gift: 0 });
+		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 0, gift: 0, messages: 0 });
 	});
 
 	it('includes unread family conversation messages in the Wishlist badge', () => {
@@ -163,12 +163,12 @@ describe('participant notification counts', () => {
 			})
 			.run();
 
-		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 1, gift: 0 });
+		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 1, gift: 0, messages: 1 });
 
 		db.update(giftConversationReads)
 			.set({ lastReadAt: new Date(Date.now() + 1000) })
 			.where(eq(giftConversationReads.userId, 'alice'))
 			.run();
-		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 0, gift: 0 });
+		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 0, gift: 0, messages: 0 });
 	});
 });

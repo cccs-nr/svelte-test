@@ -136,6 +136,28 @@ afterEach(() => {
 });
 
 describe('wishlists router', () => {
+	it('returns participant wishlist summaries without exposing idea details or codenames', async () => {
+		const alice = appRouter.createCaller(createContext(participants[0]));
+		const bob = appRouter.createCaller(createContext(participants[1]));
+		await alice.wishlists.create({ title: 'Board game' });
+		await bob.wishlists.create({ title: 'Warm scarf' });
+
+		const directory = await alice.wishlists.familyDirectory({ search: '' });
+		expect(directory.find((member) => member.id === 'alice')).toMatchObject({
+			giftIdeaCount: 1,
+			wishlistUpdatedAt: expect.any(String)
+		});
+		expect(directory.find((member) => member.id === 'alice')).not.toHaveProperty('codename');
+		expect(directory.find((member) => member.id === 'alice')).not.toHaveProperty(
+			'availableGiftIdeaCount'
+		);
+		expect(directory.find((member) => member.id === 'bob')).toMatchObject({
+			giftIdeaCount: 1,
+			wishlistUpdatedAt: expect.any(String)
+		});
+		expect(JSON.stringify(directory)).not.toContain('Board game');
+	});
+
 	it('lets participants create, update, and delete only their own gift ideas', async () => {
 		const alice = appRouter.createCaller(createContext(participants[0]));
 		const bob = appRouter.createCaller(createContext(participants[1]));
@@ -191,6 +213,8 @@ describe('wishlists router', () => {
 		expect(aliceView.recipient?.displayName).toBe('Bob');
 		expect(aliceView.suggestions.map((suggestion) => suggestion.id)).toEqual([bobIdea.id]);
 		expect(aliceView.suggestions[0]).not.toHaveProperty('ownerId');
+		const familyView = await alice.wishlists.familyWishlist({ recipientId: 'bob' });
+		expect(familyView.recipient).not.toHaveProperty('codename');
 		expect(canViewWishlist(db, participants[0], 'bob')).toBe(true);
 		expect(canViewWishlist(db, participants[0], 'carol')).toBe(true);
 		expect(canViewWishlist(db, organizer, organizer.id)).toBe(false);

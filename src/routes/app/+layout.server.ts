@@ -17,7 +17,7 @@ export const load: LayoutServerLoad = ({ locals }) => {
 		.get();
 	const badgeCounts = isExchangeParticipant(locals.user)
 		? getParticipantBadgeCounts(db, locals.user.id)
-		: { wishlist: 0, gift: 0 };
+		: { wishlist: 0, gift: 0, messages: 0 };
 	const codename = isActiveExchangeParticipant(db, locals.user.id)
 		? (getParticipantCodename(db, locals.user.id)?.codename ?? null)
 		: null;

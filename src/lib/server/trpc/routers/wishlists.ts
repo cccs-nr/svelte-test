@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { and, desc, eq, isNotNull, like, or } from 'drizzle-orm';
+import { and, count, desc, eq, isNotNull, like, max, or } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import {
 	createGiftSuggestionInputSchema,
@@ -92,12 +92,24 @@ export const wishlistsRouter = router({
 				or(eq(users.role, 'participant'), eq(users.isParticipating, true)),
 				input.search ? like(users.displayName, `%${input.search}%`) : undefined
 			);
-			return ctx.db
-				.select({ id: users.id, displayName: users.displayName })
+			const rows = ctx.db
+				.select({
+					id: users.id,
+					displayName: users.displayName,
+					giftIdeaCount: count(giftSuggestions.id),
+					wishlistUpdatedAt: max(giftSuggestions.updatedAt)
+				})
 				.from(users)
+				.leftJoin(giftSuggestions, eq(giftSuggestions.ownerId, users.id))
 				.where(condition)
+				.groupBy(users.id, users.displayName)
 				.orderBy(users.displayName, users.id)
 				.all();
+
+			return rows.map((row) => ({
+				...row,
+				wishlistUpdatedAt: row.wishlistUpdatedAt?.toISOString() ?? null
+			}));
 		}),
 
 	familyWishlist: participantProcedure
@@ -105,7 +117,10 @@ export const wishlistsRouter = router({
 		.query(({ ctx, input }) => {
 			requireActiveParticipant(ctx.db, ctx.user.id);
 			const recipient = ctx.db
-				.select({ id: users.id, displayName: users.displayName })
+				.select({
+					id: users.id,
+					displayName: users.displayName
+				})
 				.from(users)
 				.where(
 					and(
@@ -193,7 +208,8 @@ export const wishlistsRouter = router({
 						reservationId: reserverId === ctx.user.id ? suggestion.reservationId : null,
 						reservationStatus: suggestion.reservationStatus ?? 'available',
 						reservedBy,
-						reservationCodename: suggestion.reservationStatus ? reserverCodename : null,
+						reservationCodename:
+							suggestion.reservationStatus && !event?.revealedAt ? reserverCodename : null,
 						reservedByMe: reserverId === ctx.user.id
 					};
 				})
