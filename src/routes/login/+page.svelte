@@ -89,7 +89,7 @@
 					class="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-900/10 bg-white/70 px-4 py-2 text-sm font-medium text-emerald-900 shadow-sm"
 				>
 					<Sparkles size={16} aria-hidden="true" />
-					A little surprise brings everyone closer
+					A thoughtful Secret Santa gift exchange
 				</p>
 				<h1
 					class="max-w-xl text-4xl leading-tight font-semibold tracking-tight text-stone-950 sm:text-5xl lg:text-6xl"
@@ -97,18 +97,18 @@
 					Make the giving part feel like magic.
 				</h1>
 				<p class="mt-6 max-w-lg text-lg leading-8 text-stone-600">
-					Your family exchange, thoughtfully organized in one account-protected place. Sign in to
-					see what’s next.
+					Organize the draw, share wishlists, and keep gift planning in one easy place. Sign in to
+					continue your Secret Santa exchange.
 				</p>
 
 				<div class="mt-10 flex flex-wrap gap-3 text-sm text-stone-600">
 					<div class="inline-flex items-center gap-2 rounded-full bg-white/75 px-4 py-2 shadow-sm">
 						<ShieldCheck size={16} class="text-emerald-800" aria-hidden="true" />
-						Account protected
+						Private assignments
 					</div>
 					<div class="inline-flex items-center gap-2 rounded-full bg-white/75 px-4 py-2 shadow-sm">
 						<Gift size={16} class="text-rose-700" aria-hidden="true" />
-						One joyful exchange
+						Wishlists and messages
 					</div>
 				</div>
 			</div>
@@ -122,7 +122,7 @@
 					</p>
 					<CardTitle class="text-2xl tracking-tight">Welcome back</CardTitle>
 					<CardDescription class="text-base">
-						Sign in with your name and password to continue to the family exchange.
+						Sign in with your name and password to manage your Secret Santa gift exchange.
 					</CardDescription>
 				</CardHeader>
 				<CardContent class="px-7 pb-6 sm:px-8">
@@ -194,6 +194,6 @@
 			</Card>
 		</div>
 
-		<p class="text-sm text-stone-500">A small family tradition, made easy to share.</p>
+		<p class="text-sm text-stone-500">A Secret Santa exchange, made easy to organize.</p>
 	</section>
 </main>

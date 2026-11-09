@@ -81,8 +81,8 @@
 				</p>
 				<CardTitle class="text-2xl tracking-tight">Create your account</CardTitle>
 				<CardDescription>
-					Enter the name your family knows you by and choose a password. New accounts join as
-					participants.
+					Enter the name other participants will recognize and choose a password. New accounts can
+					join the exchange.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
