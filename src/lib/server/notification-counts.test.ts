@@ -6,15 +6,12 @@ import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import { createDatabase } from '#lib/server/db/connection.js';
 import {
 	assignments,
-	conversations,
 	events,
-	giftConversationParticipants,
-	giftConversationReads,
-	giftConversations,
-	giftMessages,
 	giftSuggestions,
-	messages,
-	users
+	users,
+	wishlistConversationParticipants,
+	wishlistConversations,
+	wishlistMessages
 } from '#lib/server/db/schema.js';
 import { getParticipantBadgeCounts } from '#lib/server/notification-counts.js';
 
@@ -97,16 +94,29 @@ describe('participant notification counts', () => {
 			.set({ giftPurchasedAt: purchasedAt })
 			.where(eq(assignments.id, 'carol-assignment'))
 			.run();
-		db.insert(conversations)
-			.values({ id: 'carol-conversation', assignmentId: 'carol-assignment' })
+		db.insert(wishlistConversations)
+			.values({
+				id: 'carol-conversation',
+				eventId: SINGLE_EVENT_ID,
+				wishlistOwnerId: 'alice',
+				type: 'wishlist_discussion',
+				title: 'Alice — Talk to Alice'
+			})
 			.run();
-		db.insert(messages)
+		db.insert(wishlistConversationParticipants)
+			.values([
+				{ conversationId: 'carol-conversation', userId: 'alice' },
+				{ conversationId: 'carol-conversation', userId: 'carol' }
+			])
+			.run();
+		const messageSentAt = new Date();
+		db.insert(wishlistMessages)
 			.values({
 				id: 'santa-message',
 				conversationId: 'carol-conversation',
-				senderSide: 'giver',
+				senderId: 'carol',
 				content: 'Your gift is on its way.',
-				giverReadAt: new Date()
+				createdAt: messageSentAt
 			})
 			.run();
 
@@ -116,44 +126,36 @@ describe('participant notification counts', () => {
 			.set({ receiverGiftStatusSeenAt: purchasedAt })
 			.where(eq(assignments.id, 'carol-assignment'))
 			.run();
-		db.update(messages)
-			.set({ recipientReadAt: new Date() })
-			.where(and(eq(messages.id, 'santa-message'), eq(messages.senderSide, 'giver')))
+		db.update(wishlistConversationParticipants)
+			.set({ lastReadAt: new Date(Date.now() + 1000) })
+			.where(
+				and(
+					eq(wishlistConversationParticipants.conversationId, 'carol-conversation'),
+					eq(wishlistConversationParticipants.userId, 'alice')
+				)
+			)
 			.run();
 
 		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 0, gift: 0, messages: 0 });
 	});
 
-	it('includes unread family conversation messages in the Wishlist badge', () => {
-		db.insert(giftConversations)
+	it('includes unread messages about the owner’s wishlist in the Wishlist badge', () => {
+		db.insert(wishlistConversations)
 			.values({
 				id: 'family-conversation',
 				eventId: SINGLE_EVENT_ID,
-				recipientId: 'bob',
-				type: 'recipient_visible'
+				wishlistOwnerId: 'alice',
+				type: 'wishlist_discussion',
+				title: 'Alice — Talk to Alice'
 			})
 			.run();
-		db.insert(giftConversationParticipants)
+		db.insert(wishlistConversationParticipants)
 			.values([
 				{ conversationId: 'family-conversation', userId: 'alice' },
 				{ conversationId: 'family-conversation', userId: 'bob' }
 			])
 			.run();
-		db.insert(giftConversationReads)
-			.values([
-				{
-					conversationId: 'family-conversation',
-					userId: 'alice',
-					lastReadAt: new Date(0)
-				},
-				{
-					conversationId: 'family-conversation',
-					userId: 'bob',
-					lastReadAt: new Date(0)
-				}
-			])
-			.run();
-		db.insert(giftMessages)
+		db.insert(wishlistMessages)
 			.values({
 				id: 'family-message',
 				conversationId: 'family-conversation',
@@ -165,9 +167,14 @@ describe('participant notification counts', () => {
 
 		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 1, gift: 0, messages: 1 });
 
-		db.update(giftConversationReads)
+		db.update(wishlistConversationParticipants)
 			.set({ lastReadAt: new Date(Date.now() + 1000) })
-			.where(eq(giftConversationReads.userId, 'alice'))
+			.where(
+				and(
+					eq(wishlistConversationParticipants.conversationId, 'family-conversation'),
+					eq(wishlistConversationParticipants.userId, 'alice')
+				)
+			)
 			.run();
 		expect(getParticipantBadgeCounts(db, 'alice')).toEqual({ wishlist: 0, gift: 0, messages: 0 });
 	});

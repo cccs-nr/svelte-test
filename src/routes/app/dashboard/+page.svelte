@@ -3,6 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import type { PageProps } from './$types';
 	import EventOverviewCard from '#lib/components/EventOverviewCard.svelte';
+	import ConversationMigrationReviewCard from '#lib/components/ConversationMigrationReviewCard.svelte';
 	import OrganizerFamilyCoordinationCard from '#lib/components/OrganizerFamilyCoordinationCard.svelte';
 	import OrganizerHouseholdsCard from '#lib/components/OrganizerHouseholdsCard.svelte';
 	import OrganizerParticipantsTable from '#lib/components/OrganizerParticipantsTable.svelte';
@@ -45,6 +46,7 @@
 		currentStageIndex={data.currentStageIndex}
 		canComplete={data.assignmentsFinalized}
 	/>
+	<ConversationMigrationReviewCard items={data.conversationMigrationReviews} />
 
 	<Card id="event-stats" class="border-stone-200 bg-white">
 		<CardHeader>
@@ -111,7 +113,7 @@
 					</dd>
 				</div>
 				<div class="rounded-xl bg-stone-50 p-3">
-					<dt class="text-xs text-stone-500">Gift coordination chats</dt>
+					<dt class="text-xs text-stone-500">Private gift-planning conversations</dt>
 					<dd class="mt-1 text-2xl font-semibold text-stone-950 tabular-nums">
 						{data.stats.coordinationConversationCount}
 					</dd>

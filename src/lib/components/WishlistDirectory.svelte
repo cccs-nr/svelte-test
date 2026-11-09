@@ -2,10 +2,10 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
-	import { UserRound } from '@lucide/svelte';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 
 	type FamilyMember = Awaited<ReturnType<typeof trpc.wishlists.familyDirectory.query>>[number];
 	type Props = { currentUserId: string };
@@ -19,10 +19,12 @@
 		const socket = getRealtimeSocket();
 		const refresh = () => void loadMembers();
 		socket.on('family-wishlist:changed', refresh);
+		socket.on('messages:changed', refresh);
 		socket.on('connect', refresh);
 		void loadMembers();
 		return () => {
 			socket.off('family-wishlist:changed', refresh);
+			socket.off('messages:changed', refresh);
 			socket.off('connect', refresh);
 		};
 	});
@@ -45,6 +47,10 @@
 	function formatTimestamp(value: string | null): string {
 		if (!value) return 'Not updated yet';
 		return new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium' }).format(new Date(value));
+	}
+
+	function profileImageUrl(participantId: string): string {
+		return resolve('/api/participant-avatar/[participantId]', { participantId });
 	}
 </script>
 
@@ -91,12 +97,13 @@
 			aria-label="Participant wishlists table"
 			tabindex="0"
 		>
-			<table class="w-full min-w-[640px] border-collapse text-left text-sm">
+			<table class="w-full min-w-[820px] border-collapse text-left text-sm">
 				<thead>
 					<tr class="border-b border-stone-200 bg-stone-50 text-xs text-stone-600">
 						<th scope="col" class="px-4 py-3 font-medium">Participant</th>
 						<th scope="col" class="px-4 py-3 font-medium">Gift ideas</th>
 						<th scope="col" class="px-4 py-3 font-medium">Wishlist updated</th>
+						<th scope="col" class="px-4 py-3 font-medium">Conversations</th>
 						<th scope="col" class="px-4 py-3 font-medium">Actions</th>
 					</tr>
 				</thead>
@@ -105,12 +112,14 @@
 						<tr class="border-b border-stone-100 last:border-0">
 							<th scope="row" class="px-4 py-3 font-normal">
 								<div class="flex items-center gap-3">
-									<span
-										class="grid size-8 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-800"
-										aria-hidden="true"
-									>
-										<UserRound size={16} />
-									</span>
+									<ProfileAvatar
+										displayName={member.displayName}
+										hasAvatar={member.hasAvatar}
+										imageVersion={member.avatarVersion}
+										imageSrc={profileImageUrl(member.id)}
+										size="sm"
+										class="size-8 text-xs"
+									/>
 									<p class="font-medium text-stone-950">
 										{member.displayName}{member.id === currentUserId ? ' (you)' : ''}
 									</p>
@@ -122,6 +131,36 @@
 							</td>
 							<td class="px-4 py-3 text-stone-700">
 								{formatTimestamp(member.wishlistUpdatedAt)}
+							</td>
+							<td class="px-4 py-3">
+								{#if member.conversations.length === 0}
+									<span class="text-stone-500">No conversations yet</span>
+								{:else}
+									<ul class="space-y-1">
+										{#each member.conversations as conversation (conversation.id)}
+											<li class="flex items-center gap-2">
+												<a
+													class="font-medium text-emerald-800 underline-offset-4 hover:underline"
+													href={resolve('/app/messages/[conversationId]', {
+														conversationId: conversation.id
+													})}
+												>
+													{conversation.type === 'wishlist_discussion'
+														? `Talk to ${member.displayName}`
+														: 'Plan gifts privately'}
+												</a>
+												{#if conversation.unreadCount > 0}
+													<span
+														class="rounded-full bg-rose-700 px-2 py-0.5 text-xs font-semibold text-white"
+														aria-label={`${conversation.unreadCount} new messages`}
+													>
+														{conversation.unreadCount} new
+													</span>
+												{/if}
+											</li>
+										{/each}
+									</ul>
+								{/if}
 							</td>
 							<td class="px-4 py-3">
 								<a

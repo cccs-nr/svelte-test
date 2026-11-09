@@ -225,11 +225,11 @@
 		try {
 			const thread =
 				type === 'recipient_visible'
-					? await trpc.giftConversations.openDiscussion.mutate({
-							recipientId: selectedMemberId
+					? await trpc.conversations.openDiscussion.mutate({
+							wishlistOwnerId: selectedMemberId
 						})
-					: await trpc.giftConversations.joinCoordination.mutate({
-							recipientId: selectedMemberId
+					: await trpc.conversations.joinCoordination.mutate({
+							wishlistOwnerId: selectedMemberId
 						});
 			await goto(resolve('/app/messages/[conversationId]', { conversationId: thread.id }));
 		} catch (error) {
@@ -298,7 +298,7 @@
 					onclick={() => void openGiftConversation('recipient_visible')}
 					disabled={isOpeningConversation || isLoadingWishlist}
 				>
-					Open Wishlist Discussion
+					Talk to {wishlist.recipient.displayName}
 				</Button>
 				<Button
 					type="button"
@@ -306,7 +306,7 @@
 					onclick={() => void openGiftConversation('private_coordination')}
 					disabled={isOpeningConversation || isLoadingWishlist}
 				>
-					Join Gift Coordination
+					Plan gifts privately
 				</Button>
 			</CardAction>
 		{/if}
@@ -532,7 +532,7 @@
 													<span
 														class="inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700"
 													>
-														{#if suggestion.reservationCodename}
+														{#if suggestion.reservationStatus === 'reserved' && suggestion.reservationCodename}
 															<CodenameAvatar codename={suggestion.reservationCodename} size="xs" />
 														{/if}
 														{suggestion.reservationStatus === 'purchased'

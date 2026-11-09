@@ -5,11 +5,11 @@ import { db } from '#lib/server/db/index.js';
 import { users } from '#lib/server/db/schema.js';
 import {
 	detectImageMimeType,
-	readImage,
 	removeImage,
 	storeImage,
 	type ImageMimeType
 } from '#lib/server/image-storage.js';
+import { serveProfileImage } from '#lib/server/profile-image-response.js';
 
 const maxMultipartOverheadBytes = 64 * 1024;
 
@@ -32,7 +32,7 @@ function isImageMimeType(value: string): value is ImageMimeType {
 	return value === 'image/jpeg' || value === 'image/png' || value === 'image/webp';
 }
 
-export const GET: RequestHandler = async ({ locals }) => {
+export const GET: RequestHandler = ({ locals }) => {
 	if (!locals.user) return new Response('Authentication is required.', { status: 401 });
 
 	const avatar = db
@@ -40,28 +40,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 		.from(users)
 		.where(eq(users.id, locals.user.id))
 		.get();
-	if (!avatar?.key || !avatar.mimeType || !isImageMimeType(avatar.mimeType)) {
-		return new Response('Profile image not found.', { status: 404 });
-	}
-
-	let image: Buffer;
-	try {
-		image = await readImage(avatar.key, avatar.mimeType);
-	} catch (error) {
-		if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-			return new Response('Profile image not found.', { status: 404 });
-		}
-		throw error;
-	}
-
-	return new Response(Uint8Array.from(image), {
-		headers: {
-			'Content-Type': avatar.mimeType,
-			'Content-Length': String(image.byteLength),
-			'Cache-Control': 'private, no-store',
-			'X-Content-Type-Options': 'nosniff'
-		}
-	});
+	return serveProfileImage(avatar?.key ?? null, avatar?.mimeType ?? null);
 };
 
 export const POST: RequestHandler = async ({ request, url, locals }) => {

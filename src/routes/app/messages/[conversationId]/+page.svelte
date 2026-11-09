@@ -2,17 +2,9 @@
 	import { resolve } from '$app/paths';
 	import type { PageProps } from './$types';
 	import ConversationPanel from '#lib/components/ConversationPanel.svelte';
-	import FamilyGiftConversationsPanel from '#lib/components/FamilyGiftConversationsPanel.svelte';
 
 	let { data }: PageProps = $props();
-	let secretSantaDirection = $derived(
-		data.conversationId === 'secret-santa-asGiver'
-			? ('asGiver' as const)
-			: data.conversationId === 'secret-santa-asRecipient'
-				? ('asRecipient' as const)
-				: null
-	);
-	let associatedWishlistRecipientId = $state<string | null>(null);
+	let associatedWishlistOwnerId = $state<string | null>(null);
 </script>
 
 <svelte:head>
@@ -27,32 +19,25 @@
 		>
 			Back to Messages
 		</a>
-		{#if associatedWishlistRecipientId}
+		{#if associatedWishlistOwnerId}
 			<a
 				class="text-sm font-medium text-emerald-800 underline-offset-4 hover:underline"
-				href={resolve('/app/wishlists/[participantId]', {
-					participantId: associatedWishlistRecipientId
-				})}
+				href={associatedWishlistOwnerId === data.user.id
+					? resolve('/app/wishlist')
+					: resolve('/app/wishlists/[participantId]', {
+							participantId: associatedWishlistOwnerId
+						})}
 			>
 				View associated wishlist
 			</a>
 		{/if}
 	</div>
 
-	{#if secretSantaDirection}
+	{#key data.conversationId}
 		<ConversationPanel
-			direction={secretSantaDirection}
-			displayName={data.user.displayName}
-			hasAvatar={data.hasAvatar}
-			avatarVersion={data.avatarVersion}
-			fullHeight
-		/>
-	{:else}
-		<FamilyGiftConversationsPanel
-			currentUserId={data.user.id}
 			conversationId={data.conversationId}
-			onAssociatedWishlistChange={(recipientId) => (associatedWishlistRecipientId = recipientId)}
+			onWishlistOwnerChange={(ownerId) => (associatedWishlistOwnerId = ownerId)}
 			fullHeight
 		/>
-	{/if}
+	{/key}
 </section>

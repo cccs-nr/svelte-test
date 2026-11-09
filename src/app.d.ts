@@ -9,7 +9,6 @@ declare global {
 		// interface PageData {}
 		interface PageState {
 			wishlistTab?: 'ideas' | 'recipient' | 'family' | 'messages';
-			wishlistMessageDirection?: 'asGiver' | 'asRecipient';
 		}
 		// interface Platform {}
 	}

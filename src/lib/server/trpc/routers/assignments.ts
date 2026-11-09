@@ -9,6 +9,7 @@ import {
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { assignments, events, users } from '#lib/server/db/schema.js';
 import { assignMissingCodenames } from '#lib/server/codenames.js';
+import { createAssignedWishlistDiscussions } from '#lib/server/conversation-service.js';
 import { notifyOrganizerDashboard, notifyUser } from '#lib/server/realtime.js';
 import {
 	organizerProcedure,
@@ -226,6 +227,19 @@ export const assignmentRouter = router({
 				.set({ updatedAt: finalizedAt })
 				.where(eq(events.id, event.id))
 				.run();
+			createAssignedWishlistDiscussions(
+				transaction,
+				transaction
+					.select({
+						eventId: assignments.eventId,
+						giverId: assignments.giverId,
+						receiverId: assignments.receiverId,
+						finalizedAt: assignments.finalizedAt
+					})
+					.from(assignments)
+					.where(eq(assignments.eventId, SINGLE_EVENT_ID))
+					.all()
+			);
 		});
 		notifyAssignmentParticipants(rows.flatMap(({ giverId, receiverId }) => [giverId, receiverId]));
 		notifyOrganizerDashboard();

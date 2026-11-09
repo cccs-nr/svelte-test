@@ -71,6 +71,20 @@
       "when": 1794165852000,
       "tag": "0009_family_gift_coordination",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1794190277898,
+      "tag": "0010_aromatic_terror",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1794192392024,
+      "tag": "0011_curved_silver_centurion",
+      "breakpoints": true
     }
   ]
 }

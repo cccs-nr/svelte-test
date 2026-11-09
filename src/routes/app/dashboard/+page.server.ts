@@ -3,24 +3,23 @@ import type { PageServerLoad } from './$types';
 import { SINGLE_EVENT_ID, type EventStatus } from '#lib/models/event.js';
 import { db } from '#lib/server/db/index.js';
 import { requireOrganizerPage } from '#lib/server/page-guards.js';
+import { getConversationMigrationReviews } from '#lib/server/conversation-service.js';
 import {
 	assignments,
-	conversations,
 	events,
-	giftConversationParticipants,
-	giftConversations,
-	giftMessages,
 	giftReservations,
 	giftSuggestions,
 	households,
-	messages,
-	users
+	users,
+	wishlistConversationParticipants,
+	wishlistConversations,
+	wishlistMessages
 } from '#lib/server/db/schema.js';
 
 const eventStages: { value: EventStatus | 'revealed'; label: string }[] = [
 	{ value: 'setup', label: 'Setup' },
 	{ value: 'open', label: 'Wishlist preparation' },
-	{ value: 'assignments_generated', label: 'Gift coordination' },
+	{ value: 'assignments_generated', label: 'Gift planning' },
 	{ value: 'completed', label: 'Exchange complete' },
 	{ value: 'revealed', label: 'Identity reveal' }
 ];
@@ -95,47 +94,23 @@ export const load: PageServerLoad = ({ locals }) => {
 		.from(giftSuggestions)
 		.groupBy(giftSuggestions.ownerId)
 		.all();
-	const outgoingMessageCounts = db
-		.select({ userId: assignments.giverId, value: count(messages.id) })
-		.from(assignments)
-		.leftJoin(conversations, eq(conversations.assignmentId, assignments.id))
-		.leftJoin(messages, eq(messages.conversationId, conversations.id))
-		.where(eq(assignments.eventId, SINGLE_EVENT_ID))
-		.groupBy(assignments.giverId)
-		.all();
-	const incomingMessageCounts = db
-		.select({ userId: assignments.receiverId, value: count(messages.id) })
-		.from(assignments)
-		.leftJoin(conversations, eq(conversations.assignmentId, assignments.id))
-		.leftJoin(messages, eq(messages.conversationId, conversations.id))
-		.where(eq(assignments.eventId, SINGLE_EVENT_ID))
-		.groupBy(assignments.receiverId)
-		.all();
-	const familyMessageCounts = db
-		.select({ userId: giftConversationParticipants.userId, value: count(giftMessages.id) })
-		.from(giftConversationParticipants)
+	const conversationMessageCounts = db
+		.select({
+			userId: wishlistConversationParticipants.userId,
+			value: count(wishlistMessages.id)
+		})
+		.from(wishlistConversationParticipants)
 		.leftJoin(
-			giftMessages,
-			eq(giftMessages.conversationId, giftConversationParticipants.conversationId)
+			wishlistMessages,
+			eq(wishlistMessages.conversationId, wishlistConversationParticipants.conversationId)
 		)
-		.groupBy(giftConversationParticipants.userId)
+		.groupBy(wishlistConversationParticipants.userId)
 		.all();
-	const messageCount =
-		db
-			.select({ value: count(messages.id) })
-			.from(messages)
-			.innerJoin(conversations, eq(conversations.id, messages.conversationId))
-			.innerJoin(assignments, eq(assignments.id, conversations.assignmentId))
-			.where(eq(assignments.eventId, SINGLE_EVENT_ID))
-			.get()?.value ?? 0;
-	const familyMessageCount = db.select({ value: count() }).from(giftMessages).get()?.value ?? 0;
+	const messageCount = db.select({ value: count() }).from(wishlistMessages).get()?.value ?? 0;
 	const wishlistCountByUser = new Map(wishlistCounts.map(({ userId, value }) => [userId, value]));
 	const messageCountByUser = new Map<string, number>();
-	for (const { userId, value } of [...outgoingMessageCounts, ...incomingMessageCounts]) {
-		messageCountByUser.set(userId, (messageCountByUser.get(userId) ?? 0) + value);
-	}
-	for (const { userId, value } of familyMessageCounts) {
-		messageCountByUser.set(userId, (messageCountByUser.get(userId) ?? 0) + value);
+	for (const { userId, value } of conversationMessageCounts) {
+		messageCountByUser.set(userId, value);
 	}
 	const assignmentByGiver = new Map(
 		assignmentRows.map((assignment) => [assignment.giverId, assignment])
@@ -198,11 +173,11 @@ export const load: PageServerLoad = ({ locals }) => {
 	const coordinationConversationCount =
 		db
 			.select({ value: count() })
-			.from(giftConversations)
+			.from(wishlistConversations)
 			.where(
 				and(
-					eq(giftConversations.eventId, SINGLE_EVENT_ID),
-					eq(giftConversations.type, 'private_coordination')
+					eq(wishlistConversations.eventId, SINGLE_EVENT_ID),
+					eq(wishlistConversations.type, 'gift_coordination')
 				)
 			)
 			.get()?.value ?? 0;
@@ -216,6 +191,7 @@ export const load: PageServerLoad = ({ locals }) => {
 		event,
 		eventStages,
 		currentStageIndex,
+		conversationMigrationReviews: getConversationMigrationReviews(db),
 		currentUserId: organizer.id,
 		households: householdsForDashboard,
 		assignmentsExist: assignmentRows.length > 0,
@@ -228,7 +204,7 @@ export const load: PageServerLoad = ({ locals }) => {
 			activeParticipants,
 			householdCount: householdRows.length,
 			wishlistIdeaCount,
-			messageCount: messageCount + familyMessageCount,
+			messageCount,
 			assignmentCount: assignmentRows.length,
 			finalizedAssignmentCount,
 			purchasedGiftCount,

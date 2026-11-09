@@ -229,7 +229,7 @@ export const giftSuggestions = sqliteTable(
 	]
 );
 
-export const conversations = sqliteTable(
+export const legacyConversations = sqliteTable(
 	'conversations',
 	{
 		id: text('id').primaryKey(),
@@ -246,13 +246,13 @@ export const conversations = sqliteTable(
 	(table) => [uniqueIndex('conversations_assignment_unique').on(table.assignmentId)]
 );
 
-export const messages = sqliteTable(
+export const legacyMessages = sqliteTable(
 	'messages',
 	{
 		id: text('id').primaryKey(),
 		conversationId: text('conversation_id')
 			.notNull()
-			.references(() => conversations.id, { onDelete: 'cascade' }),
+			.references(() => legacyConversations.id, { onDelete: 'cascade' }),
 		senderSide: text('sender_side', { enum: ['giver', 'recipient'] }).notNull(),
 		content: text('content').notNull(),
 		createdAt: integer('created_at', { mode: 'timestamp_ms' })
@@ -350,7 +350,7 @@ export const giftReservationAuditLog = sqliteTable(
 	]
 );
 
-export const giftConversations = sqliteTable(
+export const legacyGiftConversations = sqliteTable(
 	'gift_conversations',
 	{
 		id: text('id').primaryKey(),
@@ -384,12 +384,12 @@ export const giftConversations = sqliteTable(
 	]
 );
 
-export const giftConversationParticipants = sqliteTable(
+export const legacyGiftConversationParticipants = sqliteTable(
 	'gift_conversation_participants',
 	{
 		conversationId: text('conversation_id')
 			.notNull()
-			.references(() => giftConversations.id, { onDelete: 'cascade' }),
+			.references(() => legacyGiftConversations.id, { onDelete: 'cascade' }),
 		userId: text('user_id')
 			.notNull()
 			.references(() => users.id, { onDelete: 'restrict' }),
@@ -403,13 +403,13 @@ export const giftConversationParticipants = sqliteTable(
 	]
 );
 
-export const giftMessages = sqliteTable(
+export const legacyGiftMessages = sqliteTable(
 	'gift_messages',
 	{
 		id: text('id').primaryKey(),
 		conversationId: text('conversation_id')
 			.notNull()
-			.references(() => giftConversations.id, { onDelete: 'cascade' }),
+			.references(() => legacyGiftConversations.id, { onDelete: 'cascade' }),
 		senderId: text('sender_id')
 			.notNull()
 			.references(() => users.id, { onDelete: 'restrict' }),
@@ -427,12 +427,12 @@ export const giftMessages = sqliteTable(
 	]
 );
 
-export const giftConversationReads = sqliteTable(
+export const legacyGiftConversationReads = sqliteTable(
 	'gift_conversation_reads',
 	{
 		conversationId: text('conversation_id')
 			.notNull()
-			.references(() => giftConversations.id, { onDelete: 'cascade' }),
+			.references(() => legacyGiftConversations.id, { onDelete: 'cascade' }),
 		userId: text('user_id')
 			.notNull()
 			.references(() => users.id, { onDelete: 'restrict' }),
@@ -441,6 +441,128 @@ export const giftConversationReads = sqliteTable(
 	(table) => [
 		primaryKey({ columns: [table.conversationId, table.userId] }),
 		index('gift_conversation_reads_user_idx').on(table.userId)
+	]
+);
+
+export const wishlistConversations = sqliteTable(
+	'wishlist_conversations',
+	{
+		id: text('id').primaryKey(),
+		eventId: text('event_id')
+			.notNull()
+			.references(() => events.id, { onDelete: 'cascade' }),
+		wishlistOwnerId: text('wishlist_owner_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		type: text('conversation_type', {
+			enum: ['wishlist_discussion', 'gift_coordination']
+		})
+			.$type<'wishlist_discussion' | 'gift_coordination'>()
+			.notNull(),
+		title: text('title').notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		lastMessageAt: integer('last_message_at', { mode: 'timestamp_ms' })
+	},
+	(table) => [
+		uniqueIndex('wishlist_conversations_event_owner_type_unique').on(
+			table.eventId,
+			table.wishlistOwnerId,
+			table.type
+		),
+		index('wishlist_conversations_event_activity_idx').on(
+			table.eventId,
+			table.lastMessageAt,
+			table.updatedAt
+		),
+		check(
+			'wishlist_conversations_type_check',
+			sql`${table.type} in ('wishlist_discussion', 'gift_coordination')`
+		),
+		check('wishlist_conversations_title_not_blank', sql`length(trim(${table.title})) > 0`)
+	]
+);
+
+export const wishlistConversationParticipants = sqliteTable(
+	'wishlist_conversation_participants',
+	{
+		conversationId: text('conversation_id')
+			.notNull()
+			.references(() => wishlistConversations.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		joinedAt: integer('joined_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		lastReadAt: integer('last_read_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`0`)
+	},
+	(table) => [
+		primaryKey({ columns: [table.conversationId, table.userId] }),
+		index('wishlist_conversation_participants_user_idx').on(table.userId, table.conversationId)
+	]
+);
+
+export const wishlistMessages = sqliteTable(
+	'wishlist_messages',
+	{
+		id: text('id').primaryKey(),
+		conversationId: text('conversation_id')
+			.notNull()
+			.references(() => wishlistConversations.id, { onDelete: 'cascade' }),
+		senderId: text('sender_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		content: text('content').notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		editedAt: integer('edited_at', { mode: 'timestamp_ms' })
+	},
+	(table) => [
+		index('wishlist_messages_conversation_created_idx').on(table.conversationId, table.createdAt),
+		index('wishlist_messages_sender_created_idx').on(table.senderId, table.createdAt),
+		check(
+			'wishlist_messages_content_valid',
+			sql`length(trim(${table.content})) > 0 and length(${table.content}) <= 2000`
+		)
+	]
+);
+
+export const conversationMigrationReviews = sqliteTable(
+	'conversation_migration_reviews',
+	{
+		id: text('id').primaryKey(),
+		legacySource: text('legacy_source', { enum: ['assignment', 'gift'] })
+			.$type<'assignment' | 'gift'>()
+			.notNull(),
+		legacyConversationId: text('legacy_conversation_id').notNull(),
+		relatedUserId: text('related_user_id').references(() => users.id, { onDelete: 'set null' }),
+		reason: text('reason').notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		resolvedAt: integer('resolved_at', { mode: 'timestamp_ms' })
+	},
+	(table) => [
+		uniqueIndex('conversation_migration_reviews_issue_unique').on(
+			table.legacySource,
+			table.legacyConversationId,
+			table.relatedUserId,
+			table.reason
+		),
+		index('conversation_migration_reviews_status_idx').on(table.resolvedAt, table.createdAt),
+		check(
+			'conversation_migration_reviews_source_check',
+			sql`${table.legacySource} in ('assignment', 'gift')`
+		),
+		check('conversation_migration_reviews_reason_not_blank', sql`length(trim(${table.reason})) > 0`)
 	]
 );
 
@@ -469,11 +591,10 @@ export type HouseholdRecord = typeof households.$inferSelect;
 export type EventRecord = typeof events.$inferSelect;
 export type AssignmentRecord = typeof assignments.$inferSelect;
 export type GiftSuggestionRecord = typeof giftSuggestions.$inferSelect;
-export type ConversationRecord = typeof conversations.$inferSelect;
-export type MessageRecord = typeof messages.$inferSelect;
+export type ConversationRecord = typeof wishlistConversations.$inferSelect;
+export type ConversationParticipantRecord = typeof wishlistConversationParticipants.$inferSelect;
+export type MessageRecord = typeof wishlistMessages.$inferSelect;
 export type ParticipantCodenameRecord = typeof participantCodenames.$inferSelect;
 export type CodenameAuditRecord = typeof codenameAuditLog.$inferSelect;
 export type GiftReservationRecord = typeof giftReservations.$inferSelect;
 export type GiftReservationAuditRecord = typeof giftReservationAuditLog.$inferSelect;
-export type GiftConversationRecord = typeof giftConversations.$inferSelect;
-export type GiftMessageRecord = typeof giftMessages.$inferSelect;

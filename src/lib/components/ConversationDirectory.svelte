@@ -9,22 +9,9 @@
 	import CodenameAvatar from '#lib/components/CodenameAvatar.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 
-	type SecretSantaThreads = Awaited<ReturnType<typeof trpc.conversations.list.query>>;
-	type ConversationKind = 'secret-santa' | 'wishlist-discussion' | 'gift-coordination';
-	type ConversationItem = {
-		id: string;
-		kind: ConversationKind;
-		title: string;
-		subtitle: string;
-		preview: string;
-		previewSender: string | null;
-		lastMessageAt: string | null;
-		unreadCount: number;
-		avatar:
-			| { type: 'codename'; codename: string }
-			| { type: 'profile'; displayName: string; hasAvatar: boolean; avatarVersion: number }
-			| { type: 'secret' };
-	};
+	type ConversationItem = Awaited<ReturnType<typeof trpc.conversations.list.query>>[number];
+	type ConversationKind = ConversationItem['type'];
+
 	let { compact = false }: { compact?: boolean } = $props();
 	let conversations = $state<ConversationItem[]>([]);
 	let search = $state('');
@@ -36,12 +23,16 @@
 	let visibleConversations = $derived(
 		conversations.filter((conversation) => {
 			const query = search.trim().toLocaleLowerCase();
+			const searchable = [
+				conversation.title,
+				conversation.wishlistOwner.displayName,
+				conversation.lastMessagePreview ?? '',
+				...conversation.participants.map((participant) => participant.label)
+			]
+				.join(' ')
+				.toLocaleLowerCase();
 			return (
-				(filter === 'all' || conversation.kind === filter) &&
-				(!query ||
-					`${conversation.title} ${conversation.subtitle} ${conversation.preview}`
-						.toLocaleLowerCase()
-						.includes(query))
+				(filter === 'all' || conversation.type === filter) && (!query || searchable.includes(query))
 			);
 		})
 	);
@@ -54,13 +45,11 @@
 		const socket = getRealtimeSocket();
 		const refresh = () => void loadConversations();
 		socket.on('messages:changed', refresh);
-		socket.on('family-messages:changed', refresh);
 		socket.on('connect', refresh);
 		void loadConversations();
 		return () => {
 			isDisposed = true;
 			socket.off('messages:changed', refresh);
-			socket.off('family-messages:changed', refresh);
 			socket.off('connect', refresh);
 		};
 	});
@@ -70,40 +59,9 @@
 		isLoading = true;
 		errorMessage = null;
 		try {
-			const [secretSantaThreads, giftConversations] = await Promise.all([
-				trpc.conversations.list.query(),
-				trpc.giftConversations.list.query()
-			]);
+			const result = await trpc.conversations.list.query();
 			if (isDisposed || sequence !== loadSequence) return;
-			conversations = [
-				...getSecretSantaItems(secretSantaThreads),
-				...giftConversations.map((conversation) => ({
-					id: conversation.id,
-					kind:
-						conversation.type === 'recipient_visible'
-							? ('wishlist-discussion' as const)
-							: ('gift-coordination' as const),
-					title:
-						conversation.type === 'recipient_visible' ? 'Wishlist Discussion' : 'Gift Coordination',
-					subtitle: conversation.recipientLabel,
-					preview: conversation.lastMessagePreview ?? 'No messages yet.',
-					previewSender: conversation.lastMessageSenderLabel,
-					lastMessageAt: conversation.lastMessageAt,
-					unreadCount: conversation.unreadCount,
-					avatar: conversation.recipientCodename
-						? { type: 'codename' as const, codename: conversation.recipientCodename }
-						: {
-								type: 'profile' as const,
-								displayName: conversation.recipientLabel,
-								hasAvatar: false,
-								avatarVersion: 0
-							}
-				}))
-			].sort(
-				(left, right) =>
-					(right.lastMessageAt ? Date.parse(right.lastMessageAt) : 0) -
-					(left.lastMessageAt ? Date.parse(left.lastMessageAt) : 0)
-			);
+			conversations = result;
 		} catch (error) {
 			if (!isDisposed) {
 				errorMessage =
@@ -116,52 +74,17 @@
 		}
 	}
 
-	function getSecretSantaItems(threads: SecretSantaThreads): ConversationItem[] {
-		const items: ConversationItem[] = [];
-		const giverThread = threads.asGiver;
-		if (giverThread && (giverThread.hasConversation || giverThread.canSend)) {
-			const lastMessage = giverThread.messages.at(-1);
-			items.push({
-				id: 'secret-santa-asGiver',
-				kind: 'secret-santa',
-				title: `Your Assigned Recipient: ${giverThread.recipientDisplayName}`,
-				subtitle: 'Secret Santa',
-				preview: lastMessage?.content ?? 'No messages yet.',
-				previewSender: lastMessage?.senderLabel ?? null,
-				lastMessageAt: lastMessage?.sentAt ?? null,
-				unreadCount: giverThread.unreadCount,
-				avatar: {
-					type: 'profile',
-					displayName: giverThread.recipientDisplayName,
-					hasAvatar: giverThread.recipientHasAvatar,
-					avatarVersion: giverThread.recipientAvatarVersion
-				}
-			});
-		}
-
-		const recipientThread = threads.asRecipient;
-		if (recipientThread && (recipientThread.hasConversation || recipientThread.canSend)) {
-			const lastMessage = recipientThread.messages.at(-1);
-			items.push({
-				id: 'secret-santa-asRecipient',
-				kind: 'secret-santa',
-				title: 'Your Secret Santa',
-				subtitle: 'Secret Santa',
-				preview: lastMessage?.content ?? 'No messages yet.',
-				previewSender: lastMessage?.senderLabel ?? null,
-				lastMessageAt: lastMessage?.sentAt ?? null,
-				unreadCount: recipientThread.unreadCount,
-				avatar: { type: 'secret' }
-			});
-		}
-		return items;
-	}
-
-	function formatTimestamp(value: string | null): string {
-		if (!value) return 'No activity yet';
+	function formatTimestamp(value: string): string {
 		return new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium', timeStyle: 'short' }).format(
 			new Date(value)
 		);
+	}
+
+	function profileImageUrl(conversation: ConversationItem, userId: string): string {
+		return resolve('/api/conversation-avatar/[conversationId]/[participantId]', {
+			conversationId: conversation.id,
+			participantId: userId
+		});
 	}
 </script>
 
@@ -183,7 +106,7 @@
 			</h1>
 			{#if !compact}
 				<p class="mt-3 max-w-2xl text-stone-600">
-					Open your private Secret Santa exchange, a Wishlist Discussion, or Gift Coordination.
+					Every conversation is organized around a participant’s wishlist.
 				</p>
 			{/if}
 		</div>
@@ -207,7 +130,7 @@
 					id="conversation-search"
 					type="search"
 					bind:value={search}
-					placeholder="Conversation or participant"
+					placeholder="Wishlist owner or conversation"
 				/>
 			</div>
 			<div class="space-y-2">
@@ -220,9 +143,8 @@
 					bind:value={filter}
 				>
 					<option value="all">All conversations</option>
-					<option value="secret-santa">Secret Santa</option>
-					<option value="wishlist-discussion">Wishlist Discussion</option>
-					<option value="gift-coordination">Gift Coordination</option>
+					<option value="wishlist_discussion">Talk to wishlist owner</option>
+					<option value="gift_coordination">Private gift planning</option>
 				</select>
 			</div>
 		</div>
@@ -246,61 +168,97 @@
 			</p>
 			<p class="mt-1 text-sm text-stone-600">
 				{conversations.length === 0
-					? 'Conversations will appear here when the draw is finalized or you open a family discussion.'
+					? 'Conversations appear here after the draw is finalized or you start a wishlist conversation.'
 					: 'Try a different search or conversation type.'}
 			</p>
 		</div>
 	{:else}
-		<ul class="space-y-3" aria-label="Your conversations">
+		<ul class="space-y-3" aria-label="Your wishlist conversations">
 			{#each displayedConversations as conversation (conversation.id)}
 				<li>
-					<a
-						class="flex items-start gap-4 rounded-xl border border-stone-200 bg-white p-4 transition hover:border-emerald-300 hover:bg-emerald-50/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
-						href={resolve('/app/messages/[conversationId]', {
-							conversationId: conversation.id
-						})}
+					<article
+						class="rounded-xl border border-stone-200 bg-white p-3 transition hover:border-emerald-300 hover:bg-emerald-50/40 sm:p-4"
 					>
-						{#if conversation.avatar.type === 'codename'}
-							<CodenameAvatar codename={conversation.avatar.codename} size="md" />
-						{:else if conversation.avatar.type === 'profile'}
+						<a
+							class="flex min-w-0 items-start gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800 sm:gap-4"
+							href={resolve('/app/messages/[conversationId]', {
+								conversationId: conversation.id
+							})}
+						>
 							<ProfileAvatar
-								displayName={conversation.avatar.displayName}
-								hasAvatar={conversation.avatar.hasAvatar}
-								imageVersion={conversation.avatar.avatarVersion}
+								displayName={conversation.wishlistOwner.displayName}
+								hasAvatar={conversation.wishlistOwner.avatar.hasAvatar}
+								imageVersion={conversation.wishlistOwner.avatar.avatarVersion}
+								imageSrc={profileImageUrl(conversation, conversation.wishlistOwner.avatar.userId)}
 								size="md"
 							/>
-						{:else}
-							<span
-								class="grid size-12 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-800"
-								aria-label="Secret Santa identity hidden"
-							>
-								<Gift size={20} aria-hidden="true" />
-							</span>
-						{/if}
-						<span class="min-w-0 flex-1">
-							<span class="flex flex-wrap items-center justify-between gap-2">
-								<span class="font-semibold text-stone-950">{conversation.title}</span>
-								{#if conversation.unreadCount > 0}
-									<span
-										class="rounded-full bg-rose-700 px-2.5 py-1 text-xs font-semibold text-white"
-									>
-										{conversation.unreadCount} unread
+							<div class="min-w-0 flex-1">
+								<span class="flex flex-wrap items-center justify-between gap-2">
+									<span class="font-semibold text-stone-950">{conversation.title}</span>
+									{#if conversation.unreadCount > 0}
+										<span
+											class="rounded-full bg-rose-700 px-2.5 py-1 text-xs font-semibold text-white"
+										>
+											{conversation.unreadCount} unread
+										</span>
+									{/if}
+								</span>
+								{#if conversation.lastMessagePreview}
+									<span class="mt-1 block truncate text-sm text-stone-600">
+										{conversation.lastMessageSenderLabel
+											? `${conversation.lastMessageSenderLabel}: `
+											: ''}
+										{conversation.lastMessagePreview}
 									</span>
 								{/if}
-							</span>
-							<span class="mt-1 block text-sm text-stone-600">{conversation.subtitle}</span>
-							<span class="mt-2 block truncate text-sm text-stone-700">
-								{conversation.previewSender ? `${conversation.previewSender}: ` : ''}
-								{conversation.preview}
-							</span>
-							<time
-								class="mt-2 block text-xs text-stone-500"
-								datetime={conversation.lastMessageAt ?? undefined}
+								<ul class="mt-3 flex flex-wrap gap-1.5" aria-label="Conversation participants">
+									{#each conversation.participants as participant, index (`${participant.label}-${index}`)}
+										<li
+											class="inline-flex items-center gap-1.5 rounded-full bg-stone-100 py-0.5 pr-2 pl-0.5 text-xs text-stone-700"
+										>
+											{#if participant.avatar.type === 'profile'}
+												<ProfileAvatar
+													displayName={participant.label}
+													hasAvatar={participant.avatar.hasAvatar}
+													imageVersion={participant.avatar.avatarVersion}
+													imageSrc={profileImageUrl(conversation, participant.avatar.userId)}
+													size="sm"
+													class="size-6 text-[0.625rem]"
+												/>
+											{:else if participant.avatar.type === 'codename'}
+												<CodenameAvatar codename={participant.avatar.codename} size="xs" />
+											{:else}
+												<span
+													class="grid size-6 place-items-center rounded-full bg-emerald-100 text-emerald-800"
+													aria-label="Secret Santa identity hidden"
+												>
+													<Gift size={12} aria-hidden="true" />
+												</span>
+											{/if}
+											{participant.label}
+										</li>
+									{/each}
+								</ul>
+							</div>
+						</a>
+						<div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+							{#if conversation.lastMessageAt}
+								<time class="text-xs text-stone-500" datetime={conversation.lastMessageAt}>
+									{formatTimestamp(conversation.lastMessageAt)}
+								</time>
+							{/if}
+							<a
+								class="ml-auto text-sm font-medium text-emerald-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
+								href={conversation.isWishlistOwner
+									? resolve('/app/wishlist')
+									: resolve('/app/wishlists/[participantId]', {
+											participantId: conversation.wishlistOwner.userId
+										})}
 							>
-								{formatTimestamp(conversation.lastMessageAt)}
-							</time>
-						</span>
-					</a>
+								View wishlist
+							</a>
+						</div>
+					</article>
 				</li>
 			{/each}
 		</ul>

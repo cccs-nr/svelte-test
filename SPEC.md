@@ -472,13 +472,13 @@ The page should separate the participant's official Secret Santa gift from optio
 
 ### Wishlist Detail
 
-Display another participant's wishlist using the same compact gift-idea list as Your Draw, with the participant's name as the page title. Eligible participants can reserve an available Wishlist Gift and manage their own reservations. The page should link to Wishlist Discussion and private Gift Coordination, enforce membership rules, and never expose reservation or purchase details to the Wishlist Recipient.
+Display another participant's wishlist using the same compact gift-idea list as Your Draw, with the participant's name as the page title. Eligible participants can reserve an available Wishlist Gift and manage their own reservations. The page should link to **Talk to [Participant]** and **Private gift planning**, enforce membership rules, and never expose reservation or purchase details to the Wishlist Recipient.
 
 ### My Wishlist
 
 A page where participants can manage their own gift suggestions in a compact, responsive list or table and use add/edit dialogs.
 
-The Wishlist Recipient must not see reservation status, Wishlist Gifter identity, or private Gift Coordination content.
+The Wishlist Recipient must not see reservation status, Wishlist Gifter identity, or private gift-planning content.
 
 ### Messages and Conversation Detail
 
@@ -779,7 +779,7 @@ The first objective is a working MVP rather than implementing every possible fea
 - [x] Add an organizer event dashboard with lifecycle progress and per-account activity counts.
 - [x] Keep Home focused on the draw, exchange date/countdown, gift budget, and official purchase status.
 - [x] Make the top navigation sticky and approximately 64px high when collapsed.
-- [x] Keep Secret Santa, Wishlist Discussion, and Gift Coordination conversations distinct.
+- [x] Use two wishlist-based conversation types with clear, action-oriented labels.
 - [x] Lower the password minimum to 3 characters while accepting arbitrary characters.
 - [x] Apply an original winter-holiday visual theme with local decorative artwork.
 - [x] Add authenticated, same-origin Socket.IO updates for messages, wishlists, purchase status, badges, and organizer aggregate stats.
@@ -829,11 +829,11 @@ When multiple implementation approaches are available, prefer the simplest maint
 
 The result should be a complete, functional application that can be deployed on a single computer and used by approximately 12 family members for their Christmas gift exchange.
 
-## 20. Family-Wide Gift Coordination Expansion
+## 20. Family-Wide Gift Planning Expansion
 
-This section defines the proposed expansion from an assignment-centered Secret Santa app into a family-wide gift coordination app. The existing Secret Santa draw, **Your Assigned Recipient**'s wishlist, anonymous Secret Santa conversation, event dashboard, and deployment model remain in place.
+This section defines the expansion from an assignment-centered Secret Santa app into a family-wide gift planning app. The Secret Santa draw, **Your Assigned Recipient**'s wishlist, event dashboard, and deployment model remain in place. Assigned Secret Santas communicate with their recipient in the same wishlist conversation used by other gift givers; there is no separate Secret Santa conversation type.
 
-Where this section broadens or changes an earlier requirement, this section takes precedence for the expansion. In particular, wishlist ideas become discoverable by active event participants, and the messaging model gains separate conversation types. The existing Secret Santa conversation must remain isolated and retain its current anonymity guarantees.
+Where this section broadens or changes an earlier requirement, this section takes precedence for the expansion. In particular, wishlist ideas become discoverable by active event participants, and all conversations are associated with a wishlist.
 
 ### 20.1 Goals
 
@@ -843,9 +843,9 @@ The expanded application should let active participants:
 - Search for a family member and review that person's wishlist.
 - Act as a **Wishlist Gifter** by reserving an available idea, releasing it before purchase, or marking it purchased.
 - See whether an idea is available, reserved, or purchased without learning the **Wishlist Gifter**'s real identity.
-- Coordinate a **Wishlist Gift** without including its **Wishlist Recipient** in private discussions.
+- Plan a **Wishlist Gift** without including its **Wishlist Recipient** in private gift-planning conversations.
 - Ask a **Wishlist Recipient** questions in a separate conversation that they can read and answer.
-- Continue using the existing private Secret Santa conversation.
+- Let an assigned Secret Santa ask their **Wishlist Recipient** questions while preserving the Secret Santa's anonymity.
 - Use randomly assigned Christmas-themed codenames in family gift coordination.
 - Participate in a deliberate, organizer-controlled identity reveal after the event.
 
@@ -904,31 +904,24 @@ Organizers need a controlled way to correct reservation records when necessary. 
 
 ### 20.5 Conversation Types and Access
 
-The application must support three distinct conversation types. Conversation type and membership are server-enforced; clients must not gain access by guessing an identifier or changing frontend state.
+The application has exactly two wishlist-based conversation types. Their user-facing names describe the action and access rules; the internal types remain `wishlist_discussion` and `gift_coordination`. Conversation type and membership are server-enforced; clients must not gain access by guessing an identifier or changing frontend state.
 
-**Secret Santa**
+**Talk to [Participant]** (`wishlist_discussion`)
 
-- Retain the existing one-to-one conversation for a finalized Secret Santa assignment.
-- Preserve current assignment confidentiality and unread-message behavior.
-- Continue labeling the Secret Santa as **Your Secret Santa** to the person receiving the official gift.
-- Do not merge this conversation with either family-wide conversation type.
+- Associate the conversation with one wishlist owner.
+- Include the wishlist owner so they can answer questions about gift preferences.
+- Allow eligible family members, including the assigned Secret Santa, to ask about suggestions and preferences.
+- Display the assigned Secret Santa as **Secret Santa** to the wishlist owner. Display other non-owner participants by codename.
+- Keep all messages about the same wishlist in this one conversation; do not create a separate Secret Santa conversation.
 
-**Wishlist Discussion**
+**Private gift planning** (`gift_coordination`)
 
-- Associate the conversation with one **Wishlist Recipient**.
-- Include the Wishlist Recipient so they can answer questions about their gift preferences.
-- Allow eligible family members to ask about suggestions and preferences.
-- Display other participants using codenames before reveal.
-- Never show reservation-only coordination or private Gift Coordination discussions in this conversation.
-
-**Gift Coordination**
-
-- Associate the conversation with one **Wishlist Recipient** but exclude that person from membership and access.
+- Associate the conversation with one wishlist owner but exclude that person from membership and access.
 - Allow eligible family members to coordinate reservations, purchases, shared costs, and gifts not listed on the wishlist.
 - Display other participants using codenames before reveal.
 - Enforce membership on conversation retrieval, message retrieval, sending, read markers, and realtime subscriptions.
 
-The proposed default is explicit membership for Gift Coordination: participants join or are invited, and the Wishlist Recipient is always excluded. Wishlist Discussion is available to the Wishlist Recipient and participating family members. The organizer does not receive automatic access to private conversation content merely by being an organizer. Any exceptional support access must be deliberately specified and audited before implementation.
+Wishlist owners are included in **Talk to [Participant]**. Private gift planning requires explicit membership and always excludes its wishlist owner. The organizer does not receive automatic access to private conversation content merely by being an organizer. Any exceptional support access must be deliberately specified and audited before implementation.
 
 Messages should remain chronological, support multiline text and timestamps, and expose unread indicators. Realtime notifications may signal that a conversation changed, but must not broadcast message content, assignment pairs, or private reservation details to unauthorized users.
 
@@ -940,7 +933,7 @@ Keep the existing consolidated organizer Dashboard. Extend its existing statisti
 - Total active Wishlist Gift reservations.
 - Total Wishlist Gifts marked purchased.
 - Number of participants who marked their official Secret Santa gift as purchased for **Your Assigned Recipient**.
-- Number of active Gift Coordination conversations.
+- Number of active private gift-planning conversations.
 
 The organizer should also be able to review and, where authorized, correct Wishlist Gift reservation states; manage codename assignments; see event progress; and deliberately initiate the reveal after the event. The reveal should publish the codename-to-participant mapping to participants and retain that mapping as event history.
 
@@ -954,7 +947,7 @@ The expansion requirements contain two different expectations for organizer visi
 - Provide any necessary pre-reveal codename management through a separate, explicit organizer workflow with a clear warning and an audit record.
 - Make the mapping visible to all participants only after the organizer initiates reveal.
 
-The implementation follows these defaults. Wishlist Discussion is available to active participants and includes its Wishlist Recipient. Gift Coordination requires an explicit join, allows active participants to join, and always excludes its Wishlist Recipient. Organizer privileges do not grant access to conversation contents; an organizer may participate only when otherwise eligible. Reveal is permitted only after the event is complete and every assignment is finalized.
+The implementation follows these defaults. **Talk to [Participant]** is available to active participants and includes its wishlist owner. **Private gift planning** requires an explicit join, allows active participants to join, and always excludes its wishlist owner. Organizer privileges do not grant access to conversation contents; an organizer may participate only when otherwise eligible. Reveal is permitted only after the event is complete and every assignment is finalized.
 
 ## 21. Proposed Expansion Implementation Roadmap
 
@@ -967,8 +960,8 @@ Phases 1–6 above describe the existing application and remain complete as reco
 **Work completed:**
 
 - Keep the mapping out of normal Dashboard data and require an explicit, audited organizer action to manage it.
-- Use explicit Gift Coordination membership; the Wishlist Recipient is always excluded.
-- Include all active participants, including the Wishlist Recipient, in Wishlist Discussion.
+- Use explicit **Private gift planning** membership; the Wishlist Recipient is always excluded.
+- Include all active participants, including the Wishlist Recipient, in **Talk to [Participant]**.
 - Allow reservation corrections only through organizer procedures with a required reason and audit record.
 - Represent reveal separately from event completion and allow it only after completed, finalized assignments.
 
@@ -983,8 +976,9 @@ Phases 1–6 above describe the existing application and remain complete as reco
 - Add event-scoped participant codename records with unique participant and codename constraints.
 - Add reservation records with lifecycle timestamps and states for reserved, released, and purchased.
 - Add database-level protection against multiple active or purchased reservations for the same suggestion.
-- Keep the existing assignment-scoped conversation and message tables unchanged for Secret Santa messaging.
-- Add separate group-conversation, participant, message, and read-marker tables for Wishlist Discussion and Gift Coordination. This additive approach preserves existing sender-side anonymity and message history without rebuilding the legacy tables.
+- Consolidate assigned Secret Santa messages into the assigned recipient's **Talk to [Participant]** conversation; do not keep a separate Secret Santa conversation type.
+- Use one wishlist-based conversation model with **Talk to [Participant]** and **Private gift planning** types, participant memberships, messages, and read markers.
+- Migrate and merge existing message histories by wishlist owner, preserving sender IDs, valid memberships, and unread state.
 - Add reveal metadata to the event while retaining the existing event and assignment lifecycle.
 - Add indexes and foreign keys for common reads, membership checks, and deletion behavior.
 - Add a versioned Drizzle migration that creates the new tables, backfills stable codenames for existing active participants, and does not rely on schema push or a manual change to the user's database.
@@ -1040,18 +1034,18 @@ Phases 1–6 above describe the existing application and remain complete as reco
 
 ### Phase 12 — Separate Group Conversations and Realtime Messaging (complete)
 
-**Purpose:** Add family communication without exposing Wishlist Recipients to surprise-planning content or breaking Secret Santa anonymity.
+**Purpose:** Add wishlist-based conversations without exposing Wishlist Recipients to private gift-planning content or breaking Secret Santa anonymity.
 
 **Work:**
 
-- Keep Secret Santa messages in their existing, separate conversation.
-- Add Wishlist Discussion and Gift Coordination creation, membership, retrieval, sending, and read-state procedures.
+- Consolidate assigned Secret Santa messages into the recipient's **Talk to [Participant]** conversation.
+- Add **Talk to [Participant]** and **Private gift planning** creation, membership, retrieval, sending, and read-state procedures.
 - Enforce membership and Wishlist Recipient exclusion on every server operation; derive realtime recipients from authorized membership records and send content-free events only to those user rooms.
-- Use codenames for group-conversation identities before reveal; use the assigned Secret Santa label for the existing anonymous exchange.
+- Use codenames for other gift givers before reveal; show an assigned Secret Santa as **Secret Santa** to the wishlist owner.
 - Add conversation lists, timestamps, multiline message display, and unread indicators.
 - Emit content-free realtime change notifications only to authorized conversation members.
 
-**Exit criteria:** Authorization tests prove a Wishlist Recipient cannot read, join, receive events from, or mark messages read in their Gift Coordination conversation; non-members cannot access group conversations; Secret Santa tests remain green.
+**Exit criteria:** Authorization tests prove a Wishlist Recipient cannot read, join, receive events from, or mark messages read in **Private gift planning**; non-members cannot access conversations; assigned Secret Santa identity tests remain green.
 
 ### Phase 13 — Organizer Statistics, Reservation Tools, and Reveal (complete)
 
@@ -1062,7 +1056,7 @@ Phases 1–6 above describe the existing application and remain complete as reco
 - Add the expansion statistics to the consolidated statistics area.
 - Add reservation review and correction controls according to the confirmed authorization policy.
 - Add the explicit event reveal action, its confirmation step, and post-reveal participant mapping display.
-- Show progress through wishlist preparation, assignment, gift coordination, exchange completion, and reveal.
+- Show progress through wishlist preparation, assignment, gift planning, exchange completion, and reveal.
 - Retain useful event history after completion and avoid deleting assignments, reservations, or message history as a side effect of reveal.
 
 **Exit criteria:** Dashboard totals match authoritative database queries; only authorized organizers can manage event state; participants see identity mappings only after reveal.
@@ -1075,7 +1069,7 @@ Phases 1–6 above describe the existing application and remain complete as reco
 
 - Add family wishlist browsing, Wishlist Recipient selection, and suggestion filters to the existing Wishlist experience.
 - Add clear Available, Reserved, and Purchased states to eligible viewers, with reservation actions and the participant's own reservation list.
-- Provide separate, clearly labeled Wishlist Discussion and Gift Coordination conversations.
+- Provide clearly labeled **Talk to [Participant]** and **Private gift planning** conversations.
 - Use codename labels consistently wherever participants coordinate or discuss purchases.
 - Show the corresponding generated codename avatar instead of personal profile photos in family conversation and reservation identity surfaces.
 - Keep profile picture and profile detail editing inline on the Profile page; reserve dialogs for contexts where editing is secondary.
@@ -1083,7 +1077,7 @@ Phases 1–6 above describe the existing application and remain complete as reco
 - Provide useful loading, empty, conflict, and permission-denied states.
 - Show uncaught route errors in a centered application error card, with stack details limited to development mode.
 
-**Exit criteria:** Main participant workflows can be completed on mobile and desktop without confusing the three conversation types or exposing private purchase data.
+**Exit criteria:** Main participant workflows can be completed on mobile and desktop without confusing the two conversation types or exposing private purchase data.
 
 ### Phase 15 — Security, Regression, and Deployment Verification (implementation complete; browser E2E pending)
 
@@ -1106,12 +1100,12 @@ The expansion is complete when:
 
 - Every active participant has one unique, stable, randomly assigned event codename.
 - Participants can browse and search other active participants' wishlists.
-- Wishlist Recipients cannot see reservation or purchase status, Wishlist Gifter identities, or private Gift Coordination messages.
+- Wishlist Recipients cannot see reservation or purchase status, Wishlist Gifter identities, or private gift-planning messages.
 - A suggestion cannot have more than one active or purchased reservation, including under concurrent requests.
 - Participants can act as Wishlist Gifters to reserve, release, and purchase eligible ideas with the required authorization.
 - Wishlist Gifter identities remain hidden from Wishlist Recipients until the event reveal.
-- Wishlist Discussion includes its Wishlist Recipient; Gift Coordination always excludes its Wishlist Recipient; the backend enforces both rules.
-- Existing Secret Santa messaging remains separate: the Gift Recipient sees **Your Secret Santa**, and the assigned Secret Santa's identity remains private.
+- **Talk to [Participant]** includes its wishlist owner; **Private gift planning** always excludes its wishlist owner; the backend enforces both rules.
+- Assigned Secret Santas use **Talk to [Participant]** and appear as **Secret Santa** to their assigned recipient.
 - Group conversations use codenames before reveal, have unread indicators, and receive scoped realtime updates.
 - Organizers can review aggregate statistics, manage authorized reservation corrections, and deliberately initiate reveal.
 - Reveal publishes the mapping according to the approved policy and preserves event history.
@@ -1145,9 +1139,9 @@ Keep the existing root redirect and `/login` and `/register` pages. Existing org
 - **Home** shows the event, **Your Assigned Recipient**, exchange date/countdown, gift budget, and official gift purchase status in a three-column summary, followed by the alphabetized family wishlist list. Do not add directory search/filter/sort controls, separate participant metric cards, recent message/idea previews, or activity/conversation feeds.
 - **My Wishlist** presents the signed-in participant's ideas in a compact, responsive list/table with title, details, optional image, price, update time, and actions. Add and edit ideas in a reusable dialog; confirm deletion. Never return reservation state, Wishlist Gifter identity, or private conversation details to the Wishlist Recipient.
 - **Gift Giving** focuses on the official Secret Santa gift for **Your Assigned Recipient**. Show the assigned participant's display name and wishlist without their codename. Home displays the official gift purchase status. Family-wide wishlist browsing belongs on Home.
-- **Wishlist Detail** uses the same compact gift-idea list as Your Draw, changing the title to the participant's name. Actions depend on ownership: a Wishlist Gifter may reserve an available idea, release their own unpurchased reservation, or mark it purchased. Include links/actions for Wishlist Discussion and private Gift Coordination. The Wishlist Recipient must never see reservation or purchase state.
-- **Messages** lists only conversations authorized for the current participant, sorted by most recent activity, with type, participant codenames, latest-message preview/time, and unread count. Support search, type filtering, and clear empty states.
-- **Conversation Detail** presents messages chronologically in a responsive chat layout, marks messages read when viewed, supports multiline composition, and links back to Messages and the associated wishlist when authorized. Never expose a hidden Secret Santa identity or allow a Wishlist Recipient into private Gift Coordination.
+- **Wishlist Detail** uses the same compact gift-idea list as Your Draw, changing the title to the participant's name. Actions depend on ownership: a Wishlist Gifter may reserve an available idea, release their own unpurchased reservation, or mark it purchased. Include links/actions for **Talk to [Participant]** and **Private gift planning**. The Wishlist Recipient must never see reservation or purchase state.
+- **Messages** lists only conversations authorized for the current participant, sorted by most recent activity, with the **Talk to [Participant]** or **Private gift planning** label, participant codenames, latest-message preview/time, and unread count. Support search, type filtering, and clear empty states.
+- **Conversation Detail** presents messages chronologically in a responsive chat layout, marks messages read when viewed, supports multiline composition, and links back to Messages and the associated wishlist when authorized. Never expose a hidden Secret Santa identity or allow a Wishlist Recipient into private gift planning.
 
 ### 23.3 Shared Components and Acceptance
 
@@ -1159,6 +1153,6 @@ The page expansion is complete when:
 - Home, My Wishlist, Gift Giving, Wishlist Detail, Messages, and Conversation Detail each have a distinct purpose and working contextual links.
 - My Wishlist, Your Draw, and Wishlist Detail use a consistent gift-idea list; the title and actions vary by page and viewer permissions.
 - The Home family wishlist list is alphabetized and links to each participant's Wishlist Detail without displaying codenames alongside names or reservation status.
-- Wishlist Recipients cannot access reservation/purchase identities or private Gift Coordination content through pages, APIs, images, or realtime events.
-- Secret Santa messages continue to label the hidden sender **Your Secret Santa**; Gift Coordination always excludes its Wishlist Recipient.
+- Wishlist Recipients cannot access reservation/purchase identities or private gift-planning content through pages, APIs, images, or realtime events.
+- Assigned Secret Santa messages appear in **Talk to [Participant]** and label the hidden sender **Secret Santa**; private gift planning always excludes its wishlist owner.
 - The existing organizer dashboard, event management, authentication, and assignment privacy remain intact.

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { and, count, desc, eq, isNotNull, like, max, or } from 'drizzle-orm';
+import { and, count, desc, eq, gt, isNotNull, like, max, ne, or } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import {
 	createGiftSuggestionInputSchema,
@@ -14,7 +14,10 @@ import {
 	giftReservations,
 	giftSuggestions,
 	participantCodenames,
-	users
+	users,
+	wishlistConversationParticipants,
+	wishlistConversations,
+	wishlistMessages
 } from '#lib/server/db/schema.js';
 import { getFinalizedGiverId, getFinalizedRecipientId } from '#lib/server/wishlist-access.js';
 import {
@@ -96,18 +99,78 @@ export const wishlistsRouter = router({
 				.select({
 					id: users.id,
 					displayName: users.displayName,
+					avatarKey: users.avatarKey,
+					avatarVersion: users.updatedAt,
 					giftIdeaCount: count(giftSuggestions.id),
 					wishlistUpdatedAt: max(giftSuggestions.updatedAt)
 				})
 				.from(users)
 				.leftJoin(giftSuggestions, eq(giftSuggestions.ownerId, users.id))
 				.where(condition)
-				.groupBy(users.id, users.displayName)
+				.groupBy(users.id, users.displayName, users.avatarKey, users.updatedAt)
 				.orderBy(users.displayName, users.id)
 				.all();
+			const conversationsByOwner = new Map<
+				string,
+				{
+					id: string;
+					type: 'wishlist_discussion' | 'gift_coordination';
+					unreadCount: number;
+				}[]
+			>();
+			const conversationRows = ctx.db
+				.select({
+					id: wishlistConversations.id,
+					wishlistOwnerId: wishlistConversations.wishlistOwnerId,
+					type: wishlistConversations.type,
+					lastReadAt: wishlistConversationParticipants.lastReadAt
+				})
+				.from(wishlistConversations)
+				.innerJoin(
+					wishlistConversationParticipants,
+					and(
+						eq(wishlistConversationParticipants.conversationId, wishlistConversations.id),
+						eq(wishlistConversationParticipants.userId, ctx.user.id)
+					)
+				)
+				.where(
+					and(
+						eq(wishlistConversations.eventId, SINGLE_EVENT_ID),
+						or(
+							ne(wishlistConversations.type, 'gift_coordination'),
+							ne(wishlistConversations.wishlistOwnerId, ctx.user.id)
+						)
+					)
+				)
+				.orderBy(desc(wishlistConversations.lastMessageAt), desc(wishlistConversations.updatedAt))
+				.all();
+			for (const conversation of conversationRows) {
+				const unreadCount =
+					ctx.db
+						.select({ value: count() })
+						.from(wishlistMessages)
+						.where(
+							and(
+								eq(wishlistMessages.conversationId, conversation.id),
+								ne(wishlistMessages.senderId, ctx.user.id),
+								gt(wishlistMessages.createdAt, conversation.lastReadAt)
+							)
+						)
+						.get()?.value ?? 0;
+				const ownerConversations = conversationsByOwner.get(conversation.wishlistOwnerId) ?? [];
+				ownerConversations.push({
+					id: conversation.id,
+					type: conversation.type,
+					unreadCount
+				});
+				conversationsByOwner.set(conversation.wishlistOwnerId, ownerConversations);
+			}
 
-			return rows.map((row) => ({
+			return rows.map(({ avatarKey, avatarVersion, ...row }) => ({
 				...row,
+				hasAvatar: Boolean(avatarKey),
+				avatarVersion: avatarVersion.getTime(),
+				conversations: conversationsByOwner.get(row.id) ?? [],
 				wishlistUpdatedAt: row.wishlistUpdatedAt?.toISOString() ?? null
 			}));
 		}),

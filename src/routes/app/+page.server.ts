@@ -42,7 +42,11 @@ export const load: PageServerLoad = ({ locals }) => {
 		.get();
 	const recipient = assignment
 		? (db
-				.select({ displayName: users.displayName })
+				.select({
+					displayName: users.displayName,
+					avatarKey: users.avatarKey,
+					avatarVersion: users.updatedAt
+				})
 				.from(users)
 				.where(eq(users.id, assignment.recipientId))
 				.get() ?? null)
@@ -54,6 +58,8 @@ export const load: PageServerLoad = ({ locals }) => {
 		participant: {
 			recipientId: recipient ? (assignment?.recipientId ?? null) : null,
 			recipientDisplayName: recipient?.displayName ?? null,
+			recipientHasAvatar: Boolean(recipient?.avatarKey),
+			recipientAvatarVersion: recipient?.avatarVersion.getTime() ?? 0,
 			giftPurchasedAt: assignment?.giftPurchasedAt?.toISOString() ?? null
 		}
 	};

@@ -10,12 +10,12 @@ import { getAvailableCodenames, suggestedCodenames } from '#lib/server/codenames
 import {
 	assignments,
 	codenameAuditLog,
-	conversations,
 	events,
 	households,
-	messages,
 	participantCodenames,
-	users
+	users,
+	wishlistConversations,
+	wishlistMessages
 } from '#lib/server/db/schema.js';
 import type { SessionCookieStore } from '#lib/server/auth/session.js';
 import { appRouter } from '#lib/server/trpc/router.js';
@@ -303,16 +303,25 @@ describe('assignment router', () => {
 			.where(eq(assignments.giverId, 'alice'))
 			.get();
 		if (!aliceAssignment) throw new Error('Expected Alice to have a finalized assignment.');
-		db.insert(conversations)
-			.values({ id: 'alice-conversation', assignmentId: aliceAssignment.id })
-			.run();
-		db.insert(messages)
+		const aliceConversation = db
+			.select()
+			.from(wishlistConversations)
+			.where(
+				and(
+					eq(wishlistConversations.wishlistOwnerId, aliceAssignment.receiverId),
+					eq(wishlistConversations.type, 'wishlist_discussion')
+				)
+			)
+			.get();
+		if (!aliceConversation) {
+			throw new Error('Expected Alice’s assigned recipient to have a Wishlist Discussion.');
+		}
+		db.insert(wishlistMessages)
 			.values({
 				id: 'alice-message',
-				conversationId: 'alice-conversation',
-				senderSide: 'giver',
-				content: 'A private question.',
-				giverReadAt: new Date()
+				conversationId: aliceConversation.id,
+				senderId: 'alice',
+				content: 'A private question.'
 			})
 			.run();
 
@@ -328,8 +337,8 @@ describe('assignment router', () => {
 		const event = db.select().from(events).where(eq(events.id, SINGLE_EVENT_ID)).get();
 		expect(event?.status).toBe('open');
 		expect(db.select().from(assignments).all()).toHaveLength(0);
-		expect(db.select().from(conversations).all()).toHaveLength(0);
-		expect(db.select().from(messages).all()).toHaveLength(0);
+		expect(db.select().from(wishlistConversations).all()).toHaveLength(4);
+		expect(db.select().from(wishlistMessages).all()).toHaveLength(1);
 	});
 
 	it('keeps participant codenames stable across draw resets and reveals identities only after completion', async () => {

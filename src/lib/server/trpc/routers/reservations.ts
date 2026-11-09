@@ -59,7 +59,7 @@ function ensureCoordinationIsOpen(database: AppDatabase, userId: string): void {
 	) {
 		throw new TRPCError({
 			code: 'PRECONDITION_FAILED',
-			message: 'A finalized assignment is required while gift coordination is open.'
+			message: 'Gift planning is available after assignments are finalized.'
 		});
 	}
 }

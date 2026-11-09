@@ -243,8 +243,8 @@
 		<CardHeader>
 			<CardTitle>Profile picture</CardTitle>
 			<CardDescription>
-				Your picture appears in your account menu and on your side of messages. Your Secret Santa’s
-				identity stays private.
+				Your picture appears in your account menu and in conversations when your identity is
+				visible. Anonymous participants use codename avatars.
 			</CardDescription>
 		</CardHeader>
 		<CardContent class="space-y-5">
@@ -302,8 +302,7 @@
 			<CardHeader>
 				<CardTitle>Your event codename</CardTitle>
 				<CardDescription>
-					This is how other participants identify you in family gift conversations before the
-					reveal.
+					Other gift givers see your codename. Your assigned recipient sees “Secret Santa” instead.
 				</CardDescription>
 			</CardHeader>
 			<CardContent class="space-y-4">

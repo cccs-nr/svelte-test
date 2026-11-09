@@ -14,6 +14,7 @@
 		CardTitle
 	} from '#lib/components/ui/card/index.js';
 	import WishlistDirectory from '#lib/components/WishlistDirectory.svelte';
+	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -71,12 +72,22 @@
 						<p class="text-sm text-stone-500">Your draw</p>
 						{#if data.participant?.recipientId && data.participant.recipientDisplayName}
 							<a
-								class="mt-1 inline-block font-medium text-emerald-800 underline-offset-4 hover:underline"
+								class="mt-1 inline-flex max-w-full items-center gap-2 font-medium text-emerald-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
 								href={resolve('/app/wishlists/[participantId]', {
 									participantId: data.participant.recipientId
 								})}
 							>
-								{data.participant.recipientDisplayName}
+								<ProfileAvatar
+									displayName={data.participant.recipientDisplayName}
+									hasAvatar={data.participant.recipientHasAvatar}
+									imageVersion={data.participant.recipientAvatarVersion}
+									imageSrc={resolve('/api/participant-avatar/[participantId]', {
+										participantId: data.participant.recipientId
+									})}
+									size="sm"
+									class="size-8 text-xs"
+								/>
+								<span class="truncate">{data.participant.recipientDisplayName}</span>
 							</a>
 						{:else if data.participant}
 							<p class="mt-1 font-medium text-stone-900">Waiting for the draw</p>

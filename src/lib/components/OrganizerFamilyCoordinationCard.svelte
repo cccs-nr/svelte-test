@@ -182,7 +182,7 @@
 
 <Card class="border-stone-200 bg-white">
 	<CardHeader>
-		<CardTitle>Family gift coordination</CardTitle>
+		<CardTitle>Gift purchase tracking</CardTitle>
 		<CardDescription>
 			Review reservation states without exposing private message contents. Your own wishlist
 			reservations are excluded.
