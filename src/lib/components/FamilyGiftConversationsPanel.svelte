@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
 	import { UserRound } from '@lucide/svelte';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
@@ -21,10 +20,16 @@
 	type Props = {
 		currentUserId: string;
 		conversationId?: string | null;
+		onAssociatedWishlistChange?: (recipientId: string | null) => void;
 		fullHeight?: boolean;
 	};
 
-	let { currentUserId, conversationId = null, fullHeight = false }: Props = $props();
+	let {
+		currentUserId,
+		conversationId = null,
+		onAssociatedWishlistChange,
+		fullHeight = false
+	}: Props = $props();
 	let members = $state<FamilyMember[]>([]);
 	let conversations = $state<GiftConversation[]>([]);
 	let selectedRecipientId = $state('');
@@ -118,12 +123,14 @@
 			});
 			if (isDisposed || selectedConversationId !== conversation.id) return;
 			currentThread = thread;
+			onAssociatedWishlistChange?.(thread.recipientId);
 			const lastMessage = thread.messages.at(-1);
 			if (lastMessage && thread.unreadCount > 0) {
 				await trpc.giftConversations.markRead.mutate({ conversationId: conversation.id });
 				currentThread = { ...thread, unreadCount: 0 };
 			}
 		} catch (error) {
+			onAssociatedWishlistChange?.(null);
 			errorMessage =
 				error instanceof TRPCClientError
 					? error.message
@@ -148,6 +155,7 @@
 						});
 			currentThread = thread;
 			selectedConversationId = thread.id;
+			onAssociatedWishlistChange?.(thread.recipientId);
 			if (thread.unreadCount > 0) {
 				await trpc.giftConversations.markRead.mutate({ conversationId: thread.id });
 				currentThread = { ...thread, unreadCount: 0 };
@@ -339,16 +347,6 @@
 					: 'flex min-h-[24rem] min-w-0 flex-col rounded-xl border border-stone-200'}
 			>
 				{#if currentThread}
-					<div class="border-b border-stone-200 px-4 py-3">
-						<a
-							class="text-sm font-medium text-emerald-800 underline-offset-4 hover:underline"
-							href={resolve('/app/wishlists/[participantId]', {
-								participantId: currentThread.recipientId
-							})}
-						>
-							View associated wishlist
-						</a>
-					</div>
 					{#if currentThread.messages.length === 0}
 						<p class="flex-1 p-4 text-sm text-stone-600">No messages yet. Send the first note.</p>
 					{:else}
@@ -359,7 +357,7 @@
 						>
 							{#each currentThread.messages as message (message.id)}
 								<li
-									class={`flex items-start gap-2 ${message.senderLabel === 'You' ? 'flex-row-reverse justify-end' : 'justify-start'}`}
+									class={`flex items-start gap-2 ${message.senderLabel === 'You' ? 'flex-row-reverse justify-start' : 'justify-start'}`}
 								>
 									{#if message.senderCodename}
 										<CodenameAvatar codename={message.senderCodename} size="sm" />

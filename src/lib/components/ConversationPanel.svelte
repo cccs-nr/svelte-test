@@ -233,7 +233,7 @@
 				>
 					{#each currentThread.messages as message (messageKey(message))}
 						<li
-							class={`flex items-start gap-3 ${message.senderLabel === 'You' ? 'flex-row-reverse' : ''}`}
+							class={`flex items-start gap-3 ${message.senderLabel === 'You' ? 'flex-row-reverse justify-start' : 'justify-start'}`}
 						>
 							{#if message.senderLabel === 'You'}
 								<ProfileAvatar {displayName} {hasAvatar} imageVersion={avatarVersion} size="sm" />
@@ -245,7 +245,7 @@
 									imageVersion={conversations.asGiver.recipientAvatarVersion}
 									size="sm"
 								/>
-							{:else}
+							{:else if message.senderLabel !== 'You'}
 								<ProfileAvatar displayName="Secret Santa" hasAvatar={false} size="sm" />
 							{/if}
 							<div

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
 	import type { PageProps } from './$types';
 	import RecipientGiftIdeasPanel from '#lib/components/RecipientGiftIdeasPanel.svelte';
 	import FamilyWishlistPanel from '#lib/components/FamilyWishlistPanel.svelte';
@@ -24,13 +23,7 @@
 		</h1>
 		<p class="mt-3 max-w-2xl text-stone-600">
 			{#if data.assignedRecipient}
-				You drew this person; <a
-					class="font-medium text-emerald-800 underline-offset-4 hover:underline"
-					href={resolve('/app/wishlists/[participantId]', {
-						participantId: data.assignedRecipient.id
-					})}>here's their wishlist</a
-				>. Your official gift is separate from optional Wishlist Gifts you choose as a Wishlist
-				Gifter.
+				Your official gift is separate from optional Wishlist Gifts you choose as a Wishlist Gifter.
 			{:else}
 				Your draw will appear here after the organizer finalizes it.
 			{/if}

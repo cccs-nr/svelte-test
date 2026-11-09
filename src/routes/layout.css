@@ -103,13 +103,37 @@
 	background-color: #065f46;
 }
 
+.dark .bg-white {
+	background-color: var(--card);
+}
+
+.dark .text-white {
+	color: #fff;
+}
+
 .dark .hover\:bg-emerald-900:hover {
 	background-color: #047857;
+}
+
+.dark .bg-white {
+	background-color: var(--card);
+}
+
+.dark .text-white {
+	color: #fff;
 }
 
 .holiday-topnav {
 	color: #f1f5f0;
 	border-bottom-color: #871d31;
+}
+
+.holiday-topnav > div {
+	min-width: 0;
+}
+
+.holiday-topnav__brand {
+	min-width: 0;
 }
 
 .holiday-topnav__brand,
@@ -157,6 +181,40 @@
 .holiday-topnav__link.is-current .holiday-topnav__badge {
 	background-color: #fff;
 	color: #871d31;
+}
+
+.overflow-x-auto {
+	overscroll-behavior-x: contain;
+	scrollbar-color: var(--color-stone-400) transparent;
+	scrollbar-width: thin;
+	-webkit-overflow-scrolling: touch;
+}
+
+.overflow-x-auto:focus-visible {
+	outline: 2px solid var(--ring);
+	outline-offset: 2px;
+}
+
+@media (max-width: 380px) {
+	.holiday-topnav > div {
+		gap: 0.5rem;
+		padding-inline: 0.75rem;
+	}
+
+	.holiday-topnav__brand {
+		gap: 0.5rem;
+	}
+}
+
+@media (max-width: 380px) {
+	.holiday-topnav > div {
+		gap: 0.5rem;
+		padding-inline: 0.75rem;
+	}
+
+	.holiday-topnav__brand {
+		gap: 0.5rem;
+	}
 }
 
 @theme inline {

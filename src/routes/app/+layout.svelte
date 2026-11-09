@@ -28,6 +28,7 @@
 	let isAssignmentsActive = $derived(page.url.pathname === resolve('/app/assignments'));
 	let isGiftGivingActive = $derived(page.url.pathname.startsWith(resolve('/app/gift-giving')));
 	let isMessagesActive = $derived(page.url.pathname.startsWith(resolve('/app/messages')));
+	let isConversationPage = $derived(page.url.pathname.startsWith(`${resolve('/app/messages')}/`));
 	let isWishlistActive = $derived(page.url.pathname === resolve('/app/wishlist'));
 
 	onMount(() => {
@@ -99,10 +100,30 @@
 		}
 
 		function handleAccountKeyDown(event: KeyboardEvent): void {
-			if (!isAccountMenuOpen || event.key !== 'Escape') return;
-			event.preventDefault();
-			isAccountMenuOpen = false;
-			accountButton?.focus();
+			if (!isAccountMenuOpen) return;
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				isAccountMenuOpen = false;
+				accountButton?.focus();
+				return;
+			}
+
+			const menuItems = accountMenu?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+			if (!menuItems?.length) return;
+			const currentIndex = Array.from(menuItems).findIndex(
+				(item) => item === document.activeElement
+			);
+			let nextIndex: number | null = null;
+			if (event.key === 'ArrowDown') nextIndex = (currentIndex + 1) % menuItems.length;
+			if (event.key === 'ArrowUp') {
+				nextIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
+			}
+			if (event.key === 'Home') nextIndex = 0;
+			if (event.key === 'End') nextIndex = menuItems.length - 1;
+			if (nextIndex !== null) {
+				event.preventDefault();
+				menuItems[nextIndex]?.focus();
+			}
 		}
 
 		function handleOutsideFocus(event: FocusEvent): void {
@@ -160,21 +181,25 @@
 	<title>Secret Santa</title>
 </svelte:head>
 
-<div class="min-h-screen bg-transparent">
+<div
+	class={isConversationPage
+		? 'flex h-dvh flex-col overflow-hidden bg-transparent'
+		: 'min-h-screen bg-transparent'}
+>
 	<header
-		class="holiday-topnav sticky top-0 z-40 border-b-4 border-rose-800 bg-[#123b2b]/95 shadow-sm backdrop-blur"
+		class={`holiday-topnav sticky top-0 z-40 border-b-4 border-rose-800 bg-[#123b2b]/95 shadow-sm backdrop-blur ${isConversationPage ? 'shrink-0' : ''}`}
 	>
 		<div
-			class="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-2 sm:px-8"
+			class="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-2 px-3 py-2 sm:gap-4 sm:px-8"
 		>
 			<a
 				href={resolve('/app')}
-				class="holiday-topnav__brand inline-flex items-center gap-3 font-semibold tracking-tight"
+				class="holiday-topnav__brand inline-flex min-w-0 items-center gap-3 font-semibold tracking-tight"
 			>
 				<span class="holiday-topnav__brand-mark grid size-9 place-items-center rounded-xl">
 					<Gift size={18} aria-hidden="true" />
 				</span>
-				Secret Santa
+				<span class="whitespace-nowrap">Secret Santa</span>
 			</a>
 			<nav
 				id="main-navigation"
@@ -293,12 +318,17 @@
 						type="button"
 						class="inline-flex size-10 cursor-pointer items-center justify-center rounded-full transition outline-none hover:ring-2 hover:ring-amber-300/70 focus-visible:ring-2 focus-visible:ring-amber-300"
 						aria-label={`Open account menu for ${data.user.displayName}`}
-						aria-haspopup="dialog"
+						aria-haspopup="menu"
 						aria-expanded={isAccountMenuOpen}
 						aria-controls="account-menu"
 						onclick={() => {
 							isMobileNavigationOpen = false;
 							isAccountMenuOpen = !isAccountMenuOpen;
+							if (isAccountMenuOpen) {
+								requestAnimationFrame(() => {
+									accountMenu?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+								});
+							}
 						}}
 					>
 						<ProfileAvatar
@@ -312,12 +342,14 @@
 						bind:this={accountMenu}
 						id="account-menu"
 						hidden={!isAccountMenuOpen}
-						class="absolute top-full right-0 z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] rounded-3xl border border-stone-200 bg-white p-3 text-stone-950 shadow-2xl"
-						role="dialog"
+						class="absolute top-full right-0 z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] rounded-3xl border border-stone-200 bg-white p-2 text-stone-950 shadow-2xl"
+						role="menu"
 						aria-labelledby="account-menu-title"
-						aria-modal="false"
+						aria-orientation="vertical"
 					>
-						<div class="flex items-center gap-3 p-3">
+						<div
+							class="flex items-center gap-3 rounded-2xl border border-stone-100 bg-stone-50 p-3"
+						>
 							<ProfileAvatar
 								displayName={data.user.displayName}
 								hasAvatar={data.hasAvatar}
@@ -325,29 +357,38 @@
 								size="lg"
 							/>
 							<div class="min-w-0">
-								<p id="account-menu-title" class="truncate font-semibold">
+								<p id="account-menu-title" class="truncate text-base font-semibold">
 									{data.user.displayName}
 								</p>
-								<p class="mt-1 text-xs text-stone-500">
+								<p class="mt-1 text-sm text-stone-600">
 									{data.user.role === 'organizer' && data.user.isParticipating
 										? 'Organizer · Participant'
 										: data.user.role}
 								</p>
-								{#if data.user.codename}
-									<p
-										class="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-800"
-									>
-										<CodenameAvatar codename={data.user.codename} size="xs" />
-										<span>Codename · {data.user.codename}</span>
-									</p>
-								{/if}
 							</div>
 						</div>
-						<div class="my-2 border-t border-stone-100"></div>
+						{#if data.user.codename}
+							<div
+								class="mt-2 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-3"
+							>
+								<CodenameAvatar codename={data.user.codename} size="md" />
+								<div class="min-w-0">
+									<p class="text-xs font-medium tracking-wide text-emerald-800 uppercase">
+										Codename
+									</p>
+									<p class="mt-0.5 truncate font-semibold text-stone-950">
+										{data.user.codename}
+									</p>
+								</div>
+							</div>
+						{/if}
+						<div class="my-2 border-t border-stone-200"></div>
 						<a
 							href={resolve('/app/profile')}
 							onclick={closeAccountMenu}
-							class="flex h-9 w-full cursor-pointer items-center gap-3 rounded-xl px-3 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 hover:text-stone-950"
+							class="flex h-10 w-full cursor-pointer items-center gap-3 rounded-xl px-3 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 hover:text-stone-950"
+							role="menuitem"
+							tabindex={-1}
 						>
 							<UserRound size={18} aria-hidden="true" />
 							Profile
@@ -357,8 +398,10 @@
 							type="button"
 							variant="ghost"
 							size="lg"
-							class="w-full cursor-pointer justify-start gap-3 rounded-xl px-3 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 hover:text-stone-950"
+							class="w-full cursor-pointer justify-start gap-3 rounded-xl px-3 text-sm font-medium text-rose-700 transition-colors hover:bg-rose-50 hover:text-rose-900"
 							disabled={isSigningOut}
+							role="menuitem"
+							tabindex={-1}
 							onclick={handleLogout}
 						>
 							<LogOut size={18} aria-hidden="true" />
@@ -380,7 +423,11 @@
 			{realtimeError}
 		</p>
 	{/if}
-	<main class="mx-auto max-w-6xl px-4 py-10 sm:px-8">
+	<main
+		class={isConversationPage
+			? 'mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col px-4 py-4 sm:px-8'
+			: 'mx-auto max-w-6xl px-4 py-10 sm:px-8'}
+	>
 		{@render children()}
 	</main>
 </div>

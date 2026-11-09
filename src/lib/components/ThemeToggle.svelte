@@ -55,6 +55,8 @@
 	class={menuItem
 		? 'w-full cursor-pointer justify-start gap-3 rounded-xl px-3 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 hover:text-stone-950'
 		: 'size-10 cursor-pointer rounded-full border-stone-200 bg-white/80 p-0 shadow-sm'}
+	role={menuItem ? 'menuitem' : undefined}
+	tabindex={menuItem ? -1 : undefined}
 	aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
 	aria-pressed={isDark}
 	onclick={toggleTheme}

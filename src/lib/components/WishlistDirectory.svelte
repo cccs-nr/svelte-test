@@ -51,11 +51,9 @@
 <section class="space-y-4" aria-labelledby="wishlist-directory-title">
 	<div class="flex flex-wrap items-end justify-between gap-4">
 		<div>
-			<h2 id="wishlist-directory-title" class="text-xl font-semibold text-stone-950">
-				Family wishlists
-			</h2>
+			<h2 id="wishlist-directory-title" class="text-xl font-semibold text-stone-950">Wishlists</h2>
 			<p class="mt-1 text-sm text-stone-600">
-				Browse gift ideas from your family. Reservation and purchase details remain private to gift
+				Browse gift ideas from participants. Reservation and purchase details remain private to gift
 				buyers.
 			</p>
 		</div>
@@ -86,7 +84,13 @@
 			No participants are available yet.
 		</p>
 	{:else}
-		<div class="overflow-x-auto rounded-xl border border-stone-200 bg-white">
+		<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+		<div
+			class="overflow-x-auto rounded-xl border border-stone-200 bg-white"
+			role="region"
+			aria-label="Participant wishlists table"
+			tabindex="0"
+		>
 			<table class="w-full min-w-[640px] border-collapse text-left text-sm">
 				<thead>
 					<tr class="border-b border-stone-200 bg-stone-50 text-xs text-stone-600">

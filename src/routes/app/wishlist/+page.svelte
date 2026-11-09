@@ -366,7 +366,13 @@
 						No ideas yet. Add your first gift idea to get started.
 					</p>
 				{:else}
-					<div class="-mx-2 overflow-x-auto px-2">
+					<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+					<div
+						class="-mx-2 overflow-x-auto px-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+						role="region"
+						aria-label="Your gift ideas"
+						tabindex="0"
+					>
 						<table class="w-full min-w-[760px] border-collapse text-left text-sm">
 							<thead>
 								<tr
