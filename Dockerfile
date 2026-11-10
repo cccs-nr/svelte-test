@@ -1,17 +1,19 @@
 FROM node:22-bookworm-slim AS build
 
 WORKDIR /app
-ARG ORIGIN=http://localhost:3000
+ARG ORIGIN=https://localhost
+ARG BASE_PATH=/secret-santa
 ENV ORIGIN=${ORIGIN}
+ENV BASE_PATH=${BASE_PATH}
 RUN corepack enable && corepack prepare pnpm@10.8.1 --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN DATABASE_URL=/tmp/secret-santa.sqlite ORIGIN=${ORIGIN} pnpm check \
-	&& DATABASE_URL=/tmp/secret-santa.sqlite ORIGIN=${ORIGIN} pnpm test \
-	&& DATABASE_URL=/tmp/secret-santa.sqlite ORIGIN=${ORIGIN} pnpm build
+RUN DATABASE_URL=/tmp/secret-santa.sqlite ORIGIN=${ORIGIN} BASE_PATH=${BASE_PATH} pnpm check \
+&& DATABASE_URL=/tmp/secret-santa.sqlite ORIGIN=${ORIGIN} BASE_PATH=${BASE_PATH} pnpm test \
+&& DATABASE_URL=/tmp/secret-santa.sqlite ORIGIN=${ORIGIN} BASE_PATH=${BASE_PATH} pnpm build
 RUN pnpm prune --prod
 
 FROM node:22-bookworm-slim AS runtime
@@ -20,6 +22,7 @@ WORKDIR /app
 ENV NODE_ENV=production \
 	HOST=0.0.0.0 \
 	PORT=3000 \
+	BASE_PATH=/secret-santa \
 	DATABASE_URL=/app/data/secret-santa.sqlite
 
 RUN mkdir -p /app/data /app/uploads \

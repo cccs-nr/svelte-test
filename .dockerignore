@@ -11,3 +11,7 @@ uploads
 *.db
 *.sqlite
 *.sqlite-*
+letsencrypt
+certbot
+*.pem
+*.key

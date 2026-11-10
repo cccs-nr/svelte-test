@@ -3,15 +3,27 @@ services:
     build:
       context: .
       args:
-        ORIGIN: '${ORIGIN:-http://localhost:${PORT:-3000}}'
+        ORIGIN: '${PUBLIC_ORIGIN:-https://${DOMAIN:-localhost}}'
+        BASE_PATH: '${APP_BASE_PATH:-/secret-santa}'
     init: true
     restart: unless-stopped
-    ports:
-      - '${PORT:-3000}:3000'
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    read_only: true
+    expose:
+      - '3000'
+    tmpfs:
+      - /tmp
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: 3000
+      BASE_PATH: '${APP_BASE_PATH:-/secret-santa}'
+      ADDRESS_HEADER: X-Forwarded-For
+      XFF_DEPTH: 1
       DATABASE_URL: /app/data/secret-santa.sqlite
       UPLOADS_DIR: /app/uploads
       MAX_IMAGE_BYTES: ${MAX_IMAGE_BYTES:-5242880}
@@ -23,12 +35,66 @@ services:
         - CMD
         - node
         - -e
-        - "fetch('http://127.0.0.1:3000/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+        - "const p=process.env.BASE_PATH||''; fetch('http://127.0.0.1:3000'+p+'/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 20s
 
+  proxy:
+    build:
+      context: .
+      dockerfile: deploy/nginx/Dockerfile
+    init: true
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      DOMAIN: '${DOMAIN:-localhost}'
+      APP_BASE_PATH: '${APP_BASE_PATH:-/secret-santa}'
+    ports:
+      - '${HTTP_PORT:-80}:80'
+      - '${HTTPS_PORT:-443}:443'
+    volumes:
+      - certbot-webroot:/var/www/certbot:ro
+      - letsencrypt:/etc/letsencrypt:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'wget --no-check-certificate --header="Host: $${DOMAIN}" -qO- "https://127.0.0.1$${APP_BASE_PATH}/api/health" >/dev/null || exit 1'
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      options:
+        max-size: 10m
+        max-file: '3'
+
+  certbot:
+    image: certbot/certbot:v4.0.0
+    profiles: ['tls']
+    entrypoint: ['certbot']
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+      - /var/log/letsencrypt
+      - /var/lib/letsencrypt
+    volumes:
+      - certbot-webroot:/var/www/certbot
+      - letsencrypt:/etc/letsencrypt
+    logging:
+      options:
+        max-size: 10m
+        max-file: '3'
+
 volumes:
   secret-santa-data:
   secret-santa-uploads:
+  certbot-webroot:
+  letsencrypt:

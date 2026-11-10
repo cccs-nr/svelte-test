@@ -4,6 +4,7 @@ import { attachRealtimeServer } from './scripts/realtime-server.mjs';
 
 const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? '0.0.0.0';
+const basePath = process.env.BASE_PATH ?? '';
 const server = createServer((request, response) => {
 	handler(request, response, () => {
 		response.statusCode = 404;
@@ -11,7 +12,7 @@ const server = createServer((request, response) => {
 	});
 });
 
-attachRealtimeServer(server, () => `http://127.0.0.1:${port}`);
+attachRealtimeServer(server, () => `http://127.0.0.1:${port}`, basePath);
 server.listen(port, host, () => {
 	console.info(`Secret Santa is listening on ${host}:${port}.`);
 });

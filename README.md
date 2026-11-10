@@ -103,16 +103,72 @@ Wishlist and profile images are validated as JPEG, PNG, or WebP from their file 
 
 ## Docker deployment
 
-Set `PORT` and `ORIGIN` in `.env`, then build and start the app:
+The production Compose stack runs the SvelteKit/Node application on an internal Docker network and publishes only the Nginx reverse proxy on ports 80 and 443. The application is served below `/secret-santa`; plain HTTP requests are redirected to HTTPS, and Socket.IO/WebSocket upgrades are proxied on the same origin. The application container has no published host port. Local `pnpm dev` remains available at `http://localhost:5173`.
+
+### Deploy on a Linux VM
+
+Install Docker Engine and the Docker Compose plugin on a Linux VM. Point a DNS `A` record (and `AAAA` record, if the VM accepts IPv6) for your hostname to the VM. Allow inbound TCP ports 80 and 443 in the cloud firewall and host firewall. Allow SSH only from trusted administrator IPs or through your VM provider's secure access service.
+
+Copy the project to the VM, then configure the deployment settings in `.env`:
+
+```dotenv
+DOMAIN=santa.example.com
+PUBLIC_ORIGIN=https://santa.example.com
+APP_BASE_PATH=/secret-santa
+HTTP_PORT=80
+HTTPS_PORT=443
+LETSENCRYPT_EMAIL=admin@example.com
+```
+
+Keep `APP_BASE_PATH` without a trailing slash. `PUBLIC_ORIGIN` is the public scheme and hostname only, with no path prefix. Do not expose port 3000 publicly.
+
+Start the app and Nginx. Nginx initially uses a temporary self-signed certificate so the HTTP ACME challenge endpoint is available:
 
 ```sh
 docker compose up --build -d
 docker compose ps
 ```
 
-SQLite data and future image uploads persist in named Docker volumes. Container startup applies migrations before starting the Node adapter. The health endpoint is `/api/health`.
+Load the deployment variables from `.env`, request a trusted Let's Encrypt certificate through the Nginx webroot challenge, then restart Nginx so it loads the new certificate:
 
-`ORIGIN` is embedded during the image build, so rebuild after changing it. For Internet access, terminate TLS at a reverse proxy, set `ORIGIN` to the public HTTPS origin, and configure the host firewall to expose only the required ports. Do not expose the app over plain HTTP to the public Internet. Since registration is open, anyone who can reach the site can create a participant account.
+```sh
+set -a
+. ./.env
+set +a
+docker compose run --rm certbot certonly \
+  --webroot -w /var/www/certbot \
+  --email admin@example.com \
+  --agree-tos --no-eff-email --non-interactive \
+  -d santa.example.com
+docker compose restart proxy
+```
+
+Replace the example email and domain with the values from `.env`.
+
+The app is then available at `https://santa.example.com/secret-santa/`. HTTP on port 80 redirects to HTTPS, except for the ACME challenge path used for certificate renewal. Visiting the HTTPS site before the trusted certificate is installed will show a browser certificate warning; do not treat the temporary certificate as trusted.
+
+The internal health endpoint is `/secret-santa/api/health`. SQLite data, uploaded images, ACME challenge files, and certificates persist in named Docker volumes. App startup applies database migrations before starting the Node adapter. Configure regular off-VM backups for both `secret-santa-data` and `secret-santa-uploads`.
+
+Renew certificates automatically with a host systemd timer or another scheduler. A renewal must reload Nginx after Certbot succeeds. For example, from the Compose project directory:
+
+```sh
+docker compose run --rm certbot renew --quiet \
+  && docker compose exec -T proxy nginx -s reload
+```
+
+Install the included systemd service and timer for unattended renewal. Update the service's `WorkingDirectory` if the project is not installed at `/opt/secret-santa`:
+
+```sh
+sudo cp deploy/systemd/secret-santa-certbot-renew.service /etc/systemd/system/
+sudo cp deploy/systemd/secret-santa-certbot-renew.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now secret-santa-certbot-renew.timer
+systemctl list-timers secret-santa-certbot-renew.timer
+```
+
+The timer runs daily; Certbot renews only when a certificate is near expiry and then reloads Nginx. The Compose `certbot` service shares the persistent Let's Encrypt volume and HTTP challenge webroot with Nginx.
+
+Changing `PUBLIC_ORIGIN` or `APP_BASE_PATH` requires rebuilding the app image and restarting the stack. The certificate `DOMAIN` must match the public hostname. The web app uses HTTPS/TLS; SSH is for administering the VM and is not a browser transport. Keep SSH access restricted to trusted administrator IPs or provider-managed secure access. Registration is open, so anyone who can reach the site can create a participant account; consider restricting access at the network or proxy layer if that does not suit the exchange.
 
 To create the initial organizer in Docker, provide the display name and password as environment variables to a one-off container, then remove them from the shell environment:
 

@@ -43,15 +43,22 @@ function isIdentity(value) {
  * @param {import('node:http').Server} httpServer
  * @param {() => string} getInternalOrigin
  */
-export function attachRealtimeServer(httpServer, getInternalOrigin) {
-	const io = new Server(httpServer, { serveClient: false });
+export function attachRealtimeServer(httpServer, getInternalOrigin, basePath = '') {
+	const normalizedBasePath = basePath.replace(/\/+$/, '');
+	const io = new Server(httpServer, {
+		serveClient: false,
+		path: `${normalizedBasePath}/socket.io`
+	});
 
 	/** @param {string} cookie */
 	async function resolveIdentity(cookie) {
-		const response = await fetch(new URL('/api/realtime/session', getInternalOrigin()), {
-			headers: cookie ? { cookie } : {},
-			signal: AbortSignal.timeout(5_000)
-		});
+		const response = await fetch(
+			new URL(`${normalizedBasePath}/api/realtime/session`, getInternalOrigin()),
+			{
+				headers: cookie ? { cookie } : {},
+				signal: AbortSignal.timeout(5_000)
+			}
+		);
 		if (!response.ok) return null;
 
 		const identity = await response.json();

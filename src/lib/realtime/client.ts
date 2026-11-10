@@ -4,7 +4,7 @@ let realtimeSocket: Socket | null = null;
 
 export function getRealtimeSocket(): Socket {
 	if (!realtimeSocket) {
-		realtimeSocket = io({ autoConnect: false });
+		realtimeSocket = io({ autoConnect: false, path: `${__APP_BASE_PATH__}/socket.io` });
 	}
 
 	return realtimeSocket;

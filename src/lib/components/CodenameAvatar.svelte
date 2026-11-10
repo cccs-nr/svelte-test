@@ -33,8 +33,8 @@
 	function getAvatarSource(name: string): string {
 		const slug = slugify(name);
 		return suggestedAvatarSlugs.has(slug)
-			? `/codename-avatars/${slug}.svg`
-			: '/codename-avatars/default.svg';
+			? `${__APP_BASE_PATH__}/codename-avatars/${slug}.svg`
+			: `${__APP_BASE_PATH__}/codename-avatars/default.svg`;
 	}
 </script>
 

@@ -4,7 +4,20 @@ import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { realtimeVitePlugin } from './scripts/realtime-vite-plugin.mjs';
 
+function getBasePath(): '' | `/${string}` {
+	const basePath = process.env.BASE_PATH || '';
+	if (basePath && (!basePath.startsWith('/') || basePath.endsWith('/'))) {
+		throw new Error('BASE_PATH must start with / and must not end with /.');
+	}
+	return basePath as '' | `/${string}`;
+}
+
+const basePath = getBasePath();
+
 export default defineConfig({
+	define: {
+		__APP_BASE_PATH__: JSON.stringify(basePath)
+	},
 	plugins: [
 		tailwindcss(),
 		realtimeVitePlugin(),
@@ -15,7 +28,10 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 			adapter: adapter(),
-			paths: { origin: process.env.ORIGIN || undefined }
+			paths: {
+				base: basePath,
+				origin: process.env.ORIGIN || undefined
+			}
 		})
 	],
 	test: {
