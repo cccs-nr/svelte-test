@@ -21,6 +21,9 @@
 		>
 			Back to Messages
 		</a>
+		<p class="hidden text-base text-stone-600 sm:block">
+			Type your message in the box at the bottom, then press Send.
+		</p>
 		{#if associatedWishlistOwnerId}
 			<a
 				class="text-sm font-medium text-emerald-800 underline-offset-4 hover:underline"

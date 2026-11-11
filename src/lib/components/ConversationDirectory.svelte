@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
 	import { Gift } from '@lucide/svelte';
+	import PageGuide from '#lib/components/PageGuide.svelte';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
 	import { Input } from '#lib/components/ui/input/index.js';
@@ -104,6 +105,14 @@
 				<p class="app-page-description">
 					Every conversation is organized around a participant’s wishlist.
 				</p>
+				<div class="mt-4 max-w-3xl">
+					<PageGuide>
+						<p>
+							Here you can send private messages. Press a conversation to open it, type your
+							message, and press <strong>Send</strong>. Your Secret Santa name stays secret.
+						</p>
+					</PageGuide>
+				</div>
 			{/if}
 		</div>
 		{#if compact}

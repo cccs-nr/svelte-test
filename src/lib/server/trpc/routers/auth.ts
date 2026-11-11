@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { randomUUID } from 'node:crypto';
-import { and, eq, or, sql } from 'drizzle-orm';
+import { and, eq, isNull, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { passwordSchema, registrationSchema } from '#lib/auth.js';
 import { changePasswordInputSchema, updateProfileInputSchema } from '#lib/models/participants.js';
@@ -149,6 +149,14 @@ export const authRouter = router({
 		role: ctx.user.role,
 		isParticipating: ctx.user.isParticipating
 	})),
+	acknowledgeWelcome: protectedProcedure.mutation(({ ctx }) => {
+		ctx.db
+			.update(users)
+			.set({ welcomeAcknowledgedAt: new Date() })
+			.where(and(eq(users.id, ctx.user.id), isNull(users.welcomeAcknowledgedAt)))
+			.run();
+		return { success: true };
+	}),
 	updateProfile: protectedProcedure.input(updateProfileInputSchema).mutation(({ ctx, input }) =>
 		ctx.db.transaction((transaction) => {
 			const current = transaction

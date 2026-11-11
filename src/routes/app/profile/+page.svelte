@@ -13,6 +13,8 @@
 		CardTitle
 	} from '#lib/components/ui/card/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
+	import PageGuide from '#lib/components/PageGuide.svelte';
+	import PasswordInput from '#lib/components/PasswordInput.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 	import { trpc } from '#lib/trpc/client.js';
 
@@ -220,10 +222,17 @@
 	<div>
 		<p class="app-page-kicker">Account</p>
 		<h1 class="app-page-title">Your profile</h1>
-		<p class="mt-3 text-stone-600">
+		<p class="app-page-description">
 			Update the name other participants see and keep your password secure.
 		</p>
 	</div>
+
+	<PageGuide>
+		<p>
+			This page is about you. You can change your name, add a photo, or choose a new password. Press
+			the button next to the thing you want to change.
+		</p>
+	</PageGuide>
 
 	{#if errorMessage}
 		<p class="app-alert app-alert--error" role="alert">
@@ -252,7 +261,7 @@
 				/>
 				<form class="flex min-w-0 flex-1 flex-wrap items-end gap-3" onsubmit={uploadAvatar}>
 					<div class="min-w-0 flex-1 space-y-2">
-						<label class="text-sm font-medium" for="profile-picture"> Choose a picture </label>
+						<label class="text-base font-semibold" for="profile-picture"> Choose a picture </label>
 						<Input
 							id="profile-picture"
 							type="file"
@@ -348,7 +357,7 @@
 		<CardHeader>
 			<CardTitle>Profile details</CardTitle>
 			<CardDescription>
-				Your name is how family members recognize you and what you can use to sign in.
+				Your name is how other participants recognize you and what you can use to sign in.
 			</CardDescription>
 		</CardHeader>
 		<CardContent class="space-y-5">
@@ -363,7 +372,7 @@
 			</p>
 			<form class="space-y-5" onsubmit={saveProfile}>
 				<div class="space-y-2">
-					<label class="text-sm font-medium" for="profile-display-name">Your name</label>
+					<label class="text-base font-semibold" for="profile-display-name">Your name</label>
 					<Input
 						id="profile-display-name"
 						value={displayName}
@@ -455,10 +464,9 @@
 			{/if}
 			<form class="space-y-5" onsubmit={changePassword}>
 				<div class="space-y-2">
-					<label class="text-sm font-medium" for="current-password">Current password</label>
-					<Input
+					<label class="text-base font-semibold" for="current-password">Current password</label>
+					<PasswordInput
 						id="current-password"
-						type="password"
 						bind:value={currentPassword}
 						autocomplete="current-password"
 						minlength={3}
@@ -468,10 +476,9 @@
 					/>
 				</div>
 				<div class="space-y-2">
-					<label class="text-sm font-medium" for="new-password">New password</label>
-					<Input
+					<label class="text-base font-semibold" for="new-password">New password</label>
+					<PasswordInput
 						id="new-password"
-						type="password"
 						bind:value={newPassword}
 						autocomplete="new-password"
 						minlength={3}
@@ -481,10 +488,9 @@
 					/>
 				</div>
 				<div class="space-y-2">
-					<label class="text-sm font-medium" for="confirm-password">Confirm new password</label>
-					<Input
+					<label class="text-base font-semibold" for="confirm-password">Confirm new password</label>
+					<PasswordInput
 						id="confirm-password"
-						type="password"
 						bind:value={confirmPassword}
 						autocomplete="new-password"
 						minlength={3}

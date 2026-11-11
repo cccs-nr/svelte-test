@@ -1,6 +1,6 @@
 # Secret Santa
 
-A single-event Secret Santa app for a family group, using SvelteKit, TypeScript, tRPC, SQLite, and Drizzle ORM.
+A single-event Secret Santa gift-exchange app, using SvelteKit, TypeScript, tRPC, SQLite, and Drizzle ORM.
 
 ## Gift-exchange terminology
 
@@ -16,6 +16,10 @@ The app keeps the randomized assignment distinct from optional purchases made fr
 | **Gift Recipient**          | A general term for anyone receiving a gift; use a more specific term when the relationship is known.                                  |
 
 A participant can have several of these roles in different gift exchanges. The [project specification](./SPEC.md#gift-exchange-terminology) contains the detailed terminology and requirements.
+
+## Accessibility and onboarding
+
+The app is designed for participants who are not tech savvy: the base text size is larger, buttons and inputs are bigger, and every page has a "How this page works" guide (`PageGuide`). Password fields use `PasswordInput`, which adds a show/hide eye button. After a user's first sign-in, they must read the welcome letter at `/app/welcome` and press "I understand" (stored in `users.welcome_acknowledged_at`, so it follows the user across devices). The same letter is available at any time from **Help** (`/app/help`). Existing accounts see the letter once on their next sign-in after upgrading.
 
 ## Requirements
 

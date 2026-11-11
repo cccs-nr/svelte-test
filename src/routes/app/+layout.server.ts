@@ -9,13 +9,21 @@ import { getParticipantBadgeCounts } from '#lib/server/notification-counts.js';
 import { getParticipantCodename } from '#lib/server/codenames.js';
 import { isActiveExchangeParticipant } from '#lib/server/wishlist-access.js';
 
-export const load: LayoutServerLoad = ({ locals }) => {
+export const load: LayoutServerLoad = ({ locals, url }) => {
 	if (!locals.user) redirect(303, resolve('/login'));
 	const avatar = db
-		.select({ key: users.avatarKey, updatedAt: users.updatedAt })
+		.select({
+			key: users.avatarKey,
+			updatedAt: users.updatedAt,
+			welcomeAcknowledgedAt: users.welcomeAcknowledgedAt
+		})
 		.from(users)
 		.where(eq(users.id, locals.user.id))
 		.get();
+	const hasAcknowledgedWelcome = Boolean(avatar?.welcomeAcknowledgedAt);
+	if (!hasAcknowledgedWelcome && !url.pathname.endsWith('/app/welcome')) {
+		redirect(303, resolve('/app/welcome'));
+	}
 	const badgeCounts = isExchangeParticipant(locals.user)
 		? getParticipantBadgeCounts(db, locals.user.id)
 		: { wishlist: 0, gift: 0, messages: 0 };
@@ -32,6 +40,7 @@ export const load: LayoutServerLoad = ({ locals }) => {
 		},
 		hasAvatar: Boolean(avatar?.key),
 		avatarVersion: avatar?.updatedAt.getTime() ?? 0,
-		badgeCounts
+		badgeCounts,
+		hasAcknowledgedWelcome
 	};
 };

@@ -146,7 +146,8 @@
 		<CardTitle>Gift ideas</CardTitle>
 		<CardDescription>
 			{#if giftBudgetCents !== null}
-				The event budget is {formatEventBudget(giftBudgetCents, currency)}, as a guideline.
+				The suggested gift price is {formatEventBudget(giftBudgetCents, currency)}. It is a
+				suggestion, not a limit.
 			{:else}
 				The organizer has not set the event budget yet.
 			{/if}

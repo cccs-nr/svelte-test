@@ -14,6 +14,7 @@
 		CardTitle
 	} from '#lib/components/ui/card/index.js';
 	import WishlistDirectory from '#lib/components/WishlistDirectory.svelte';
+	import PageGuide from '#lib/components/PageGuide.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 
 	let { data }: PageProps = $props();
@@ -61,6 +62,33 @@
 		{/if}
 	</header>
 
+	<PageGuide title="How Secret Santa works">
+		<p>
+			<strong>The goal:</strong> everyone gives one gift and receives one gift. You will be given one
+			person to buy a gift for, and it is a secret until the party.
+		</p>
+		<ol>
+			{#if data.user.isParticipating}
+				<li>
+					Open <strong>My Wishlist</strong> at the top and add a few gift ideas you would like.
+				</li>
+				<li>
+					When the organizer finishes the draw, open <strong>Your Draw</strong> to see who you are buying
+					for.
+				</li>
+				<li>Choose a gift from their wishlist. Use <strong>Messages</strong> to ask questions.</li>
+			{/if}
+			{#if data.user.role === 'organizer'}
+				<li>
+					Use <strong>Dashboard</strong> and <strong>Assignments</strong> at the top to set up the event
+					and run the draw.
+				</li>
+			{/if}
+			<li>Need a reminder? Press <strong>Help</strong> at the top any time.</li>
+		</ol>
+		<p>The gift price is only a suggestion, not a limit.</p>
+	</PageGuide>
+
 	{#if data.event}
 		<div class="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.7fr)]">
 			<Card class="lg:col-span-2">
@@ -69,7 +97,7 @@
 				</CardHeader>
 				<CardContent class="grid gap-5 sm:grid-cols-3">
 					<div>
-						<p class="text-sm text-stone-500">Your draw</p>
+						<p class="text-base text-stone-600">Your draw</p>
 						{#if data.participant?.recipientId && data.participant.recipientDisplayName}
 							<a
 								class="mt-1 inline-flex max-w-full items-center gap-2 font-medium text-emerald-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
@@ -96,7 +124,7 @@
 						{/if}
 					</div>
 					<div>
-						<p class="text-sm text-stone-500">Exchange date</p>
+						<p class="text-base text-stone-600">Exchange date</p>
 						<p class="mt-1 font-medium text-stone-900">
 							{formatDate(data.event.exchangeDate)}
 							<span class="mt-1 block font-normal text-stone-600">
@@ -105,9 +133,12 @@
 						</p>
 					</div>
 					<div>
-						<p class="text-sm text-stone-500">Gift budget</p>
+						<p class="text-base text-stone-600">Suggested gift price</p>
 						<p class="mt-1 font-medium text-stone-900">
 							{formatEventBudget(data.event.giftBudgetCents, data.event.currency)}
+							<span class="mt-1 block font-normal text-stone-600">
+								(a suggestion, not a limit)
+							</span>
 						</p>
 						{#if data.participant}
 							<p class="mt-1 text-sm text-stone-600">

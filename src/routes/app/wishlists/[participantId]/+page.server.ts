@@ -12,14 +12,14 @@ export const load: PageServerLoad = ({ locals, params }) => {
 	const user = requireParticipantPage(locals.user);
 	if (params.participantId === user.id) redirect(303, resolve('/app/wishlist'));
 	if (!isActiveExchangeParticipant(db, params.participantId)) {
-		error(404, 'Family member not found.');
+		error(404, 'Participant not found.');
 	}
 	const recipient = db
 		.select({ displayName: users.displayName })
 		.from(users)
 		.where(eq(users.id, params.participantId))
 		.get();
-	if (!recipient) error(404, 'Family member not found.');
+	if (!recipient) error(404, 'Participant not found.');
 	const event = db
 		.select({ giftBudgetCents: events.giftBudgetCents, currency: events.currency })
 		.from(events)

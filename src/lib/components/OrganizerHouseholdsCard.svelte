@@ -268,7 +268,7 @@
 		{/if}
 		<form class="space-y-5" onsubmit={createHousehold}>
 			<div class="space-y-2">
-				<label class="text-sm font-medium" for="create-household-name">Household name</label>
+				<label class="text-base font-semibold" for="create-household-name">Household name</label>
 				<Input
 					id="create-household-name"
 					bind:value={createName}
@@ -352,7 +352,7 @@
 		{/if}
 		<form class="space-y-5" onsubmit={updateHousehold}>
 			<div class="space-y-2">
-				<label class="text-sm font-medium" for="edit-household-name">Household name</label>
+				<label class="text-base font-semibold" for="edit-household-name">Household name</label>
 				<Input
 					id="edit-household-name"
 					bind:value={editName}

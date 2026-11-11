@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
+	import PageGuide from '#lib/components/PageGuide.svelte';
 	import RecipientGiftIdeasPanel from '#lib/components/RecipientGiftIdeasPanel.svelte';
 	import FamilyWishlistPanel from '#lib/components/FamilyWishlistPanel.svelte';
 
@@ -29,6 +30,23 @@
 			{/if}
 		</p>
 	</header>
+
+	<PageGuide>
+		{#if data.assignedRecipient}
+			<p>
+				This is the person you are buying a gift for. Look through their gift ideas below. When you
+				find one you like, press <strong>Reserve</strong> so nobody else buys the same thing, then
+				press <strong>Mark purchased</strong> once you have bought it.
+			</p>
+			<p>Have a question? Press the message button to ask. Your name stays secret.</p>
+		{:else}
+			<p>
+				The organizer has not done the draw yet. Once they have, the name of the person you are
+				buying for will appear here. Check back soon!
+			</p>
+		{/if}
+		<p>The gift price is only a suggestion, not a limit.</p>
+	</PageGuide>
 
 	{#if data.assignedRecipient}
 		{#key data.assignedRecipient.id}

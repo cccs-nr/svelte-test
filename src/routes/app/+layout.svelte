@@ -4,7 +4,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { TRPCClientError } from '@trpc/client';
-	import { Gift, LogOut, Menu, UserRound, X } from '@lucide/svelte';
+	import { Gift, LifeBuoy, LogOut, Menu, UserRound, X } from '@lucide/svelte';
 	import type { LayoutProps } from './$types';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import CodenameAvatar from '#lib/components/CodenameAvatar.svelte';
@@ -29,6 +29,7 @@
 	let isGiftGivingActive = $derived(page.url.pathname.startsWith(resolve('/app/gift-giving')));
 	let isMessagesActive = $derived(page.url.pathname.startsWith(resolve('/app/messages')));
 	let isConversationPage = $derived(page.url.pathname.startsWith(`${resolve('/app/messages')}/`));
+	let isHelpActive = $derived(page.url.pathname === resolve('/app/help'));
 	let isWishlistActive = $derived(page.url.pathname === resolve('/app/wishlist'));
 
 	onMount(() => {
@@ -203,92 +204,103 @@
 			</a>
 			<nav
 				id="main-navigation"
-				class={`order-3 ${isMobileNavigationOpen ? 'flex' : 'hidden'} w-full flex-col gap-1 text-sm sm:order-none sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:gap-2`}
+				class={`order-3 ${isMobileNavigationOpen ? 'flex' : 'hidden'} w-full flex-col gap-1 text-base sm:order-none sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:gap-2`}
 				aria-label="Main navigation"
 			>
-				{#if data.user.role === 'organizer'}
+				{#if data.hasAcknowledgedWelcome}
+					{#if data.user.role === 'organizer'}
+						<a
+							href={resolve('/app/dashboard')}
+							onclick={closeMobileNavigation}
+							class={navigationClass(isDashboardActive)}
+							aria-current={isDashboardActive ? 'page' : undefined}
+						>
+							Dashboard
+						</a>
+						<a
+							href={resolve('/app/assignments')}
+							onclick={closeMobileNavigation}
+							class={navigationClass(isAssignmentsActive)}
+							aria-current={isAssignmentsActive ? 'page' : undefined}
+						>
+							Assignments
+						</a>
+					{/if}
+					{#if data.user.isParticipating}
+						<a
+							href={resolve('/app')}
+							onclick={closeMobileNavigation}
+							class={navigationClass(isHomeActive)}
+							aria-current={isHomeActive ? 'page' : undefined}
+						>
+							Home
+						</a>
+						<a
+							href={resolve('/app/wishlist')}
+							onclick={closeMobileNavigation}
+							class={`${navigationClass(isWishlistActive)} inline-flex items-center gap-2`}
+							aria-current={isWishlistActive ? 'page' : undefined}
+							aria-label={badgeCounts.wishlist > 0
+								? `My Wishlist, ${badgeCounts.wishlist} new updates`
+								: 'My Wishlist'}
+						>
+							My Wishlist
+							{#if badgeCounts.wishlist > 0}
+								<span
+									class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
+									aria-hidden="true"
+								>
+									{badgeCounts.wishlist}
+								</span>
+							{/if}
+						</a>
+						<a
+							href={resolve('/app/gift-giving')}
+							onclick={closeMobileNavigation}
+							class={`${navigationClass(isGiftGivingActive)} inline-flex items-center gap-2`}
+							aria-current={isGiftGivingActive ? 'page' : undefined}
+							aria-label={badgeCounts.gift > 0
+								? `Your Draw, ${badgeCounts.gift} new updates`
+								: 'Your Draw'}
+						>
+							Your Draw
+							{#if badgeCounts.gift > 0}
+								<span
+									class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
+									aria-hidden="true"
+								>
+									{badgeCounts.gift}
+								</span>
+							{/if}
+						</a>
+						<a
+							href={resolve('/app/messages')}
+							onclick={closeMobileNavigation}
+							class={`${navigationClass(isMessagesActive)} inline-flex items-center gap-2`}
+							aria-current={isMessagesActive ? 'page' : undefined}
+							aria-label={badgeCounts.messages > 0
+								? `Messages, ${badgeCounts.messages} unread`
+								: 'Messages'}
+						>
+							Messages
+							{#if badgeCounts.messages > 0}
+								<span
+									class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
+									aria-hidden="true"
+								>
+									{badgeCounts.messages}
+								</span>
+							{/if}
+						</a>
+					{/if}
 					<a
-						href={resolve('/app/dashboard')}
+						href={resolve('/app/help')}
 						onclick={closeMobileNavigation}
-						class={navigationClass(isDashboardActive)}
-						aria-current={isDashboardActive ? 'page' : undefined}
+						class={`${navigationClass(isHelpActive)} inline-flex items-center gap-2`}
+						aria-current={isHelpActive ? 'page' : undefined}
 					>
-						Dashboard
-					</a>
-					<a
-						href={resolve('/app/assignments')}
-						onclick={closeMobileNavigation}
-						class={navigationClass(isAssignmentsActive)}
-						aria-current={isAssignmentsActive ? 'page' : undefined}
-					>
-						Assignments
-					</a>
-				{/if}
-				{#if data.user.isParticipating}
-					<a
-						href={resolve('/app')}
-						onclick={closeMobileNavigation}
-						class={navigationClass(isHomeActive)}
-						aria-current={isHomeActive ? 'page' : undefined}
-					>
-						Home
-					</a>
-					<a
-						href={resolve('/app/wishlist')}
-						onclick={closeMobileNavigation}
-						class={`${navigationClass(isWishlistActive)} inline-flex items-center gap-2`}
-						aria-current={isWishlistActive ? 'page' : undefined}
-						aria-label={badgeCounts.wishlist > 0
-							? `My Wishlist, ${badgeCounts.wishlist} new updates`
-							: 'My Wishlist'}
-					>
-						My Wishlist
-						{#if badgeCounts.wishlist > 0}
-							<span
-								class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
-								aria-hidden="true"
-							>
-								{badgeCounts.wishlist}
-							</span>
-						{/if}
-					</a>
-					<a
-						href={resolve('/app/gift-giving')}
-						onclick={closeMobileNavigation}
-						class={`${navigationClass(isGiftGivingActive)} inline-flex items-center gap-2`}
-						aria-current={isGiftGivingActive ? 'page' : undefined}
-						aria-label={badgeCounts.gift > 0
-							? `Your Draw, ${badgeCounts.gift} new updates`
-							: 'Your Draw'}
-					>
-						Your Draw
-						{#if badgeCounts.gift > 0}
-							<span
-								class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
-								aria-hidden="true"
-							>
-								{badgeCounts.gift}
-							</span>
-						{/if}
-					</a>
-					<a
-						href={resolve('/app/messages')}
-						onclick={closeMobileNavigation}
-						class={`${navigationClass(isMessagesActive)} inline-flex items-center gap-2`}
-						aria-current={isMessagesActive ? 'page' : undefined}
-						aria-label={badgeCounts.messages > 0
-							? `Messages, ${badgeCounts.messages} unread`
-							: 'Messages'}
-					>
-						Messages
-						{#if badgeCounts.messages > 0}
-							<span
-								class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
-								aria-hidden="true"
-							>
-								{badgeCounts.messages}
-							</span>
-						{/if}
+						<LifeBuoy size={18} aria-hidden="true" />
+						Help
 					</a>
 				{/if}
 			</nav>
@@ -296,6 +308,7 @@
 				<Button
 					type="button"
 					variant="outline"
+					hidden={!data.hasAcknowledgedWelcome}
 					class="holiday-topnav__menu-toggle size-10 p-0 sm:hidden"
 					aria-controls="main-navigation"
 					aria-expanded={isMobileNavigationOpen}

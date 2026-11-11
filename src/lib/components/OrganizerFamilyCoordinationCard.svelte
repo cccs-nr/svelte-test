@@ -435,7 +435,7 @@
 			</p>
 		</div>
 		<div class="space-y-2">
-			<label class="text-sm font-medium" for="reservation-correction-reason">Reason</label>
+			<label class="text-base font-semibold" for="reservation-correction-reason">Reason</label>
 			<textarea
 				id="reservation-correction-reason"
 				class="min-h-24 w-full rounded-md border border-input bg-background p-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"

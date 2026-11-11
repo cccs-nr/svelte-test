@@ -10,6 +10,7 @@
 		CardHeader,
 		CardTitle
 	} from '#lib/components/ui/card/index.js';
+	import PageGuide from '#lib/components/PageGuide.svelte';
 	import { trpc } from '#lib/trpc/client.js';
 
 	type AssignmentStatus = Awaited<ReturnType<typeof trpc.assignments.status.query>>;
@@ -136,6 +137,14 @@
 			The complete mapping is never shown here.
 		</p>
 	</div>
+
+	<PageGuide>
+		<p>
+			This is where you draw names. First check that everyone has joined, then press the button to
+			generate the draw. When you are happy with it, finalize it so people can see who they are
+			buying for.
+		</p>
+	</PageGuide>
 
 	{#if errorMessage}
 		<p class="app-alert app-alert--error" role="alert">

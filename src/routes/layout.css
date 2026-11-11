@@ -282,9 +282,55 @@
 	color: var(--primary);
 }
 
+.app-guide {
+	display: flex;
+	gap: 1rem;
+	border: 2px solid color-mix(in oklab, var(--primary) 35%, var(--border));
+	border-radius: 1rem;
+	background-color: color-mix(in oklab, var(--primary) 7%, var(--card));
+	padding: 1.25rem;
+	color: var(--card-foreground);
+}
+
+.app-guide__icon {
+	display: grid;
+	flex-shrink: 0;
+	width: 3rem;
+	height: 3rem;
+	place-items: center;
+	border-radius: 9999px;
+	background-color: var(--primary);
+	color: var(--primary-foreground);
+}
+
+.app-guide__title {
+	font-size: 1.25rem;
+	font-weight: 700;
+	line-height: 1.75rem;
+	color: var(--primary);
+}
+
+.app-guide__body {
+	font-size: 1.125rem;
+	line-height: 1.75rem;
+}
+
+.app-guide__body ul,
+.app-guide__body ol {
+	list-style: revert;
+	padding-left: 1.5rem;
+}
+
+@media (max-width: 480px) {
+	.app-guide {
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+}
+
 .app-page-kicker {
 	color: var(--primary);
-	font-size: 0.75rem;
+	font-size: 0.875rem;
 	font-weight: 600;
 	letter-spacing: 0.18em;
 	text-transform: uppercase;
@@ -302,6 +348,8 @@
 .app-page-description {
 	margin-top: 0.75rem;
 	max-width: 42rem;
+	font-size: 1.125rem;
+	line-height: 1.75rem;
 	color: var(--muted-foreground);
 }
 
@@ -375,18 +423,17 @@
 	}
 	body {
 		@apply bg-background text-foreground;
-		background-image:
-			linear-gradient(145deg, #f7f5e9 0%, #edf5ed 54%, #f6eded 100%);
+		background-image: linear-gradient(145deg, #f7f5e9 0%, #edf5ed 54%, #f6eded 100%);
 		background-attachment: fixed;
 		background-repeat: no-repeat;
 		background-size: cover;
 	}
 	.dark body {
-		background-image:
-			linear-gradient(145deg, #101b16 0%, #16231c 54%, #241619 100%);
+		background-image: linear-gradient(145deg, #101b16 0%, #16231c 54%, #241619 100%);
 	}
 	html {
 		@apply font-sans;
+		font-size: 112.5%;
 	}
 }
 

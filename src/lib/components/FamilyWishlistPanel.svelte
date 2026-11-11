@@ -119,13 +119,13 @@
 				selectedMemberId = targetMember.id;
 				await loadWishlist(targetMember.id);
 			} else if (initialRecipientId) {
-				errorMessage = 'This family member could not be found.';
+				errorMessage = 'This participant could not be found.';
 			}
 		} catch (error) {
 			errorMessage =
 				error instanceof TRPCClientError
 					? error.message
-					: 'Unable to load family members. Please try again.';
+					: 'Unable to load participants. Please try again.';
 		} finally {
 			if (!isDisposed) isLoadingMembers = false;
 		}
@@ -168,7 +168,7 @@
 			errorMessage =
 				error instanceof TRPCClientError
 					? error.message
-					: 'Unable to load this family wishlist. Please try again.';
+					: 'Unable to load this wishlist. Please try again.';
 		} finally {
 			if (!isDisposed && sequence === requestSequence) isLoadingWishlist = false;
 		}
@@ -272,11 +272,11 @@
 <Card>
 	<CardHeader>
 		<CardTitle>
-			{showDirectory ? 'Family wishlists' : 'Gift ideas'}
+			{showDirectory ? 'Everyone’s wishlists' : 'Gift ideas'}
 		</CardTitle>
 		<CardDescription>
 			{#if showDirectory}
-				Browse gift ideas from other family members. Wishlist Gifters appear by codename until the
+				Browse gift ideas from other participants. Wishlist Gifters appear by codename until the
 				organizer reveals identities.
 			{:else if wishlist}
 				{wishlist.suggestions.length}
@@ -286,7 +286,8 @@
 				Review gift ideas and ask the Wishlist Recipient questions.
 			{/if}
 			{#if giftBudgetCents !== null}
-				<br />Event budget: {formatEventBudget(giftBudgetCents, currency)} (a guideline).
+				<br />Suggested gift price: {formatEventBudget(giftBudgetCents, currency)} (a suggestion, not
+				a limit).
 			{/if}
 		</CardDescription>
 		{#if !showDirectory && wishlist}
@@ -326,7 +327,7 @@
 				aria-labelledby="codename-reveal-title"
 			>
 				<h3 id="codename-reveal-title" class="font-semibold text-emerald-950">
-					The family reveal is here!
+					The big reveal is here!
 				</h3>
 				<ul class="mt-3 grid gap-2 text-sm text-emerald-950 sm:grid-cols-2 lg:grid-cols-3">
 					{#each revealedMapping as participant (`${participant.codename}-${participant.displayName}`)}
@@ -343,7 +344,7 @@
 				<div>
 					<h3 id="my-reservations-title" class="font-semibold text-stone-900">Your reservations</h3>
 					<p class="mt-1 text-sm text-stone-600">
-						These are the gift ideas you reserved for other family members.
+						These are the gift ideas you reserved for other participants.
 					</p>
 				</div>
 				<ul class="grid gap-3 md:grid-cols-2">
@@ -402,7 +403,7 @@
 			{#if showDirectory}
 				<aside class="space-y-3">
 					<label class="block text-sm font-medium text-stone-800" for="family-wishlist-search">
-						Find a family member
+						Find a participant
 					</label>
 					<Input
 						id="family-wishlist-search"
@@ -411,11 +412,11 @@
 						placeholder="Search names"
 					/>
 					{#if isLoadingMembers}
-						<p class="text-sm text-stone-500">Loading family members…</p>
+						<p class="text-sm text-stone-500">Loading participants…</p>
 					{:else if visibleMembers.length === 0}
-						<p class="text-sm text-stone-600">No matching family members.</p>
+						<p class="text-sm text-stone-600">No matching participants.</p>
 					{:else}
-						<ul class="max-h-80 space-y-1 overflow-y-auto" aria-label="Family members">
+						<ul class="max-h-80 space-y-1 overflow-y-auto" aria-label="Participants">
 							{#each visibleMembers as member (member.id)}
 								<li>
 									<button
@@ -443,7 +444,7 @@
 				{:else if !wishlist}
 					<p class="text-sm text-stone-600">
 						{showDirectory
-							? 'Choose a family member to view their ideas.'
+							? 'Choose a participant to view their ideas.'
 							: 'This wishlist is not available.'}
 					</p>
 				{:else}

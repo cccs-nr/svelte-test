@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
 	import type { PageProps } from './$types';
+	import PageGuide from '#lib/components/PageGuide.svelte';
 	import EventOverviewCard from '#lib/components/EventOverviewCard.svelte';
 	import ConversationMigrationReviewCard from '#lib/components/ConversationMigrationReviewCard.svelte';
 	import OrganizerFamilyCoordinationCard from '#lib/components/OrganizerFamilyCoordinationCard.svelte';
@@ -39,6 +40,13 @@
 		<p class="app-page-kicker">Organizer</p>
 		<h1 class="app-page-title mt-2">Dashboard</h1>
 	</div>
+
+	<PageGuide>
+		<p>
+			This is the organizer’s control center. Work from top to bottom: set the event date and price
+			suggestion, wait for everyone to join, then go to <strong>Assignments</strong> to run the draw.
+		</p>
+	</PageGuide>
 
 	<EventOverviewCard
 		event={data.event}

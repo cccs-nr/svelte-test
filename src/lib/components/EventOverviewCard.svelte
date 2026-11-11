@@ -101,7 +101,7 @@
 		if (!canComplete || isCompleting || event?.status === 'completed') return;
 		if (
 			!globalThis.confirm(
-				'Complete this exchange? Participants will be able to read existing conversations but cannot send new family messages.'
+				'Complete this exchange? Participants will be able to read existing conversations but cannot send new messages.'
 			)
 		) {
 			return;
@@ -179,7 +179,7 @@
 					<dd class="mt-1 font-medium text-stone-950">{formatDate(event.exchangeDate)}</dd>
 				</div>
 				<div>
-					<dt class="text-xs font-medium text-stone-500">Gift budget</dt>
+					<dt class="text-xs font-medium text-stone-500">Suggested gift price</dt>
 					<dd class="mt-1 font-medium text-stone-950">
 						{formatEventBudget(event.giftBudgetCents, event.currency)}
 					</dd>
@@ -237,7 +237,7 @@
 					{event ? 'Edit event' : 'Set up event'}
 				</h2>
 				<p class="mt-1 text-sm text-stone-600">
-					The budget is stored as Canadian dollars and is a gift guideline.
+					The price is stored as Canadian dollars and is only a suggestion for gifts, not a limit.
 				</p>
 			</div>
 			<Button type="button" variant="outline" onclick={closeDialog} disabled={isSaving}>
@@ -253,11 +253,11 @@
 
 		<form class="grid gap-5 md:grid-cols-2" onsubmit={saveEvent}>
 			<div class="space-y-2 md:col-span-2">
-				<label class="text-sm font-medium" for="event-name">Event name</label>
+				<label class="text-base font-semibold" for="event-name">Event name</label>
 				<Input id="event-name" bind:value={name} maxlength={100} required disabled={isSaving} />
 			</div>
 			<div class="space-y-2 md:col-span-2">
-				<label class="text-sm font-medium" for="event-description">Description</label>
+				<label class="text-base font-semibold" for="event-description">Description</label>
 				<textarea
 					id="event-description"
 					bind:value={description}
@@ -268,11 +268,11 @@
 				></textarea>
 			</div>
 			<div class="space-y-2">
-				<label class="text-sm font-medium" for="event-date">Gift exchange date</label>
+				<label class="text-base font-semibold" for="event-date">Gift exchange date</label>
 				<Input id="event-date" type="date" bind:value={exchangeDate} required disabled={isSaving} />
 			</div>
 			<div class="space-y-2">
-				<label class="text-sm font-medium" for="event-budget">Gift budget (CAD)</label>
+				<label class="text-base font-semibold" for="event-budget">Suggested gift price (CAD)</label>
 				<Input
 					id="event-budget"
 					type="text"
@@ -284,7 +284,7 @@
 				/>
 			</div>
 			<div class="space-y-2 md:col-span-2">
-				<label class="text-sm font-medium" for="event-instructions">Instructions</label>
+				<label class="text-base font-semibold" for="event-instructions">Instructions</label>
 				<textarea
 					id="event-instructions"
 					bind:value={instructions}
@@ -295,7 +295,7 @@
 				></textarea>
 			</div>
 			<div class="space-y-2">
-				<label class="text-sm font-medium" for="event-status">Event status</label>
+				<label class="text-base font-semibold" for="event-status">Event status</label>
 				<select
 					id="event-status"
 					bind:value={status}

@@ -11,6 +11,7 @@
 		CardTitle
 	} from '#lib/components/ui/card/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
+	import PasswordInput from '#lib/components/PasswordInput.svelte';
 	import { trpc } from '#lib/trpc/client.js';
 
 	type Participant = {
@@ -420,7 +421,7 @@
 		{/if}
 		<form class="grid gap-4 sm:grid-cols-2" onsubmit={createAccount}>
 			<div class="space-y-2 sm:col-span-2">
-				<label class="text-sm font-medium" for="create-account-name">Person’s name</label>
+				<label class="text-base font-semibold" for="create-account-name">Person’s name</label>
 				<Input
 					id="create-account-name"
 					bind:value={createName}
@@ -430,10 +431,10 @@
 				/>
 			</div>
 			<div class="space-y-2">
-				<label class="text-sm font-medium" for="create-account-password">Initial password</label>
-				<Input
+				<label class="text-base font-semibold" for="create-account-password">Initial password</label
+				>
+				<PasswordInput
 					id="create-account-password"
-					type="password"
 					bind:value={createPassword}
 					autocomplete="new-password"
 					minlength={3}
@@ -443,7 +444,7 @@
 				/>
 			</div>
 			<div class="space-y-2">
-				<label class="text-sm font-medium" for="create-account-role">Role</label>
+				<label class="text-base font-semibold" for="create-account-role">Role</label>
 				<select
 					id="create-account-role"
 					bind:value={createRole}
@@ -455,7 +456,7 @@
 				</select>
 			</div>
 			<div class="space-y-2 sm:col-span-2">
-				<label class="text-sm font-medium" for="create-account-household">Household</label>
+				<label class="text-base font-semibold" for="create-account-household">Household</label>
 				<select
 					id="create-account-household"
 					bind:value={createHouseholdId}
@@ -514,7 +515,7 @@
 		{/if}
 		<form class="grid gap-4 sm:grid-cols-2" onsubmit={updateAccount}>
 			<div class="space-y-2 sm:col-span-2">
-				<label class="text-sm font-medium" for="edit-account-name">Person’s name</label>
+				<label class="text-base font-semibold" for="edit-account-name">Person’s name</label>
 				<Input
 					id="edit-account-name"
 					bind:value={editName}
@@ -524,7 +525,7 @@
 				/>
 			</div>
 			<div class="space-y-2">
-				<label class="text-sm font-medium" for="edit-account-role">Role</label>
+				<label class="text-base font-semibold" for="edit-account-role">Role</label>
 				<select
 					id="edit-account-role"
 					bind:value={editRole}
@@ -536,7 +537,7 @@
 				</select>
 			</div>
 			<div class="space-y-2">
-				<label class="text-sm font-medium" for="edit-account-household">Household</label>
+				<label class="text-base font-semibold" for="edit-account-household">Household</label>
 				<select
 					id="edit-account-household"
 					bind:value={editHouseholdId}
@@ -580,9 +581,8 @@
 				</div>
 				<div class="flex flex-wrap gap-3">
 					<label class="sr-only" for="reset-account-password">New password</label>
-					<Input
+					<PasswordInput
 						id="reset-account-password"
-						type="password"
 						bind:value={resetPassword}
 						autocomplete="new-password"
 						minlength={3}

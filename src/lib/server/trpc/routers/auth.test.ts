@@ -72,6 +72,32 @@ afterEach(() => {
 });
 
 describe('auth router', () => {
+	it('records the welcome letter acknowledgement once', async () => {
+		const cookies = createCookieStore();
+		const user = await appRouter.createCaller(createContext(cookies)).auth.register({
+			displayName: 'Welcome Guest',
+			password: 'abc'
+		});
+		const saved = () => db.select().from(users).where(eq(users.id, user.id)).get();
+		expect(saved()?.welcomeAcknowledgedAt).toBeNull();
+
+		const authenticated = appRouter.createCaller(
+			createContext(cookies, 'http://localhost', {
+				id: user.id,
+				username: user.username,
+				displayName: user.displayName,
+				role: 'participant',
+				isParticipating: true
+			} as AuthenticatedUser)
+		);
+		await authenticated.auth.acknowledgeWelcome();
+		const firstAcknowledgement = saved()?.welcomeAcknowledgedAt;
+		expect(firstAcknowledgement).toBeInstanceOf(Date);
+
+		await authenticated.auth.acknowledgeWelcome();
+		expect(saved()?.welcomeAcknowledgedAt).toEqual(firstAcknowledgement);
+	});
+
 	it('signs in with a display name and supports legacy usernames', async () => {
 		const cookies = createCookieStore();
 		const caller = appRouter.createCaller(createContext(cookies));

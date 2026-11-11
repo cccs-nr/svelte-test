@@ -4,6 +4,7 @@
 	import { TRPCClientError } from '@trpc/client';
 	import { Plus, X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
+	import PageGuide from '#lib/components/PageGuide.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { formatEventBudget, formatBudgetInput } from '#lib/models/event.js';
@@ -310,7 +311,20 @@
 			</h1>
 		</div>
 	</div>
-	<p class="app-page-description">Add gift ideas for the people who may shop your wishlist.</p>
+	<PageGuide>
+		<p>
+			This is your own wishlist. Add a few things you would like to receive, so the person buying
+			your gift knows what to pick.
+		</p>
+		<ol>
+			<li>Press the big <strong>Add Gift Idea</strong> button.</li>
+			<li>
+				Type what the gift is. If you found it online, paste the <strong>Link to gift</strong> too.
+			</li>
+			<li>Press <strong>Add gift idea</strong> at the bottom of the form to save it.</li>
+		</ol>
+		<p>The gift price is only a suggestion, not a limit.</p>
+	</PageGuide>
 
 	{#if errorMessage}
 		<p class="app-alert app-alert--error" role="alert">
@@ -327,9 +341,10 @@
 					<CardTitle>My Gift Ideas</CardTitle>
 					<CardDescription>
 						{#if data.giftBudgetCents !== null}
-							Event budget: {formatEventBudget(data.giftBudgetCents, data.currency)} as a guideline.
+							Suggested gift price: {formatEventBudget(data.giftBudgetCents, data.currency)} (a suggestion,
+							not a limit).
 						{:else}
-							Family members can browse your gift ideas.
+							Other participants can browse your gift ideas.
 						{/if}
 					</CardDescription>
 				</div>
@@ -343,7 +358,12 @@
 					>
 						Refresh
 					</Button>
-					<Button type="button" onclick={openNewSuggestionDialog} disabled={isFormDisabled}>
+					<Button
+						type="button"
+						size="lg"
+						onclick={openNewSuggestionDialog}
+						disabled={isFormDisabled}
+					>
 						<Plus size={16} aria-hidden="true" />
 						Add Gift Idea
 					</Button>
@@ -567,7 +587,8 @@
 					</h2>
 					<p class="mt-1 text-sm text-stone-600">
 						{#if data.giftBudgetCents !== null}
-							Event budget: {formatEventBudget(data.giftBudgetCents, data.currency)} (a guideline).
+							Suggested gift price: {formatEventBudget(data.giftBudgetCents, data.currency)} (a suggestion,
+							not a limit).
 						{:else}
 							Your event budget will appear here once the organizer sets it.
 						{/if}
@@ -586,7 +607,7 @@
 
 			<form class="grid gap-5 md:grid-cols-2" onsubmit={saveSuggestion}>
 				<div class="space-y-2 md:col-span-2">
-					<label class="text-sm font-medium" for="wishlist-title">Gift name</label>
+					<label class="text-base font-semibold" for="wishlist-title">Gift name</label>
 					<Input
 						id="wishlist-title"
 						bind:value={title}
@@ -597,7 +618,7 @@
 					/>
 				</div>
 				<div class="space-y-2 md:col-span-2">
-					<label class="text-sm font-medium" for="wishlist-description">Description</label>
+					<label class="text-base font-semibold" for="wishlist-description">Description</label>
 					<textarea
 						id="wishlist-description"
 						bind:value={description}
@@ -608,7 +629,7 @@
 					></textarea>
 				</div>
 				<div class="space-y-2">
-					<label class="text-sm font-medium" for="wishlist-url">Product or store URL</label>
+					<label class="text-base font-semibold" for="wishlist-url">Link to gift (URL)</label>
 					<Input
 						id="wishlist-url"
 						type="url"
@@ -619,7 +640,7 @@
 					/>
 				</div>
 				<div class="space-y-2">
-					<label class="text-sm font-medium" for="wishlist-price">Estimated price (CAD)</label>
+					<label class="text-base font-semibold" for="wishlist-price">Estimated price (CAD)</label>
 					<Input
 						id="wishlist-price"
 						type="text"
@@ -632,7 +653,7 @@
 					<p class="text-xs text-stone-500">Enter dollars with up to two decimal places.</p>
 				</div>
 				<div class="space-y-2 md:col-span-2">
-					<label class="text-sm font-medium" for="wishlist-notes">Notes</label>
+					<label class="text-base font-semibold" for="wishlist-notes">Notes</label>
 					<textarea
 						id="wishlist-notes"
 						bind:value={notes}
@@ -643,7 +664,7 @@
 					></textarea>
 				</div>
 				<div class="space-y-2 md:col-span-2">
-					<label class="text-sm font-medium" for="wishlist-image">Optional image</label>
+					<label class="text-base font-semibold" for="wishlist-image">Optional image</label>
 					<Input
 						id="wishlist-image"
 						type="file"

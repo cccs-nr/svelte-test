@@ -89,6 +89,7 @@ export const users = sqliteTable(
 		isParticipating: integer('is_participating', { mode: 'boolean' }).notNull().default(false),
 		householdId: text('household_id').references(() => households.id, { onDelete: 'set null' }),
 		isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+		welcomeAcknowledgedAt: integer('welcome_acknowledged_at', { mode: 'timestamp_ms' }),
 		createdAt: integer('created_at', { mode: 'timestamp_ms' })
 			.notNull()
 			.default(sql`(unixepoch() * 1000)`),

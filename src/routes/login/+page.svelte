@@ -2,14 +2,14 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
-	import { Gift, ShieldCheck, Sparkles } from '@lucide/svelte';
+	import { Gift, LogIn, UserPlus } from '@lucide/svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import PasswordInput from '#lib/components/PasswordInput.svelte';
 	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import {
 		Card,
 		CardContent,
 		CardDescription,
-		CardFooter,
 		CardHeader,
 		CardTitle
 	} from '#lib/components/ui/card/index.js';
@@ -47,11 +47,14 @@
 
 <svelte:head>
 	<title>Sign in | Secret Santa</title>
-	<meta name="description" content="Sign in to your private Secret Santa gift exchange." />
+	<meta
+		name="description"
+		content="Welcome to the Secret Santa gift exchange. Create an account or sign in."
+	/>
 </svelte:head>
 
 <main
-	class="relative isolate grid min-h-screen overflow-hidden bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-100 via-stone-50 to-rose-50 px-4 py-8 text-stone-900 sm:px-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(22rem,0.9fr)] lg:px-16"
+	class="relative isolate min-h-screen overflow-hidden bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-100 via-stone-50 to-rose-50 px-4 py-8 text-stone-900 sm:px-8 lg:px-16"
 >
 	<div
 		aria-hidden="true"
@@ -62,9 +65,7 @@
 		class="pointer-events-none absolute -top-32 -right-32 h-96 w-96 rounded-full bg-rose-200/35 blur-3xl"
 	></div>
 
-	<section
-		class="relative mx-auto flex w-full max-w-6xl flex-col justify-between gap-12 lg:col-span-2"
-	>
+	<section class="relative mx-auto flex w-full max-w-6xl flex-col gap-10">
 		<div class="flex w-full items-center justify-between gap-4">
 			<a
 				class="inline-flex w-fit items-center gap-3 rounded-full py-2"
@@ -72,63 +73,97 @@
 				aria-label="Secret Santa home"
 			>
 				<span
-					class="grid size-11 place-items-center rounded-2xl bg-emerald-800 text-white shadow-lg shadow-emerald-950/10"
+					class="grid size-12 place-items-center rounded-2xl bg-emerald-800 text-white shadow-lg shadow-emerald-950/10"
 				>
-					<Gift size={21} strokeWidth={1.8} aria-hidden="true" />
+					<Gift size={24} strokeWidth={1.8} aria-hidden="true" />
 				</span>
-				<span class="text-lg font-semibold tracking-tight">Secret Santa</span>
+				<span class="text-xl font-semibold tracking-tight">Secret Santa</span>
 			</a>
 			<ThemeToggle />
 		</div>
 
-		<div
-			class="grid items-center gap-12 py-2 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.75fr)] lg:gap-20"
+		<div class="mx-auto max-w-3xl space-y-5 text-center">
+			<h1 class="text-4xl leading-tight font-bold tracking-tight text-stone-950 sm:text-5xl">
+				Welcome to our Secret Santa gift exchange!
+			</h1>
+			<p class="text-xl leading-9 text-stone-700">
+				Everyone gives one gift and receives one gift. You will be given one person to buy a gift
+				for, and someone else will be buying a gift for you. It is a secret until the party!
+			</p>
+		</div>
+
+		<ol
+			class="mx-auto grid w-full max-w-4xl gap-4 text-xl leading-8 text-stone-800 sm:grid-cols-2"
+			aria-label="How to get started"
 		>
-			<div class="max-w-2xl">
-				<p
-					class="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-900/10 bg-white/70 px-4 py-2 text-sm font-medium text-emerald-900 shadow-sm"
+			<li class="flex items-start gap-4 rounded-2xl bg-white/80 p-5 shadow-sm">
+				<span
+					class="grid size-10 shrink-0 place-items-center rounded-full bg-rose-700 font-bold text-white"
+					aria-hidden="true">1</span
 				>
-					<Sparkles size={16} aria-hidden="true" />
-					A thoughtful Secret Santa gift exchange
-				</p>
-				<h1
-					class="max-w-xl text-4xl leading-tight font-semibold tracking-tight text-stone-950 sm:text-5xl lg:text-6xl"
+				<span
+					><strong>First time here?</strong> Press the red <strong>Create My Account</strong> button.</span
 				>
-					Make the giving part feel like magic.
-				</h1>
-				<p class="mt-6 max-w-lg text-lg leading-8 text-stone-600">
-					Organize the draw, share wishlists, and keep gift planning in one easy place. Sign in to
-					continue your Secret Santa exchange.
-				</p>
+			</li>
+			<li class="flex items-start gap-4 rounded-2xl bg-white/80 p-5 shadow-sm">
+				<span
+					class="grid size-10 shrink-0 place-items-center rounded-full bg-emerald-800 font-bold text-white"
+					aria-hidden="true">2</span
+				>
+				<span
+					><strong>Already have an account?</strong> Type your name and password, then press
+					<strong>Sign In</strong>.</span
+				>
+			</li>
+		</ol>
 
-				<div class="mt-10 flex flex-wrap gap-3 text-sm text-stone-600">
-					<div class="inline-flex items-center gap-2 rounded-full bg-white/75 px-4 py-2 shadow-sm">
-						<ShieldCheck size={16} class="text-emerald-800" aria-hidden="true" />
-						Private assignments
-					</div>
-					<div class="inline-flex items-center gap-2 rounded-full bg-white/75 px-4 py-2 shadow-sm">
-						<Gift size={16} class="text-rose-700" aria-hidden="true" />
-						Wishlists and messages
-					</div>
-				</div>
-			</div>
-
+		<div class="grid items-stretch gap-6 lg:grid-cols-2">
 			<Card
-				class="relative w-full border-white/80 bg-white/90 shadow-2xl shadow-stone-900/10 backdrop-blur"
+				class="relative w-full border-4 border-rose-700 bg-white/95 shadow-2xl shadow-rose-900/15"
 			>
-				<CardHeader class="space-y-2 p-7 pb-5 sm:p-8 sm:pb-6">
-					<p class="text-sm font-medium tracking-[0.18em] text-emerald-800 uppercase">
-						Your exchange awaits
-					</p>
-					<CardTitle class="text-2xl tracking-tight">Welcome back</CardTitle>
-					<CardDescription class="text-base">
-						Sign in with your name and password to manage your Secret Santa gift exchange.
+				<CardHeader class="space-y-3 p-7 pb-4 sm:p-8 sm:pb-4">
+					<span
+						class="grid size-14 place-items-center rounded-2xl bg-rose-700 text-white"
+						aria-hidden="true"
+					>
+						<UserPlus size={30} />
+					</span>
+					<CardTitle class="text-3xl tracking-tight">New here?</CardTitle>
+					<CardDescription class="text-xl leading-8 text-stone-700">
+						Create your account in less than a minute. You only need your name and a password you
+						will remember.
 					</CardDescription>
 				</CardHeader>
-				<CardContent class="px-7 pb-6 sm:px-8">
+				<CardContent class="mt-auto px-7 pb-8 sm:px-8">
+					<a
+						class="inline-flex h-20 w-full items-center justify-center gap-3 rounded-2xl bg-rose-700 px-4 text-2xl font-bold text-white shadow-lg transition-colors hover:bg-rose-800 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-rose-700 sm:px-6 sm:text-3xl"
+						href={resolve('/register')}
+					>
+						<UserPlus size={32} class="shrink-0 max-sm:hidden" aria-hidden="true" />
+						Create My Account
+					</a>
+				</CardContent>
+			</Card>
+
+			<Card
+				class="relative w-full border-4 border-emerald-800 bg-white/95 shadow-2xl shadow-emerald-900/15"
+			>
+				<CardHeader class="space-y-3 p-7 pb-4 sm:p-8 sm:pb-4">
+					<span
+						class="grid size-14 place-items-center rounded-2xl bg-emerald-800 text-white"
+						aria-hidden="true"
+					>
+						<LogIn size={30} />
+					</span>
+					<CardTitle class="text-3xl tracking-tight">Already have an account?</CardTitle>
+					<CardDescription class="text-xl leading-8 text-stone-700">
+						Type the name and password you chose when you created your account.
+					</CardDescription>
+				</CardHeader>
+				<CardContent class="px-7 pb-8 sm:px-8">
 					<form class="space-y-5" onsubmit={handleSubmit}>
 						<div class="space-y-2">
-							<label class="text-sm font-medium" for="login-identifier">Your name</label>
+							<label class="text-xl font-semibold" for="login-identifier">Your name</label>
 							<Input
 								id="login-identifier"
 								name="username"
@@ -141,17 +176,13 @@
 								disabled={isSubmitting}
 								aria-invalid={Boolean(errorMessage)}
 							/>
-							<p class="text-xs text-stone-500">
-								Older accounts can also sign in with their previous username.
-							</p>
 						</div>
 
 						<div class="space-y-2">
-							<label class="text-sm font-medium" for="password">Password</label>
-							<Input
+							<label class="text-xl font-semibold" for="password">Password</label>
+							<PasswordInput
 								id="password"
 								name="password"
-								type="password"
 								autocomplete="current-password"
 								placeholder="Your password"
 								bind:value={password}
@@ -161,39 +192,27 @@
 								disabled={isSubmitting}
 								aria-invalid={Boolean(errorMessage)}
 							/>
+							<p class="text-base text-stone-600">
+								Press the eye at the end of the box to see what you typed.
+							</p>
 						</div>
 
 						{#if errorMessage}
-							<p class="app-alert app-alert--error" role="alert">
+							<p class="app-alert app-alert--error text-lg" role="alert">
 								{errorMessage}
 							</p>
 						{/if}
 
 						<Button
-							class="h-11 w-full rounded-xl bg-emerald-800 text-base hover:bg-emerald-900"
+							class="h-16 w-full rounded-2xl bg-emerald-800 text-2xl font-bold hover:bg-emerald-900"
 							type="submit"
 							disabled={isSubmitting}
 						>
-							{isSubmitting ? 'Signing in…' : 'Sign in'}
+							{isSubmitting ? 'Signing in…' : 'Sign In'}
 						</Button>
 					</form>
 				</CardContent>
-				<CardFooter
-					class="justify-center border-t border-stone-100 px-7 py-5 text-center text-xs text-stone-500 sm:px-8"
-				>
-					<span>
-						New to the exchange?
-						<a
-							class="font-medium text-emerald-800 underline-offset-4 hover:underline"
-							href={resolve('/register')}
-						>
-							Create an account
-						</a>
-					</span>
-				</CardFooter>
 			</Card>
 		</div>
-
-		<p class="text-sm text-stone-500">A Secret Santa exchange, made easy to organize.</p>
 	</section>
 </main>
