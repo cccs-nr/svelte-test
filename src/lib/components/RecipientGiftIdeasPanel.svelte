@@ -287,7 +287,8 @@
 			<Button
 				type="button"
 				variant="outline"
-				class="absolute top-2 right-2 z-10 size-10 rounded-full border border-border bg-popover p-0 text-popover-foreground"
+				size="icon"
+				class="absolute top-2 right-2 z-10"
 				aria-label="Close full-size image"
 				onclick={closeImage}
 			>

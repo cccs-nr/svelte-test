@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { TRPCClientError } from '@trpc/client';
-	import { Plus, Trash2, UsersRound } from '@lucide/svelte';
+	import { Check, Plus, Trash2, UsersRound } from '@lucide/svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
 	import { trpc } from '#lib/trpc/client.js';
@@ -37,7 +37,7 @@
 		notice = null;
 		try {
 			const created = await trpc.members.add.mutate({ displayName: newName.trim() });
-			notice = `${created.displayName} was added. Use “Switch to ${created.displayName}” to manage their wishlist.`;
+			notice = `${created.displayName} was added. Select their name in this list to manage their wishlist.`;
 			newName = '';
 			isFormOpen = false;
 			await invalidateAll();
@@ -82,71 +82,82 @@
 	}
 </script>
 
-<section class="app-surface rounded-2xl border-2 p-5 sm:p-6" aria-labelledby="household-title">
-	<div class="flex items-start gap-4">
-		<span
-			class="grid size-12 shrink-0 place-items-center rounded-full bg-secondary text-secondary-foreground"
-			aria-hidden="true"
-		>
-			<UsersRound size={26} />
-		</span>
-		<div class="min-w-0 space-y-1">
-			<h2 id="household-title" class="text-xl font-semibold">Your household</h2>
-			<p class="text-base text-muted-foreground">
-				Do you also manage a gift list for someone else, like a husband, wife or parent? Add them
-				here. They get their own wishlist and their own draw name, and you manage both from this one
-				account. People in the same household never draw each other.
-			</p>
-		</div>
+<section class="app-surface rounded-xl border-2 p-5 sm:p-6" aria-labelledby="household-title">
+	<div class="flex flex-wrap items-center justify-between gap-3">
+		<h2 id="household-title" class="flex items-center gap-3 text-xl font-semibold">
+			<UsersRound size={24} aria-hidden="true" />
+			Household
+		</h2>
+		{#if !isFormOpen}
+			<Button type="button" onclick={() => (isFormOpen = true)}>
+				<Plus aria-hidden="true" />
+				Add Person
+			</Button>
+		{/if}
 	</div>
+	<p class="mt-2 text-base text-muted-foreground">
+		Optional. Add someone who shares this account, such as a spouse, to manage their wishlist from
+		here. If that feels complicated, they can simply create their own account instead.
+	</p>
 
-	<ul class="mt-4 space-y-3" aria-label="People you manage">
-		{#each members as member (member.id)}
-			<li
-				class="flex flex-wrap items-center justify-between gap-3 rounded-xl border-2 border-border p-3"
-			>
-				<div class="min-w-0">
-					<p class="text-lg font-semibold">
-						{member.displayName}
-						{#if member.id === accountId}<span class="font-normal text-muted-foreground">(you)</span
-							>{/if}
-					</p>
+	{#if members.length > 1}
+		<p class="mt-4 text-base font-semibold">Select a person to switch to them.</p>
+		<ul class="mt-2 space-y-3" aria-label="People in your household">
+			{#each members as member (member.id)}
+				<li class="flex flex-wrap items-stretch gap-3">
 					{#if member.id === activeId}
-						<p class="text-base font-medium">✔ Currently using the app as this person</p>
-					{:else if member.unreadMessages > 0}
-						<p class="text-base">
-							{member.unreadMessages}
-							{member.unreadMessages === 1 ? 'message is' : 'messages are'} waiting
+						<p
+							class="flex min-h-14 min-w-0 flex-1 items-center justify-between gap-3 rounded-lg border-2 border-primary bg-primary px-4 py-2 text-lg font-semibold text-primary-foreground"
+							aria-current="true"
+						>
+							<span class="flex min-w-0 items-center gap-2">
+								<Check size={22} aria-hidden="true" />
+								<span class="truncate">{member.displayName}</span>
+								{#if member.id === accountId}
+									<span class="text-base font-normal">(account owner)</span>
+								{/if}
+							</span>
+							<span class="text-base">Current user</span>
 						</p>
-					{/if}
-				</div>
-				<div class="flex flex-wrap gap-2">
-					{#if member.id !== activeId}
-						<Button
+					{:else}
+						<button
 							type="button"
-							variant="outline"
+							class="flex min-h-14 min-w-0 flex-1 cursor-pointer items-center justify-between gap-3 rounded-lg border-2 border-border bg-background px-4 py-2 text-left text-lg font-semibold hover:border-primary hover:bg-secondary disabled:cursor-not-allowed"
 							disabled={busyId !== null}
 							onclick={() => switchTo(member)}
+							aria-label={`Switch to ${member.displayName}`}
 						>
-							Switch to {member.displayName}
-						</Button>
+							<span class="flex min-w-0 items-center gap-2">
+								<span class="truncate">{member.displayName}</span>
+								{#if member.id === accountId}
+									<span class="text-base font-normal">(account owner)</span>
+								{/if}
+							</span>
+							{#if member.unreadMessages > 0}
+								<span class="text-base font-normal">
+									{member.unreadMessages} new
+									{member.unreadMessages === 1 ? 'message' : 'messages'}
+								</span>
+							{/if}
+						</button>
 					{/if}
 					{#if member.id !== accountId}
 						<Button
 							type="button"
-							variant="outline"
+							variant="destructive"
+							class="self-center"
 							disabled={busyId !== null}
 							onclick={() => removeMember(member)}
 							aria-label={`Remove ${member.displayName}`}
 						>
-							<Trash2 size={18} aria-hidden="true" />
+							<Trash2 aria-hidden="true" />
 							Remove
 						</Button>
 					{/if}
-				</div>
-			</li>
-		{/each}
-	</ul>
+				</li>
+			{/each}
+		</ul>
+	{/if}
 
 	{#if errorMessage}
 		<p class="app-alert app-alert--error mt-4" role="alert">{errorMessage}</p>
@@ -168,24 +179,12 @@
 				required
 				disabled={isAdding}
 			/>
-			<div class="flex flex-wrap gap-2">
-				<Button type="submit" size="lg" disabled={isAdding || !newName.trim()}>
-					{isAdding ? 'Adding…' : 'Add this person'}
+			<div class="flex flex-wrap gap-3">
+				<Button type="submit" disabled={isAdding || !newName.trim()}>
+					{isAdding ? 'Adding…' : 'Add Person'}
 				</Button>
-				<Button type="button" size="lg" variant="outline" onclick={() => (isFormOpen = false)}>
-					Cancel
-				</Button>
+				<Button type="button" variant="outline" onclick={() => (isFormOpen = false)}>Cancel</Button>
 			</div>
 		</form>
-	{:else}
-		<Button
-			type="button"
-			size="lg"
-			class="mt-4 h-auto min-h-12 w-full py-2 whitespace-normal sm:w-auto"
-			onclick={() => (isFormOpen = true)}
-		>
-			<Plus size={20} aria-hidden="true" />
-			Add a person to my household
-		</Button>
 	{/if}
 </section>

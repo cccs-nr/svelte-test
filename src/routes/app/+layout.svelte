@@ -4,13 +4,22 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { TRPCClientError } from '@trpc/client';
-	import { ArrowLeftRight, Gift, BookOpen, LogOut, Menu, UserRound, X } from '@lucide/svelte';
+	import {
+		ArrowLeftRight,
+		BookOpen,
+		ChevronDown,
+		Gift,
+		LogOut,
+		Menu,
+		UserRound,
+		X
+	} from '@lucide/svelte';
 	import type { LayoutProps } from './$types';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import CodenameAvatar from '#lib/components/CodenameAvatar.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
-	import DisplaySettings from '#lib/components/DisplaySettings.svelte';
-	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
+	import AccessibilityMenu from '#lib/components/AccessibilityMenu.svelte';
+	import SwitchUserDialog from '#lib/components/SwitchUserDialog.svelte';
 	import { connectRealtime, disconnectRealtime } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
 
@@ -19,6 +28,7 @@
 	let isAccountMenuOpen = $state(false);
 	let accountButton = $state<HTMLButtonElement>();
 	let accountMenu = $state<HTMLDivElement>();
+	let switchDialog = $state<SwitchUserDialog>();
 	let isSigningOut = $state(false);
 	let logoutError = $state<string | null>(null);
 	let realtimeError = $state<string | null>(null);
@@ -189,6 +199,40 @@
 	}
 </script>
 
+{#snippet navLink(
+	path:
+		| '/app'
+		| '/app/welcome'
+		| '/app/wishlist'
+		| '/app/gift-giving'
+		| '/app/messages'
+		| '/app/dashboard'
+		| '/app/assignments',
+	label: string,
+	isActive: boolean,
+	badge = 0,
+	badgeText = ''
+)}
+	<a
+		href={resolve(path)}
+		onclick={closeMobileNavigation}
+		class={`${navigationClass(isActive)} inline-flex items-center gap-2`}
+		aria-current={isActive ? 'page' : undefined}
+		aria-label={badge > 0 ? `${label}, ${badge} ${badgeText}` : undefined}
+	>
+		{#if path === '/app/welcome'}<BookOpen size={18} aria-hidden="true" />{/if}
+		{label}
+		{#if badge > 0}
+			<span
+				class="holiday-topnav__badge grid min-w-5 place-items-center rounded-md px-1.5 py-0.5 text-sm font-semibold"
+				aria-hidden="true"
+			>
+				{badge}
+			</span>
+		{/if}
+	</a>
+{/snippet}
+
 <svelte:head>
 	<title>Secret Santa</title>
 </svelte:head>
@@ -199,128 +243,62 @@
 		: 'min-h-screen bg-transparent'}
 >
 	<header
-		class={`holiday-topnav sticky top-0 z-40 border-b-4 border-rose-800 bg-[#123b2b]/95 shadow-sm backdrop-blur ${isConversationPage ? 'shrink-0 max-sm:hidden' : ''}`}
+		class={`holiday-topnav sticky top-0 z-40 border-b-4 shadow-sm ${isConversationPage ? 'shrink-0 max-sm:hidden' : ''}`}
 	>
 		<div
-			class="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-2 px-3 py-2 sm:gap-4 sm:px-8"
+			class="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-2 px-3 py-2 sm:gap-4 sm:px-8"
 		>
 			<a
 				href={resolve('/app')}
 				class="holiday-topnav__brand inline-flex min-w-0 items-center gap-3 font-semibold tracking-tight"
+				aria-label="Secret Santa home"
 			>
-				<span class="holiday-topnav__brand-mark grid size-9 place-items-center rounded-xl">
+				<span class="holiday-topnav__brand-mark grid size-9 place-items-center rounded-lg">
 					<Gift size={18} aria-hidden="true" />
 				</span>
-				<span class="whitespace-nowrap">Secret Santa</span>
+				<span class="whitespace-nowrap max-2xl:sr-only">Secret Santa</span>
 			</a>
 			<nav
 				id="main-navigation"
 				class={`order-3 ${isMobileNavigationOpen ? 'flex' : 'hidden'} w-full flex-col gap-1 text-base sm:order-none sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:gap-2`}
 				aria-label="Main navigation"
 			>
-				{#if data.hasAcknowledgedWelcome}
-					{#if data.user.role === 'organizer'}
-						<a
-							href={resolve('/app/dashboard')}
-							onclick={closeMobileNavigation}
-							class={navigationClass(isDashboardActive)}
-							aria-current={isDashboardActive ? 'page' : undefined}
-						>
-							Dashboard
-						</a>
-						<a
-							href={resolve('/app/assignments')}
-							onclick={closeMobileNavigation}
-							class={navigationClass(isAssignmentsActive)}
-							aria-current={isAssignmentsActive ? 'page' : undefined}
-						>
-							Assignments
-						</a>
-					{/if}
-					{#if data.user.isParticipating}
-						<a
-							href={resolve('/app')}
-							onclick={closeMobileNavigation}
-							class={navigationClass(isHomeActive)}
-							aria-current={isHomeActive ? 'page' : undefined}
-						>
-							Home
-						</a>
-						<a
-							href={resolve('/app/wishlist')}
-							onclick={closeMobileNavigation}
-							class={`${navigationClass(isWishlistActive)} inline-flex items-center gap-2`}
-							aria-current={isWishlistActive ? 'page' : undefined}
-							aria-label={badgeCounts.wishlist > 0
-								? `My Wishlist, ${badgeCounts.wishlist} new updates`
-								: 'My Wishlist'}
-						>
-							My Wishlist
-							{#if badgeCounts.wishlist > 0}
-								<span
-									class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-sm font-semibold"
-									aria-hidden="true"
-								>
-									{badgeCounts.wishlist}
-								</span>
-							{/if}
-						</a>
-						<a
-							href={resolve('/app/gift-giving')}
-							onclick={closeMobileNavigation}
-							class={`${navigationClass(isGiftGivingActive)} inline-flex items-center gap-2`}
-							aria-current={isGiftGivingActive ? 'page' : undefined}
-							aria-label={badgeCounts.gift > 0
-								? `Your Draw, ${badgeCounts.gift} new updates`
-								: 'Your Draw'}
-						>
-							Your Draw
-							{#if badgeCounts.gift > 0}
-								<span
-									class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-sm font-semibold"
-									aria-hidden="true"
-								>
-									{badgeCounts.gift}
-								</span>
-							{/if}
-						</a>
-						<a
-							href={resolve('/app/messages')}
-							onclick={closeMobileNavigation}
-							class={`${navigationClass(isMessagesActive)} inline-flex items-center gap-2`}
-							aria-current={isMessagesActive ? 'page' : undefined}
-							aria-label={badgeCounts.messages > 0
-								? `Messages, ${badgeCounts.messages} unread`
-								: 'Messages'}
-						>
-							Messages
-							{#if badgeCounts.messages > 0}
-								<span
-									class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-sm font-semibold"
-									aria-hidden="true"
-								>
-									{badgeCounts.messages}
-								</span>
-							{/if}
-						</a>
-					{/if}
-					<a
-						href={resolve('/app/welcome')}
-						onclick={closeMobileNavigation}
-						class={`${navigationClass(isWelcomeActive)} inline-flex items-center gap-2`}
-						aria-current={isWelcomeActive ? 'page' : undefined}
-					>
-						<BookOpen size={18} aria-hidden="true" />
-						Welcome
-					</a>
+				{@render navLink('/app/welcome', 'Welcome', isWelcomeActive)}
+				{#if data.user.isParticipating}
+					{@render navLink('/app', 'Home', isHomeActive)}
+					{@render navLink(
+						'/app/wishlist',
+						'My Wishlist',
+						isWishlistActive,
+						badgeCounts.wishlist,
+						'new updates'
+					)}
+					{@render navLink(
+						'/app/gift-giving',
+						'Your Draw',
+						isGiftGivingActive,
+						badgeCounts.gift,
+						'new updates'
+					)}
+					{@render navLink(
+						'/app/messages',
+						'Messages',
+						isMessagesActive,
+						badgeCounts.messages,
+						'unread'
+					)}
+				{/if}
+				{#if data.user.role === 'organizer'}
+					{@render navLink('/app/dashboard', 'Dashboard', isDashboardActive)}
+					{@render navLink('/app/assignments', 'Assignments', isAssignmentsActive)}
 				{/if}
 			</nav>
-			<div class="flex items-center gap-4">
+			<div class="flex items-center gap-2 sm:gap-4">
 				<Button
 					type="button"
 					variant="outline"
-					hidden={!data.hasAcknowledgedWelcome}
-					class="holiday-topnav__menu-toggle size-10 p-0 sm:hidden"
+					class="holiday-topnav__menu-toggle sm:hidden"
+					size="icon"
 					aria-controls="main-navigation"
 					aria-expanded={isMobileNavigationOpen}
 					aria-label={isMobileNavigationOpen ? 'Close navigation' : 'Open navigation'}
@@ -330,18 +308,19 @@
 					}}
 				>
 					{#if isMobileNavigationOpen}
-						<X size={18} aria-hidden="true" />
+						<X aria-hidden="true" />
 					{:else}
-						<Menu size={18} aria-hidden="true" />
+						<Menu aria-hidden="true" />
 					{/if}
 				</Button>
+				<AccessibilityMenu variant="dark" />
 				<div class="relative">
 					<button
 						bind:this={accountButton}
 						id="account-menu-trigger"
 						type="button"
-						class="inline-flex size-10 cursor-pointer items-center justify-center rounded-full transition outline-none hover:ring-2 hover:ring-amber-300/70 focus-visible:ring-2 focus-visible:ring-amber-300"
-						aria-label={`Open account menu for ${data.user.displayName}`}
+						class="holiday-topnav__account inline-flex min-h-11 max-w-[11rem] cursor-pointer items-center gap-2 rounded-lg border-2 py-1 pr-2 pl-1 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-amber-300 sm:max-w-[16rem]"
+						aria-label={`Account menu for ${data.user.displayName}`}
 						aria-haspopup="menu"
 						aria-expanded={isAccountMenuOpen}
 						aria-controls="account-menu"
@@ -361,19 +340,19 @@
 							imageVersion={data.avatarVersion}
 							size="sm"
 						/>
+						<span class="min-w-0 truncate text-base font-semibold">{data.user.displayName}</span>
+						<ChevronDown size={20} class="shrink-0" aria-hidden="true" />
 					</button>
 					<div
 						bind:this={accountMenu}
 						id="account-menu"
 						hidden={!isAccountMenuOpen}
-						class="app-surface absolute top-full right-0 z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] rounded-3xl border border-border p-2 shadow-2xl"
+						class="app-surface absolute top-full right-0 z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] rounded-xl border-2 border-border p-2 shadow-2xl"
 						role="menu"
 						aria-labelledby="account-menu-title"
 						aria-orientation="vertical"
 					>
-						<div
-							class="flex items-center gap-3 rounded-2xl border border-stone-100 bg-stone-50 p-3"
-						>
+						<div class="flex items-center gap-3 rounded-lg border border-border bg-secondary p-3">
 							<ProfileAvatar
 								displayName={data.user.displayName}
 								hasAvatar={data.hasAvatar}
@@ -384,7 +363,7 @@
 								<p id="account-menu-title" class="truncate text-base font-semibold">
 									{data.user.displayName}
 								</p>
-								<p class="mt-1 text-sm text-stone-600">
+								<p class="mt-1 text-sm text-muted-foreground">
 									{data.user.role === 'organizer' && data.user.isParticipating
 										? 'Organizer · Participant'
 										: data.user.role}
@@ -393,61 +372,53 @@
 						</div>
 						{#if data.user.codename}
 							<div
-								class="mt-2 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-3"
+								class="mt-2 flex items-center gap-3 rounded-lg border border-border bg-secondary p-3"
 							>
 								<CodenameAvatar codename={data.user.codename} size="md" />
 								<div class="min-w-0">
-									<p class="text-sm font-medium tracking-wide text-emerald-800 uppercase">
-										Your codename
-									</p>
-									<p class="mt-0.5 truncate font-semibold text-stone-950">
-										{data.user.codename}
-									</p>
+									<p class="text-sm font-medium text-primary">Your codename</p>
+									<p class="mt-0.5 truncate font-semibold">{data.user.codename}</p>
 								</div>
 							</div>
 						{/if}
-						<div class="my-2 border-t border-stone-200"></div>
-						<a
-							href={resolve('/app/profile')}
-							onclick={closeAccountMenu}
-							class="flex h-10 w-full cursor-pointer items-center gap-3 rounded-xl px-3 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 hover:text-stone-950"
-							role="menuitem"
-							tabindex={-1}
-						>
-							<UserRound size={18} aria-hidden="true" />
-							Profile
-						</a>
-						{#each data.members.filter((member) => member.id !== data.user.id) as member (member.id)}
+						<div class="my-2 border-t border-border"></div>
+						{#if data.members.length > 1}
 							<Button
 								type="button"
 								variant="ghost"
-								size="lg"
-								class="w-full cursor-pointer justify-start gap-3 rounded-xl px-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground"
+								class="w-full justify-start"
 								role="menuitem"
 								tabindex={-1}
-								onclick={() => switchPerson(member.id)}
+								onclick={() => {
+									closeAccountMenu();
+									switchDialog?.show();
+								}}
 							>
-								<ArrowLeftRight size={18} aria-hidden="true" />
-								<span class="truncate">
-									Switch to {member.displayName}{member.unreadMessages > 0
-										? ` (${member.unreadMessages} new)`
-										: ''}
-								</span>
+								<ArrowLeftRight aria-hidden="true" />
+								Switch User
 							</Button>
-						{/each}
-						<ThemeToggle menuItem />
-						<DisplaySettings menuItem />
+						{/if}
+						<Button
+							href={resolve('/app/profile')}
+							variant="ghost"
+							class="w-full justify-start"
+							onclick={closeAccountMenu}
+							role="menuitem"
+							tabindex={-1}
+						>
+							<UserRound aria-hidden="true" />
+							Profile
+						</Button>
 						<Button
 							type="button"
 							variant="ghost"
-							size="lg"
-							class="w-full cursor-pointer justify-start gap-3 rounded-xl px-3 text-sm font-medium text-rose-700 transition-colors hover:bg-rose-50 hover:text-rose-900"
+							class="w-full justify-start text-destructive"
 							disabled={isSigningOut}
 							role="menuitem"
 							tabindex={-1}
 							onclick={handleLogout}
 						>
-							<LogOut size={18} aria-hidden="true" />
+							<LogOut aria-hidden="true" />
 							{isSigningOut ? 'Signing out…' : 'Sign out'}
 						</Button>
 					</div>
@@ -456,6 +427,7 @@
 		</div>
 	</header>
 
+	<SwitchUserDialog bind:this={switchDialog} members={data.members} activeId={data.user.id} />
 	{#if data.isManagingOther}
 		<div
 			class="mx-auto mt-4 flex w-[calc(100%-2rem)] max-w-6xl flex-wrap items-center justify-between gap-3 rounded-2xl border-4 border-double border-primary bg-card p-4 text-lg"

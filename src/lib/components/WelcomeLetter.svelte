@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { formatEventBudget } from '#lib/models/event.js';
-	import { fullGuide, simpleGuide, type WelcomeBlock } from '#lib/content/welcome.js';
-	import { Button } from '#lib/components/ui/button/index.js';
+	import { welcomeGuide as guide, type WelcomeBlock } from '#lib/content/welcome.js';
 
 	type EventSummary = {
 		name: string;
@@ -11,8 +10,6 @@
 	};
 
 	let { event }: { event: EventSummary | null } = $props();
-	let mode = $state<'simple' | 'full'>('simple');
-	let guide = $derived(mode === 'simple' ? simpleGuide : fullGuide);
 
 	function formatDate(date: string): string {
 		return new Intl.DateTimeFormat('en-CA', { dateStyle: 'full' }).format(
@@ -39,8 +36,6 @@
 	{#each items as block, index (index)}
 		{#if block.type === 'p'}
 			<p>{@render rich(block.text)}</p>
-		{:else if block.type === 'h3'}
-			<h3 class="pt-2 text-xl font-bold text-rose-800">{block.text}</h3>
 		{:else}
 			<ul class="list-disc space-y-1 pl-7">
 				{#each block.items as item (item)}
@@ -52,7 +47,7 @@
 {/snippet}
 
 <article
-	class="app-surface mx-auto max-w-3xl space-y-8 rounded-3xl border-2 border-rose-200 p-5 shadow-xl sm:p-10"
+	class="app-surface mx-auto max-w-3xl space-y-8 rounded-3xl border-2 border-emerald-200 p-5 shadow-xl sm:p-10"
 	aria-labelledby="welcome-letter-title"
 >
 	<header class="space-y-4 text-center">
@@ -63,24 +58,6 @@
 		>
 			{guide.title}
 		</h1>
-		<div class="flex flex-wrap justify-center gap-2" role="group" aria-label="Choose a version">
-			<Button
-				type="button"
-				variant={mode === 'simple' ? 'default' : 'outline'}
-				aria-pressed={mode === 'simple'}
-				onclick={() => (mode = 'simple')}
-			>
-				Short and simple
-			</Button>
-			<Button
-				type="button"
-				variant={mode === 'full' ? 'default' : 'outline'}
-				aria-pressed={mode === 'full'}
-				onclick={() => (mode = 'full')}
-			>
-				Full guide
-			</Button>
-		</div>
 	</header>
 
 	{#if event}
@@ -105,13 +82,13 @@
 	</div>
 
 	{#each guide.sections as section (section.title)}
-		<section class="space-y-4 border-t-2 border-rose-100 pt-6 text-xl leading-9">
+		<section class="space-y-4 border-t-2 border-emerald-100 pt-6 text-xl leading-9">
 			<h2 class="text-2xl leading-snug font-bold text-emerald-900">{section.title}</h2>
 			{@render blocks(section.blocks)}
 		</section>
 	{/each}
 
-	<div class="space-y-4 border-t-2 border-rose-100 pt-6 text-xl leading-9 font-semibold">
+	<div class="space-y-4 border-t-2 border-emerald-100 pt-6 text-xl leading-9 font-semibold">
 		{@render blocks(guide.outro)}
 	</div>
 </article>

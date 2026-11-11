@@ -227,7 +227,7 @@
 		</p>
 	</div>
 
-	<PageGuide>
+	<PageGuide simple="Change your name, picture or password here.">
 		<p>
 			This page is about you. You can change your name, add a photo, or choose a new password. Press
 			the button next to the thing you want to change.

@@ -109,8 +109,8 @@
 								{formatTimestamp(member.wishlistUpdatedAt)}
 							</p>
 						</div>
-						<a
-							class="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+						<Button
+							variant="outline"
 							href={member.id === currentUserId
 								? resolve('/app/wishlist')
 								: resolve('/app/wishlists/[participantId]', {
@@ -118,7 +118,7 @@
 									})}
 						>
 							{member.id === currentUserId ? 'Your Wishlist' : 'View'}
-						</a>
+						</Button>
 					</div>
 					{#if member.conversations.length > 0}
 						<ul
@@ -230,8 +230,8 @@
 								{/if}
 							</td>
 							<td class="px-4 py-3">
-								<a
-									class="font-medium text-emerald-800 underline underline-offset-4"
+								<Button
+									variant="outline"
 									href={member.id === currentUserId
 										? resolve('/app/wishlist')
 										: resolve('/app/wishlists/[participantId]', {
@@ -239,7 +239,7 @@
 											})}
 								>
 									{member.id === currentUserId ? 'Your Wishlist' : 'View Wishlist'}
-								</a>
+								</Button>
 							</td>
 						</tr>
 					{/each}

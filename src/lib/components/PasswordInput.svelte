@@ -20,7 +20,7 @@
 	/>
 	<button
 		type="button"
-		class="absolute inset-y-0 right-0 flex w-12 cursor-pointer items-center justify-center rounded-r-lg text-stone-600 transition-colors hover:text-stone-950 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
+		class="absolute inset-y-0 right-0 flex w-12 cursor-pointer items-center justify-center rounded-r-lg text-stone-600 transition-colors hover:text-stone-950 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-emerald-800 disabled:cursor-not-allowed disabled:text-muted-foreground"
 		aria-label={isVisible ? 'Hide password' : 'Show password'}
 		aria-pressed={isVisible}
 		{disabled}

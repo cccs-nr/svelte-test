@@ -97,7 +97,7 @@
 							</label>
 							<select
 								id={`receiver-${entry.giverId}`}
-								class="h-12 min-w-48 rounded-lg border-2 border-input bg-background px-3 text-lg"
+								class="app-control"
 								value={entry.receiverId}
 								disabled={savingGiverId !== null}
 								onchange={(event) => change(entry, event.currentTarget.value)}

@@ -21,7 +21,7 @@
 		</p>
 	</header>
 
-	<PageGuide>
+	<PageGuide simple="Browse their gift ideas. Press Reserve on one you plan to buy.">
 		<p>
 			These are the gift ideas {data.recipientDisplayName} would enjoy. You do not have to buy anything
 			from this list, but it is a good place to look for ideas.

@@ -245,7 +245,7 @@
 				</label>
 				<select
 					id="mobile-participant-sort"
-					class="min-h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+					class="app-control"
 					value={sortKey}
 					onchange={(event) => setMobileSort(event.currentTarget.value)}
 				>
@@ -497,7 +497,7 @@
 					id="create-account-role"
 					bind:value={createRole}
 					disabled={isSaving}
-					class="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
+					class="app-control"
 				>
 					<option value="participant">Participant</option>
 					<option value="organizer">Organizer</option>
@@ -509,7 +509,7 @@
 					id="create-account-household"
 					bind:value={createHouseholdId}
 					disabled={isSaving}
-					class="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
+					class="app-control"
 				>
 					<option value="">No household</option>
 					{#each households as household (household.id)}
@@ -593,7 +593,7 @@
 					id="edit-account-role"
 					bind:value={editRole}
 					disabled={isSaving || assignmentsExist}
-					class="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
+					class="app-control"
 				>
 					<option value="participant">Participant</option>
 					<option value="organizer">Organizer</option>
@@ -605,7 +605,7 @@
 					id="edit-account-household"
 					bind:value={editHouseholdId}
 					disabled={isSaving || assignmentsExist}
-					class="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
+					class="app-control"
 				>
 					<option value="">No household</option>
 					{#each households as household (household.id)}

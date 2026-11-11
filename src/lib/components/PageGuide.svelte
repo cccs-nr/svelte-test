@@ -5,9 +5,12 @@
 
 	let {
 		title = 'How this page works',
+		simple,
 		children
 	}: {
 		title?: string;
+		/** One short sentence shown when page guidance is set to Simple. */
+		simple: string;
 		children: Snippet;
 	} = $props();
 
@@ -27,7 +30,8 @@
 		<span class="app-guide__title">{title}</span>
 		<span class="app-guide__hint">{isOpen ? 'Hide' : 'Show'}</span>
 	</summary>
-	<div class="app-guide__body space-y-2">
+	<div class="app-guide__body app-guide__detailed space-y-2">
 		{@render children()}
 	</div>
+	<p class="app-guide__body app-guide__simple">{simple}</p>
 </details>

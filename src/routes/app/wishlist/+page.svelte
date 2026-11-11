@@ -311,7 +311,7 @@
 			</h1>
 		</div>
 	</div>
-	<PageGuide>
+	<PageGuide simple="Press Add Gift Idea and fill in the form. Prices are only suggestions.">
 		<p>
 			This is your own wishlist. Add a few things you would like to receive, so the person buying
 			your gift knows what to pick.
@@ -605,8 +605,8 @@
 				</p>
 			{/if}
 
-			<form class="grid gap-5 md:grid-cols-2" onsubmit={saveSuggestion}>
-				<div class="space-y-2 md:col-span-2">
+			<form class="grid gap-5" onsubmit={saveSuggestion}>
+				<div class="space-y-2">
 					<label class="text-base font-semibold" for="wishlist-title">Gift name</label>
 					<Input
 						id="wishlist-title"
@@ -617,7 +617,7 @@
 						disabled={isFormDisabled}
 					/>
 				</div>
-				<div class="space-y-2 md:col-span-2">
+				<div class="space-y-2">
 					<label class="text-base font-semibold" for="wishlist-description">Description</label>
 					<textarea
 						id="wishlist-description"
@@ -625,8 +625,7 @@
 						maxlength={2000}
 						rows="3"
 						disabled={isFormDisabled}
-						class="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
-					></textarea>
+						class="app-control"></textarea>
 				</div>
 				<div class="space-y-2">
 					<label class="text-base font-semibold" for="wishlist-url">Link to gift (URL)</label>
@@ -652,7 +651,7 @@
 					/>
 					<p class="text-sm text-stone-600">Enter dollars with up to two decimal places.</p>
 				</div>
-				<div class="space-y-2 md:col-span-2">
+				<div class="space-y-2">
 					<label class="text-base font-semibold" for="wishlist-notes">Notes</label>
 					<textarea
 						id="wishlist-notes"
@@ -660,10 +659,9 @@
 						maxlength={2000}
 						rows="2"
 						disabled={isFormDisabled}
-						class="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
-					></textarea>
+						class="app-control"></textarea>
 				</div>
-				<div class="space-y-2 md:col-span-2">
+				<div class="space-y-2">
 					<label class="text-base font-semibold" for="wishlist-image">Optional image</label>
 					<Input
 						id="wishlist-image"
@@ -686,7 +684,7 @@
 						</label>
 					{/if}
 				</div>
-				<div class="flex flex-wrap justify-end gap-3 md:col-span-2">
+				<div class="flex flex-wrap justify-end gap-3">
 					<Button type="button" variant="outline" onclick={closeIdeaDialog} disabled={isSaving}>
 						Cancel
 					</Button>
@@ -711,11 +709,12 @@
 				<Button
 					type="button"
 					variant="outline"
-					class="absolute top-2 right-2 z-10 size-10 rounded-full border border-border bg-popover p-0 text-popover-foreground"
+					size="icon"
+					class="absolute top-2 right-2 z-10"
 					aria-label="Close full-size image"
 					onclick={closeImage}
 				>
-					<X size={18} aria-hidden="true" />
+					<X aria-hidden="true" />
 				</Button>
 				<img
 					class="mx-auto max-h-[86dvh] w-full rounded-lg object-contain"

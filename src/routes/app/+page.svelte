@@ -15,6 +15,7 @@
 		CardTitle
 	} from '#lib/components/ui/card/index.js';
 	import WishlistDirectory from '#lib/components/WishlistDirectory.svelte';
+	import { Button } from '#lib/components/ui/button/index.js';
 	import HouseholdMembersCard from '#lib/components/HouseholdMembersCard.svelte';
 	import PageGuide from '#lib/components/PageGuide.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
@@ -59,58 +60,26 @@
 </svelte:head>
 
 <section class="space-y-8">
-	<header>
-		<p class="app-page-kicker">Your exchange</p>
-		<h1 class="app-page-title">
-			Welcome, {data.user.displayName}
-		</h1>
-		{#if !data.event}
-			<p class="app-page-description">
-				{data.user.role === 'organizer'
-					? 'Set up the event and invite participants to get started.'
-					: 'Your organizer is getting the exchange ready. Check back soon.'}
-			</p>
-		{/if}
+	<header class="flex flex-wrap items-start justify-between gap-4">
+		<div>
+			<p class="app-page-kicker">Your exchange</p>
+			<h1 class="app-page-title">
+				Welcome, {data.user.displayName}
+			</h1>
+			{#if !data.event}
+				<p class="app-page-description">
+					{data.user.role === 'organizer'
+						? 'Set up the event and invite participants to get started.'
+						: 'Your organizer is getting the exchange ready. Check back soon.'}
+				</p>
+			{/if}
+		</div>
 	</header>
 
-	<section
-		class="app-surface grid gap-4 rounded-2xl border-2 p-5 sm:grid-cols-2"
-		aria-label="Your activity"
+	<PageGuide
+		title="How Secret Santa works"
+		simple="Add gift ideas to My Wishlist. After the draw, open Your Draw. Prices are only suggestions."
 	>
-		<div class="flex items-start gap-3">
-			<Clock size={26} class="mt-0.5 shrink-0" aria-hidden="true" />
-			<div>
-				<p class="text-base text-muted-foreground">Your last sign-in</p>
-				<p class="text-lg font-semibold">
-					{data.previousLoginAt ? (lastSignIn ?? '…') : 'This is your first visit. Welcome!'}
-				</p>
-			</div>
-		</div>
-		{#if data.user.isParticipating}
-			<div class="flex items-start gap-3">
-				<Mail size={26} class="mt-0.5 shrink-0" aria-hidden="true" />
-				<div>
-					<p class="text-base text-muted-foreground">Messages waiting for you</p>
-					{#if data.badgeCounts.messages > 0}
-						<p class="text-lg font-semibold">
-							{data.badgeCounts.messages}
-							{data.badgeCounts.messages === 1 ? 'new message' : 'new messages'}
-							<a
-								class="ml-2 text-primary underline underline-offset-4"
-								href={resolve('/app/messages')}
-							>
-								Read now
-							</a>
-						</p>
-					{:else}
-						<p class="text-lg font-semibold">No new messages</p>
-					{/if}
-				</div>
-			</div>
-		{/if}
-	</section>
-
-	<PageGuide title="How Secret Santa works">
 		<p>
 			<strong>The goal:</strong> everyone gives one gift and receives one gift. You will be given one
 			person to buy a gift for, and it is a secret until the party.
@@ -136,6 +105,38 @@
 		</ol>
 		<p>The gift price is only a suggestion, not a limit.</p>
 	</PageGuide>
+
+	<section
+		class="app-surface grid gap-4 rounded-2xl border-2 p-5 sm:grid-cols-2"
+		aria-label="Your activity"
+	>
+		<div class="flex items-start gap-3">
+			<Clock size={26} class="mt-0.5 shrink-0" aria-hidden="true" />
+			<div>
+				<p class="text-base text-muted-foreground">Your last sign-in</p>
+				<p class="text-lg font-semibold">
+					{data.previousLoginAt ? (lastSignIn ?? '…') : 'This is your first visit. Welcome!'}
+				</p>
+			</div>
+		</div>
+		{#if data.user.isParticipating}
+			<div class="flex items-start gap-3">
+				<Mail size={26} class="mt-0.5 shrink-0" aria-hidden="true" />
+				<div>
+					<p class="text-base text-muted-foreground">Messages waiting for you</p>
+					{#if data.badgeCounts.messages > 0}
+						<p class="text-lg font-semibold">
+							{data.badgeCounts.messages}
+							{data.badgeCounts.messages === 1 ? 'new message' : 'new messages'}
+							<Button variant="default" href={resolve('/app/messages')}>Read now</Button>
+						</p>
+					{:else}
+						<p class="text-lg font-semibold">No new messages</p>
+					{/if}
+				</div>
+			</div>
+		{/if}
+	</section>
 
 	{#if data.event}
 		<div class="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.7fr)]">
@@ -201,15 +202,8 @@
 				</CardContent>
 				{#if data.user.role === 'organizer'}
 					<CardFooter class="flex flex-wrap gap-4">
-						<a class="text-sm font-medium text-emerald-800 underline" href={resolve('/app/event')}>
-							Event settings
-						</a>
-						<a
-							class="text-sm font-medium text-emerald-800 underline"
-							href={resolve('/app/dashboard')}
-						>
-							Dashboard
-						</a>
+						<Button variant="outline" href={resolve('/app/event')}>Event settings</Button>
+						<Button variant="outline" href={resolve('/app/dashboard')}>Dashboard</Button>
 					</CardFooter>
 				{/if}
 			</Card>
@@ -223,12 +217,7 @@
 						</CardDescription>
 					</CardHeader>
 					<CardFooter>
-						<a
-							class="text-sm font-medium text-emerald-800 underline"
-							href={resolve('/app/dashboard')}
-						>
-							Open dashboard
-						</a>
+						<Button variant="outline" href={resolve('/app/dashboard')}>Open dashboard</Button>
 					</CardFooter>
 				</Card>
 			{/if}
@@ -242,9 +231,7 @@
 				</CardDescription>
 			</CardHeader>
 			<CardFooter>
-				<a class="text-sm font-medium text-emerald-800 underline" href={resolve('/app/event')}>
-					Configure event
-				</a>
+				<Button variant="outline" href={resolve('/app/event')}>Configure event</Button>
 			</CardFooter>
 		</Card>
 	{:else}

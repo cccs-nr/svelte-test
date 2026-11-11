@@ -25,10 +25,11 @@
 			(() => {
 				try {
 					const root = document.documentElement;
-					root.dataset.text =
-						localStorage.getItem('secret-santa-text') === 'standard' ? 'standard' : 'large';
-					root.dataset.contrast =
-						localStorage.getItem('secret-santa-contrast') === 'high' ? 'high' : 'normal';
+					root.dataset.visibility =
+						localStorage.getItem('secret-santa-high-visibility') === 'high' ? 'high' : 'normal';
+					const guidance = localStorage.getItem('secret-santa-guidance');
+					root.dataset.guidance =
+						guidance === 'simple' || guidance === 'off' ? guidance : 'detailed';
 				} catch {
 					// Defaults apply when storage is unavailable.
 				}

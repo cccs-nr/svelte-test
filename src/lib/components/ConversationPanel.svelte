@@ -318,7 +318,7 @@
 					<label class="sr-only" for="conversation-message-draft">Write a message</label>
 					<textarea
 						id="conversation-message-draft"
-						class="min-h-20 w-full resize-y rounded-lg border border-input bg-background p-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+						class="app-control"
 						bind:value={draft}
 						maxlength="2000"
 						placeholder="Write a message…"

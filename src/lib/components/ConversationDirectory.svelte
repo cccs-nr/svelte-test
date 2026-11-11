@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button } from '#lib/components/ui/button/index.js';
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
@@ -105,27 +106,20 @@
 				<p class="app-page-description">
 					Every conversation is organized around a participant’s wishlist.
 				</p>
-				<div class="mt-4 max-w-3xl">
-					<PageGuide>
-						<p>
-							Here you can send private messages. Press a conversation to open it, type your
-							message, and press <strong>Send</strong>. Your Secret Santa name stays secret.
-						</p>
-					</PageGuide>
-				</div>
 			{/if}
 		</div>
 		{#if compact}
-			<a
-				class="text-sm font-medium text-emerald-800 underline underline-offset-4"
-				href={resolve('/app/messages')}
-			>
-				View all messages
-			</a>
+			<Button variant="outline" href={resolve('/app/messages')}>View all messages</Button>
 		{/if}
 	</div>
 
 	{#if !compact}
+		<PageGuide simple="Open a conversation, type your message, and press Send.">
+			<p>
+				Here you can send private messages. Press a conversation to open it, type your message, and
+				press <strong>Send</strong>. Your Secret Santa name stays secret.
+			</p>
+		</PageGuide>
 		<div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
 			<div class="space-y-2">
 				<label class="text-sm font-medium text-stone-800" for="conversation-search">
@@ -142,11 +136,7 @@
 				<label class="text-sm font-medium text-stone-800" for="conversation-filter">
 					Filter by type
 				</label>
-				<select
-					id="conversation-filter"
-					class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-					bind:value={filter}
-				>
+				<select id="conversation-filter" class="app-control" bind:value={filter}>
 					<option value="all">All conversations</option>
 					<option value="wishlist_discussion">Talk to wishlist owner</option>
 					<option value="gift_coordination">Private gift planning</option>
@@ -250,8 +240,8 @@
 							</div>
 						</a>
 						<div class="mt-2 flex justify-end">
-							<a
-								class="ml-auto text-sm font-medium text-emerald-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
+							<Button
+								variant="outline"
 								href={conversation.isWishlistOwner
 									? resolve('/app/wishlist')
 									: resolve('/app/wishlists/[participantId]', {
@@ -259,7 +249,7 @@
 										})}
 							>
 								View wishlist
-							</a>
+							</Button>
 						</div>
 					</article>
 				</li>

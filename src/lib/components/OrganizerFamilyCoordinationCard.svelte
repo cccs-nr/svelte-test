@@ -438,7 +438,7 @@
 			<label class="text-base font-semibold" for="reservation-correction-reason">Reason</label>
 			<textarea
 				id="reservation-correction-reason"
-				class="min-h-24 w-full rounded-md border border-input bg-background p-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+				class="app-control"
 				bind:value={correctionReason}
 				minlength="3"
 				maxlength="500"

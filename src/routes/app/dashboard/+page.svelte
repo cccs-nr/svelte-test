@@ -41,7 +41,7 @@
 		<h1 class="app-page-title mt-2">Dashboard</h1>
 	</div>
 
-	<PageGuide>
+	<PageGuide simple="Set up the event, then go to Assignments to run the draw.">
 		<p>
 			This is the organizer’s control center. Work from top to bottom: set the event date and price
 			suggestion, wait for everyone to join, then go to <strong>Assignments</strong> to run the

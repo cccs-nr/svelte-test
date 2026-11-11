@@ -31,7 +31,7 @@
 		</p>
 	</header>
 
-	<PageGuide>
+	<PageGuide simple="This is who you buy for. Pick a gift idea and press Reserve.">
 		{#if data.assignedRecipient}
 			<p>
 				This is the person you are buying a gift for. Look through their gift ideas below. When you

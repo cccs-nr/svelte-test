@@ -138,7 +138,7 @@
 		</p>
 	</div>
 
-	<PageGuide>
+	<PageGuide simple="Generate the draw, check it, then finalize it.">
 		<p>
 			This is where you draw names. First check that everyone has joined, then press the button to
 			generate the draw. When you are happy with it, finalize it so people can see who they are

@@ -9,7 +9,7 @@ import { getParticipantBadgeCounts } from '#lib/server/notification-counts.js';
 import { getParticipantCodename } from '#lib/server/codenames.js';
 import { isActiveExchangeParticipant } from '#lib/server/wishlist-access.js';
 
-export const load: LayoutServerLoad = ({ locals, url }) => {
+export const load: LayoutServerLoad = ({ locals }) => {
 	if (!locals.user || !locals.accountUser) redirect(303, resolve('/login'));
 	const avatar = db
 		.select({ key: users.avatarKey, updatedAt: users.updatedAt })
@@ -17,17 +17,10 @@ export const load: LayoutServerLoad = ({ locals, url }) => {
 		.where(eq(users.id, locals.user.id))
 		.get();
 	const account = db
-		.select({
-			welcomeAcknowledgedAt: users.welcomeAcknowledgedAt,
-			previousLoginAt: users.previousLoginAt
-		})
+		.select({ previousLoginAt: users.previousLoginAt })
 		.from(users)
 		.where(eq(users.id, locals.accountUser.id))
 		.get();
-	const hasAcknowledgedWelcome = Boolean(account?.welcomeAcknowledgedAt);
-	if (!hasAcknowledgedWelcome && !url.pathname.endsWith('/app/welcome')) {
-		redirect(303, resolve('/app/welcome'));
-	}
 	const badgeCounts = isExchangeParticipant(locals.user)
 		? getParticipantBadgeCounts(db, locals.user.id)
 		: { wishlist: 0, gift: 0, messages: 0 };
@@ -62,7 +55,6 @@ export const load: LayoutServerLoad = ({ locals, url }) => {
 		},
 		hasAvatar: Boolean(avatar?.key),
 		avatarVersion: avatar?.updatedAt.getTime() ?? 0,
-		badgeCounts,
-		hasAcknowledgedWelcome
+		badgeCounts
 	};
 };
