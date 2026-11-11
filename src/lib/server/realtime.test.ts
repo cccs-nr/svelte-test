@@ -13,14 +13,19 @@ let realtimeServer: RealtimeServer | undefined;
 let clientSockets: ClientSocket[] = [];
 let origin = '';
 
-function createClient(userId: string, requestOrigin = origin): ClientSocket {
+function createClient(
+	userId: string,
+	requestOrigin: string | null = origin,
+	additionalHeaders: Record<string, string> = {}
+): ClientSocket {
 	const socket = connectSocket(origin, {
 		autoConnect: false,
 		reconnection: false,
 		transports: ['websocket'],
 		extraHeaders: {
 			cookie: `auth=${userId}`,
-			origin: requestOrigin
+			...(requestOrigin ? { origin: requestOrigin } : {}),
+			...additionalHeaders
 		}
 	});
 	clientSockets.push(socket);
@@ -98,6 +103,36 @@ describe('Socket.IO live updates', () => {
 
 		const crossOrigin = createClient('alice', 'https://attacker.example');
 		await expect(waitForConnection(crossOrigin)).rejects.toThrow(
+			'A same-origin socket connection is required.'
+		);
+	});
+
+	it('accepts same-origin polling requests without Origin when Fetch Metadata confirms the site', async () => {
+		const participant = connectSocket(origin, {
+			autoConnect: false,
+			reconnection: false,
+			transports: ['polling'],
+			extraHeaders: {
+				cookie: 'auth=alice',
+				'sec-fetch-site': 'same-origin'
+			}
+		});
+		clientSockets.push(participant);
+		await expect(waitForConnection(participant)).resolves.toBeUndefined();
+	});
+
+	it('rejects polling requests without Origin when Fetch Metadata is not same-origin', async () => {
+		const participant = connectSocket(origin, {
+			autoConnect: false,
+			reconnection: false,
+			transports: ['polling'],
+			extraHeaders: {
+				cookie: 'auth=alice',
+				'sec-fetch-site': 'cross-site'
+			}
+		});
+		clientSockets.push(participant);
+		await expect(waitForConnection(participant)).rejects.toThrow(
 			'A same-origin socket connection is required.'
 		);
 	});

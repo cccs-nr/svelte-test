@@ -149,6 +149,17 @@ The app is then available at `https://santa.example.com/secret-santa/`. HTTP on 
 
 The internal health endpoint is `/secret-santa/api/health`. SQLite data, uploaded images, ACME challenge files, and certificates persist in named Docker volumes. App startup applies database migrations before starting the Node adapter. Configure regular off-VM backups for both `secret-santa-data` and `secret-santa-uploads`.
 
+Live updates use Socket.IO at `/secret-santa/socket.io/`, including HTTP polling and WebSocket upgrade. Nginx forwards WebSocket upgrade headers; same-origin polling requests without an `Origin` header are checked using browser Fetch Metadata and the forwarded host/protocol.
+
+If the UI reports that live updates are unavailable, check the proxy and application logs, then test the Engine.IO polling endpoint:
+
+```sh
+docker compose logs --tail=100 proxy app
+curl -i 'https://santa.example.com/secret-santa/socket.io/?EIO=4&transport=polling'
+```
+
+The polling endpoint should return HTTP 200 with an Engine.IO open packet. Check that the generated app and proxy images use the same `APP_BASE_PATH`, and that Nginx is forwarding `Upgrade`, `Connection`, `X-Forwarded-Host`, and `X-Forwarded-Proto`.
+
 Renew certificates automatically with a host systemd timer or another scheduler. A renewal must reload Nginx after Certbot succeeds. For example, from the Compose project directory:
 
 ```sh

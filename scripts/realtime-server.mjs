@@ -8,12 +8,16 @@ function isSameOrigin(request) {
 	const protocol =
 		request.headers['x-forwarded-proto'] ??
 		(request.socket instanceof TLSSocket ? 'https' : 'http');
-	if (typeof origin !== 'string' || typeof host !== 'string') return false;
+	if (typeof host !== 'string') return false;
+
+	const expectedHost = host.split(',')[0].trim().toLowerCase();
+	const expectedProtocol = String(protocol).split(',')[0].trim();
+	if (typeof origin !== 'string') {
+		return request.headers['sec-fetch-site'] === 'same-origin';
+	}
 
 	try {
 		const parsedOrigin = new URL(origin);
-		const expectedHost = host.split(',')[0].trim().toLowerCase();
-		const expectedProtocol = String(protocol).split(',')[0].trim();
 		return (
 			parsedOrigin.host.toLowerCase() === expectedHost &&
 			parsedOrigin.protocol === `${expectedProtocol}:`
