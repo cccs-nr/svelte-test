@@ -4,10 +4,15 @@
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
+	let holidayBackground = $derived(
+		`url("${__APP_BASE_PATH__}/winter-holiday.svg")`
+	);
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-{@render children()}
+<div class="app-background" style={`background-image: ${holidayBackground}`}>
+	{@render children()}
+</div>
