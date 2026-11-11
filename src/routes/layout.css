@@ -24,6 +24,10 @@
 	--warning: oklch(0.78 0.13 78);
 	--warning-foreground: oklch(0.32 0.07 75);
 	--destructive: oklch(0.577 0.245 27.325);
+	/* Red accent for the app icon, navigation and card borders; the dark theme uses a deeper red. */
+	--control-border: oklch(0.5 0.03 150);
+	--accent-red: #c2334b;
+	--accent-red-strong: #a8263d;
 	--border: oklch(0.922 0 0);
 	--input: oklch(0.922 0 0);
 	--ring: oklch(0.66 0.1 150);
@@ -85,6 +89,9 @@
 	--warning: oklch(0.8 0.14 82);
 	--warning-foreground: oklch(0.9 0.1 82);
 	--destructive: oklch(0.704 0.191 22.216);
+	--control-border: oklch(0.72 0 0);
+	--accent-red: #a8263d;
+	--accent-red-strong: #871d31;
 	--border: oklch(1 0 0 / 10%);
 	--input: oklch(1 0 0 / 15%);
 	--ring: oklch(0.556 0 0);
@@ -122,7 +129,7 @@
 .holiday-topnav {
 	background-color: #123b2b;
 	color: #f1f5f0;
-	border-bottom-color: #3f8f68;
+	border-bottom-color: var(--accent-red-strong);
 }
 
 .holiday-topnav > div {
@@ -140,8 +147,8 @@
 }
 
 .holiday-topnav__brand-mark {
-	background-color: #fcd34d;
-	color: #123b2b;
+	background-color: var(--accent-red);
+	color: #fff;
 }
 
 .holiday-topnav__menu-toggle,
@@ -165,12 +172,12 @@
 }
 
 .holiday-topnav__link.is-current {
-	background-color: #fff;
-	color: #123b2b;
+	background-color: var(--accent-red);
+	color: #fff;
 }
 
 .holiday-topnav__link.is-current:hover {
-	background-color: #e8f2eb;
+	background-color: var(--accent-red-strong);
 }
 
 .holiday-topnav__badge {
@@ -179,8 +186,8 @@
 }
 
 .holiday-topnav__link.is-current .holiday-topnav__badge {
-	background-color: #123b2b;
-	color: #fff;
+	background-color: #fff;
+	color: var(--accent-red-strong);
 }
 
 .overflow-x-auto {
@@ -305,16 +312,10 @@
 	color: var(--card-foreground);
 }
 
-.app-guide__summary {
+.app-guide__header {
 	display: flex;
-	cursor: pointer;
-	list-style: none;
 	align-items: center;
 	gap: 1rem;
-}
-
-.app-guide__summary::-webkit-details-marker {
-	display: none;
 }
 
 .app-guide__icon {
@@ -333,18 +334,6 @@
 	font-size: 1.25rem;
 	font-weight: 700;
 	line-height: 1.75rem;
-	color: var(--primary);
-}
-
-.app-guide__hint {
-	display: inline-flex;
-	min-height: 2.75rem;
-	align-items: center;
-	border: 2px solid var(--primary);
-	border-radius: 0.5rem;
-	padding: 0 0.75rem;
-	font-size: 1rem;
-	font-weight: 600;
 	color: var(--primary);
 }
 
@@ -377,7 +366,7 @@
 	line-height: 1.15;
 }
 
-.app-page-description {
+.app-page-status {
 	margin-top: 0.75rem;
 	max-width: 42rem;
 	font-size: 1.125rem;
@@ -385,7 +374,7 @@
 	color: var(--muted-foreground);
 }
 
-@media (min-width: 640px) {
+@media (min-width: 1100px) {
 	.app-page-title {
 		font-size: 2.25rem;
 	}
@@ -401,6 +390,13 @@
 .app-table-scroll:focus-visible {
 	outline: 2px solid var(--ring);
 	outline-offset: 2px;
+}
+
+/* Phone layouts apply up to 1100px wide (Tailwind's sm is 1100px; md and lg stay above it). */
+@theme {
+	--breakpoint-sm: 68.75rem;
+	--breakpoint-md: 69rem;
+	--breakpoint-lg: 70rem;
 }
 
 @theme inline {
@@ -419,6 +415,7 @@
 	--color-chart-2: var(--chart-2);
 	--color-chart-1: var(--chart-1);
 	--color-ring: var(--ring);
+	--color-accent-red: var(--accent-red);
 	--color-input: var(--input);
 	--color-border: var(--border);
 	--color-destructive: var(--destructive);
@@ -482,20 +479,32 @@
 	color: var(--foreground);
 }
 
-html[data-guidance='off'] .app-guide {
+/*
+ * Page guidance levels, set on <html> by the Accessibility menu:
+ *  detailed - instruction cards, helper text and card descriptions
+ *  simple   - one short sentence under each page title (.app-page-simple)
+ *  off      - none of the above
+ */
+.app-page-simple {
 	display: none;
+	margin-top: 0.75rem;
+	max-width: 42rem;
+	color: var(--muted-foreground);
+	font-size: 1.125rem;
+	line-height: 1.75rem;
 }
 
-.app-guide__simple {
-	display: none;
-}
-
-html[data-guidance='simple'] .app-guide__detailed {
-	display: none;
-}
-
-html[data-guidance='simple'] .app-guide__simple {
+html[data-guidance='simple'] .app-page-simple {
 	display: block;
+}
+
+html[data-guidance='simple'] .app-guide,
+html[data-guidance='simple'] .app-hint,
+html[data-guidance='simple'] .app-description,
+html[data-guidance='off'] .app-guide,
+html[data-guidance='off'] .app-hint,
+html[data-guidance='off'] .app-description {
+	display: none;
 }
 
 html[data-visibility='high'] {
@@ -575,9 +584,9 @@ html[data-visibility='high'] {
 		width: 100%;
 		min-width: 0;
 		min-height: var(--control-h);
-		border: 2px solid var(--input);
+		border: 2px solid var(--control-border);
 		border-radius: 0.5rem;
-		background-color: var(--background);
+		background-color: var(--card);
 		padding: 0.5rem 0.75rem;
 		color: var(--foreground);
 		font-size: 1.125rem;
@@ -633,13 +642,13 @@ html[data-visibility='high'] {
 	}
 	body {
 		@apply bg-background text-foreground;
-		background-image: linear-gradient(145deg, #f7f5e9 0%, #edf5ed 54%, #edf4e8 100%);
+		background-image: linear-gradient(145deg, #f7f5e9 0%, #edf5ed 54%, #f6eded 100%);
 		background-attachment: fixed;
 		background-repeat: no-repeat;
 		background-size: cover;
 	}
 	.dark body {
-		background-image: linear-gradient(145deg, #101b16 0%, #16231c 54%, #17251c 100%);
+		background-image: linear-gradient(145deg, #101b16 0%, #16231c 54%, #241619 100%);
 	}
 	html {
 		@apply font-sans;
@@ -650,7 +659,7 @@ html[data-visibility='high'] {
 	}
 }
 
-@media (max-width: 640px) {
+@media (max-width: 1100px) {
 	button[data-slot='button'] {
 		min-height: 2.75rem;
 	}

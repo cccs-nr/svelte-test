@@ -11,6 +11,7 @@ import {
 	createUserSession,
 	deleteUserSession
 } from '#lib/server/auth/session.js';
+import { assertDisplayNameAvailable } from '#lib/server/auth/display-name.js';
 import { hashPassword, verifyPassword } from '#lib/server/auth/password.js';
 import { createUniqueUsername } from '#lib/server/auth/username.js';
 import { assignments, sessions, users } from '#lib/server/db/schema.js';
@@ -121,6 +122,7 @@ export const authRouter = router({
 
 		const id = randomUUID();
 		const passwordHash = await hashPassword(input.password);
+		assertDisplayNameAvailable(ctx.db, input.displayName);
 		const username = createUniqueUsername(ctx.db, input.displayName);
 		const insertResult = ctx.db
 			.insert(users)
@@ -206,6 +208,7 @@ export const authRouter = router({
 				}
 			}
 
+			assertDisplayNameAvailable(transaction, input.displayName, ctx.user.id);
 			transaction
 				.update(users)
 				.set({ displayName: input.displayName, isParticipating, updatedAt: new Date() })

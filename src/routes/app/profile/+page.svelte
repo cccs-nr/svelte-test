@@ -14,6 +14,7 @@
 	} from '#lib/components/ui/card/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
 	import PageGuide from '#lib/components/PageGuide.svelte';
+	import PageSummary from '#lib/components/PageSummary.svelte';
 	import PasswordInput from '#lib/components/PasswordInput.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 	import { trpc } from '#lib/trpc/client.js';
@@ -222,16 +223,30 @@
 	<div>
 		<p class="app-page-kicker">Account</p>
 		<h1 class="app-page-title">Your profile</h1>
-		<p class="app-page-description">
-			Update the name other participants see and keep your password secure.
-		</p>
+		<PageSummary>Change your name, picture or password.</PageSummary>
 	</div>
 
-	<PageGuide simple="Change your name, picture or password here.">
+	<PageGuide>
 		<p>
-			This page is about you. You can change your name, add a photo, or choose a new password. Press
-			the button next to the thing you want to change.
+			This page is about you and your account. Press the button in each section to change that part.
 		</p>
+		<ul>
+			<li>
+				<strong>Profile picture:</strong> choose a photo to show beside your name. In messages, your codename
+				picture is used instead, so you stay anonymous.
+			</li>
+			<li>
+				<strong>Your codename:</strong> after the draw you receive a Christmas codename. You can pick
+				a different one until the event is complete.
+			</li>
+			<li>
+				<strong>Profile details:</strong> change the name other people see. It is also what you use to
+				sign in.
+			</li>
+			<li>
+				<strong>Change password:</strong> choose a new password. Other devices will be signed out.
+			</li>
+		</ul>
 	</PageGuide>
 
 	{#if errorMessage}
@@ -269,7 +284,7 @@
 							bind:files={avatarFiles}
 							disabled={isSavingAvatar}
 						/>
-						<p class="text-sm text-stone-600">
+						<p class="app-hint text-sm text-stone-600">
 							JPEG, PNG, or WebP up to {formatFileSize(data.maxImageBytes)}.
 						</p>
 					</div>
@@ -450,7 +465,7 @@
 			<div class="mb-6 flex items-start justify-between gap-4">
 				<div>
 					<h2 id="change-password-title" class="text-xl font-semibold">Change password</h2>
-					<p class="mt-1 text-sm text-stone-600">
+					<p class="app-hint mt-1 text-sm text-stone-600">
 						Use at least 3 characters. Any characters are allowed.
 					</p>
 				</div>

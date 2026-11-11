@@ -144,7 +144,7 @@
 <Card>
 	<CardHeader>
 		<CardTitle>Gift ideas</CardTitle>
-		<CardDescription>
+		<CardDescription essential>
 			{#if giftBudgetCents !== null}
 				The suggested gift price is {formatEventBudget(giftBudgetCents, currency)}. It is a
 				suggestion, not a limit.

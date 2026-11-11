@@ -17,7 +17,7 @@
 				default:
 					'bg-primary text-primary-foreground hover:bg-[color-mix(in_oklab,var(--primary),black_18%)]',
 				outline:
-					'border-primary bg-background text-primary hover:bg-secondary aria-expanded:bg-secondary',
+					'border-primary bg-card text-foreground hover:bg-secondary aria-expanded:bg-secondary',
 				secondary:
 					'border-border bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklab,var(--secondary),var(--foreground)_10%)]',
 				ghost: 'text-foreground hover:bg-secondary aria-expanded:bg-secondary',

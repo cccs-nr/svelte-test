@@ -3,6 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import type { PageProps } from './$types';
 	import PageGuide from '#lib/components/PageGuide.svelte';
+	import PageSummary from '#lib/components/PageSummary.svelte';
 	import EventOverviewCard from '#lib/components/EventOverviewCard.svelte';
 	import ConversationMigrationReviewCard from '#lib/components/ConversationMigrationReviewCard.svelte';
 	import OrganizerFamilyCoordinationCard from '#lib/components/OrganizerFamilyCoordinationCard.svelte';
@@ -39,15 +40,29 @@
 	<div>
 		<p class="app-page-kicker">Organizer</p>
 		<h1 class="app-page-title mt-2">Dashboard</h1>
+		<PageSummary>Set up the event, follow progress and manage accounts.</PageSummary>
 	</div>
 
-	<PageGuide simple="Set up the event, then go to Assignments to run the draw.">
-		<p>
-			This is the organizer’s control center. Work from top to bottom: set the event date and price
-			suggestion, wait for everyone to join, then go to <strong>Assignments</strong> to run the
-			draw. To change someone’s name, account name or password, or to remove them, press
-			<strong>Edit</strong> beside their name in the list of accounts.
-		</p>
+	<PageGuide>
+		<p>This is the organizer’s control center. Work through it from top to bottom:</p>
+		<ol>
+			<li>
+				<strong>Event overview:</strong> set the event name, date and suggested gift price, then open
+				the event so people can take part.
+			</li>
+			<li>
+				<strong>Accounts:</strong> see who has joined. Press <strong>Edit</strong> beside a name to
+				change their name or account name, set a new password, deactivate or delete them. Press
+				<strong>Create account</strong> to add someone yourself.
+			</li>
+			<li>
+				<strong>Households:</strong> group people who live together so the draw never pairs them.
+			</li>
+			<li>
+				When everyone has joined, go to <strong>Assignments</strong> to run the draw.
+			</li>
+		</ol>
+		<p>Private messages are never shown here. Only totals and progress are.</p>
 	</PageGuide>
 
 	<EventOverviewCard

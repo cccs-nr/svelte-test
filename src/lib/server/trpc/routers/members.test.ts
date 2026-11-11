@@ -127,6 +127,13 @@ describe('household members', () => {
 		).rejects.toThrow();
 	});
 
+	it('refuses a household member whose name is already used', async () => {
+		const caller = createCaller(mom);
+		await expect(caller.members.add({ displayName: 'sam' })).rejects.toThrow(/already taken/);
+		await caller.members.add({ displayName: 'Dad' });
+		await expect(caller.members.add({ displayName: 'DAD' })).rejects.toThrow(/already taken/);
+	});
+
 	it('lets the account switch to a managed participant and back', async () => {
 		const caller = createCaller(mom);
 		const dad = await caller.members.add({ displayName: 'Dad' });

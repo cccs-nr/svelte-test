@@ -53,8 +53,9 @@
 <AuthShell
 	title="Welcome to our Secret Santa gift exchange!"
 	intro="Everyone gives one gift and receives one gift. It is a secret until the party!"
+	simple="Create an account to join the gift exchange."
 >
-	<Card class="gap-3 border-4 border-primary bg-white py-4 shadow-xl sm:gap-4 sm:py-6">
+	<Card class="gap-3 border-2 border-border bg-white py-4 shadow-xl sm:gap-4 sm:py-6">
 		<CardHeader class="px-4 sm:px-6">
 			<CardTitle class="flex items-center gap-3 text-2xl tracking-tight sm:text-3xl">
 				<span
@@ -80,7 +81,7 @@
 						required
 						disabled={isSubmitting}
 					/>
-					<p class="hidden text-base text-stone-700 sm:block">
+					<p class="app-hint hidden text-base text-stone-700 sm:block">
 						Use your first name or full name. This is the name you will use to sign in.
 					</p>
 				</div>
@@ -95,7 +96,7 @@
 						required
 						disabled={isSubmitting}
 					/>
-					<p class="hidden text-base text-stone-700 sm:block">
+					<p class="app-hint hidden text-base text-stone-700 sm:block">
 						Choose something you will remember. It needs at least 3 letters or numbers. Press the
 						eye to see what you typed.
 					</p>

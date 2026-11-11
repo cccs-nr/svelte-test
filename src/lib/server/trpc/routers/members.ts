@@ -6,6 +6,7 @@ import { displayNameSchema, isExchangeParticipant } from '#lib/auth.js';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { clearActingAsCookie, setActingAsCookie } from '#lib/server/auth/session.js';
+import { assertDisplayNameAvailable } from '#lib/server/auth/display-name.js';
 import { createUniqueUsername } from '#lib/server/auth/username.js';
 import { assignments, households, users } from '#lib/server/db/schema.js';
 import { getParticipantBadgeCounts } from '#lib/server/notification-counts.js';
@@ -119,6 +120,7 @@ export const membersRouter = router({
 					});
 				}
 
+				assertDisplayNameAvailable(tx, input.displayName);
 				const householdId = ensureHousehold(tx, account.id, account.displayName);
 				const id = randomUUID();
 				tx.insert(users)

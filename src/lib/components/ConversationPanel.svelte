@@ -325,7 +325,9 @@
 						disabled={isSending}
 						onkeydown={handleComposerKeydown}></textarea>
 					<div class="flex items-center justify-between gap-3">
-						<p class="text-sm text-stone-600">Enter to send · Shift+Enter for a new line</p>
+						<p class="app-hint text-sm text-stone-600">
+							Enter to send · Shift+Enter for a new line
+						</p>
 						<Button type="submit" disabled={isSending || !draft.trim()}>
 							{isSending ? 'Sending…' : 'Send'}
 						</Button>

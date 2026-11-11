@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Accessibility, ChevronDown } from '@lucide/svelte';
+	import { ChevronDown, Eye } from '@lucide/svelte';
 	import PreferenceSwitch from '#lib/components/PreferenceSwitch.svelte';
 	import {
 		loadPreferences,
@@ -62,8 +62,8 @@
 		aria-controls="accessibility-menu"
 		onclick={() => (isOpen = !isOpen)}
 	>
-		<Accessibility size={22} aria-hidden="true" />
-		<span class="max-sm:sr-only">Accessibility</span>
+		<Eye size={22} aria-hidden="true" />
+		<span class={variant === 'dark' ? 'max-[1200px]:sr-only' : ''}>Accessibility</span>
 		<ChevronDown size={20} aria-hidden="true" />
 	</button>
 	<div
@@ -76,7 +76,7 @@
 	>
 		<fieldset class="space-y-2">
 			<legend class="text-base font-semibold">Page guidance</legend>
-			<div class="grid grid-cols-3 gap-2">
+			<div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Page guidance">
 				{#each guidanceOptions as option (option.value)}
 					<button
 						type="button"
@@ -85,7 +85,8 @@
 								? 'border-primary bg-primary text-primary-foreground'
 								: 'border-border bg-background hover:bg-secondary'
 						}`}
-						aria-pressed={preferences.guidance === option.value}
+						role="radio"
+						aria-checked={preferences.guidance === option.value}
 						onclick={() => setGuidance(option.value)}
 					>
 						{option.label}
@@ -93,7 +94,8 @@
 				{/each}
 			</div>
 			<p class="text-sm text-muted-foreground">
-				Detailed shows full instructions, Simple shows one short sentence, Off hides them.
+				Detailed shows all instructions and hints. Simple keeps one short sentence per page. Off
+				also hides descriptions.
 			</p>
 		</fieldset>
 		<PreferenceSwitch

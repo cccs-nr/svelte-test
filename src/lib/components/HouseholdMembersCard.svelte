@@ -2,6 +2,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { TRPCClientError } from '@trpc/client';
 	import { Check, Plus, Trash2, UsersRound } from '@lucide/svelte';
+	import PageSummary from '#lib/components/PageSummary.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
 	import { trpc } from '#lib/trpc/client.js';
@@ -95,57 +96,52 @@
 			</Button>
 		{/if}
 	</div>
-	<p class="mt-2 text-base text-muted-foreground">
+	<PageSummary>Manage the people in your household.</PageSummary>
+	<p class="app-hint mt-2 text-base text-muted-foreground">
 		Optional. Add someone who shares this account, such as a spouse, to manage their wishlist from
 		here. If that feels complicated, they can simply create their own account instead.
 	</p>
 
 	{#if members.length > 1}
-		<p class="mt-4 text-base font-semibold">Select a person to switch to them.</p>
+		<p class="app-hint mt-4 text-base font-semibold">Select a person to switch to them.</p>
 		<ul class="mt-2 space-y-3" aria-label="People in your household">
 			{#each members as member (member.id)}
-				<li class="flex flex-wrap items-stretch gap-3">
-					{#if member.id === activeId}
-						<p
-							class="flex min-h-14 min-w-0 flex-1 items-center justify-between gap-3 rounded-lg border-2 border-primary bg-primary px-4 py-2 text-lg font-semibold text-primary-foreground"
-							aria-current="true"
+				<li class="flex flex-wrap items-center gap-3">
+					<button
+						type="button"
+						class={`flex min-h-14 min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-lg border-2 bg-card px-4 py-2 text-left text-lg font-semibold hover:bg-secondary disabled:cursor-not-allowed ${
+							member.id === activeId ? 'border-primary' : 'border-border'
+						}`}
+						aria-current={member.id === activeId ? 'true' : undefined}
+						disabled={busyId !== null}
+						onclick={() => (member.id === activeId ? undefined : switchTo(member))}
+					>
+						<span
+							class={`grid size-7 shrink-0 place-items-center rounded-full border-2 ${
+								member.id === activeId
+									? 'border-primary bg-primary text-primary-foreground'
+									: 'border-foreground'
+							}`}
+							aria-hidden="true"
 						>
-							<span class="flex min-w-0 items-center gap-2">
-								<Check size={22} aria-hidden="true" />
-								<span class="truncate">{member.displayName}</span>
-								{#if member.id === accountId}
-									<span class="text-base font-normal">(account owner)</span>
-								{/if}
-							</span>
-							<span class="text-base">Current user</span>
-						</p>
-					{:else}
-						<button
-							type="button"
-							class="flex min-h-14 min-w-0 flex-1 cursor-pointer items-center justify-between gap-3 rounded-lg border-2 border-border bg-background px-4 py-2 text-left text-lg font-semibold hover:border-primary hover:bg-secondary disabled:cursor-not-allowed"
-							disabled={busyId !== null}
-							onclick={() => switchTo(member)}
-							aria-label={`Switch to ${member.displayName}`}
-						>
-							<span class="flex min-w-0 items-center gap-2">
-								<span class="truncate">{member.displayName}</span>
-								{#if member.id === accountId}
-									<span class="text-base font-normal">(account owner)</span>
-								{/if}
-							</span>
-							{#if member.unreadMessages > 0}
-								<span class="text-base font-normal">
-									{member.unreadMessages} new
-									{member.unreadMessages === 1 ? 'message' : 'messages'}
-								</span>
+							{#if member.id === activeId}<Check size={18} />{/if}
+						</span>
+						<span class="min-w-0 flex-1 truncate">
+							{member.displayName}
+							{#if member.id === accountId}
+								<span class="text-base font-normal">(account owner)</span>
 							{/if}
-						</button>
-					{/if}
+						</span>
+						{#if member.id === activeId}
+							<span class="text-sm font-medium">Current user</span>
+						{:else if member.unreadMessages > 0}
+							<span class="text-sm font-medium">{member.unreadMessages} new</span>
+						{/if}
+					</button>
 					{#if member.id !== accountId}
 						<Button
 							type="button"
 							variant="destructive"
-							class="self-center"
 							disabled={busyId !== null}
 							onclick={() => removeMember(member)}
 							aria-label={`Remove ${member.displayName}`}
@@ -175,7 +171,6 @@
 				id="household-member-name"
 				bind:value={newName}
 				maxlength={64}
-				placeholder="For example: Dad"
 				required
 				disabled={isAdding}
 			/>

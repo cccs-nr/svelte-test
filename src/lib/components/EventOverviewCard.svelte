@@ -128,7 +128,7 @@
 		<div class="min-w-0">
 			<p class="text-sm font-medium tracking-[0.16em] text-emerald-800 uppercase">Event overview</p>
 			<CardTitle class="mt-2">{event?.name ?? 'Your exchange is not set up yet'}</CardTitle>
-			<CardDescription class="mt-1">
+			<CardDescription essential class="mt-1">
 				{#if event}
 					{event.description || 'A little surprise brings everyone closer.'}
 				{:else}
@@ -236,7 +236,7 @@
 				<h2 id="event-dialog-title" class="text-xl font-semibold">
 					{event ? 'Edit event' : 'Set up event'}
 				</h2>
-				<p class="mt-1 text-sm text-stone-600">
+				<p class="app-hint mt-1 text-sm text-stone-600">
 					The price is stored as Canadian dollars and is only a suggestion for gifts, not a limit.
 				</p>
 			</div>

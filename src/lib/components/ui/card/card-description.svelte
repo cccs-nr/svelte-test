@@ -6,14 +6,18 @@
 		ref = $bindable(null),
 		class: className,
 		children,
+		essential = false,
 		...restProps
-	}: WithElementRef<HTMLAttributes<HTMLParagraphElement>> = $props();
+	}: WithElementRef<HTMLAttributes<HTMLParagraphElement>> & {
+		/** Information the user needs (prices, status); stays visible when Page guidance is Simple or Off. */
+		essential?: boolean;
+	} = $props();
 </script>
 
 <p
 	bind:this={ref}
 	data-slot="card-description"
-	class={cn('text-base text-muted-foreground', className)}
+	class={cn(!essential && 'app-description', 'text-base text-muted-foreground', className)}
 	{...restProps}
 >
 	{@render children?.()}

@@ -5,6 +5,7 @@
 	import { TRPCClientError } from '@trpc/client';
 	import { Gift } from '@lucide/svelte';
 	import PageGuide from '#lib/components/PageGuide.svelte';
+	import PageSummary from '#lib/components/PageSummary.svelte';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
 	import { Input } from '#lib/components/ui/input/index.js';
@@ -103,9 +104,7 @@
 				{compact ? 'Recent conversations' : 'Messages'}
 			</h1>
 			{#if !compact}
-				<p class="app-page-description">
-					Every conversation is organized around a participant’s wishlist.
-				</p>
+				<PageSummary>Send and receive messages from other participants.</PageSummary>
 			{/if}
 		</div>
 		{#if compact}
@@ -114,33 +113,50 @@
 	</div>
 
 	{#if !compact}
-		<PageGuide simple="Open a conversation, type your message, and press Send.">
+		<PageGuide>
 			<p>
-				Here you can send private messages. Press a conversation to open it, type your message, and
-				press <strong>Send</strong>. Your Secret Santa name stays secret.
+				Messages is where you talk with other participants, usually to ask a question about a gift
+				idea. Every conversation belongs to one person’s wishlist.
+			</p>
+			<ul>
+				<li>
+					<strong>Talk to [name]</strong> is a conversation with the wishlist’s owner. If you are their
+					Secret Santa, they see you only as “Secret Santa”.
+				</li>
+				<li>
+					<strong>Private gift planning</strong> is only for people buying for that person, for example
+					to share ideas. The person receiving the gift cannot see it.
+				</li>
+			</ul>
+			<p>
+				Press a conversation to open it, type your message, and press <strong>Send</strong>. You
+				appear by your codename, never your real name. A number beside a conversation means it has
+				new messages. Use the search box and the filter to find a conversation.
 			</p>
 		</PageGuide>
-		<div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
-			<div class="space-y-2">
-				<label class="text-sm font-medium text-stone-800" for="conversation-search">
-					Search conversations
-				</label>
-				<Input
-					id="conversation-search"
-					type="search"
-					bind:value={search}
-					placeholder="Wishlist owner or conversation"
-				/>
-			</div>
-			<div class="space-y-2">
-				<label class="text-sm font-medium text-stone-800" for="conversation-filter">
-					Filter by type
-				</label>
-				<select id="conversation-filter" class="app-control" bind:value={filter}>
-					<option value="all">All conversations</option>
-					<option value="wishlist_discussion">Talk to wishlist owner</option>
-					<option value="gift_coordination">Private gift planning</option>
-				</select>
+		<div class="app-surface rounded-xl border-2 border-border">
+			<div class="grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_14rem]">
+				<div class="space-y-2">
+					<label class="text-sm font-medium text-stone-800" for="conversation-search">
+						Search conversations
+					</label>
+					<Input
+						id="conversation-search"
+						type="search"
+						bind:value={search}
+						placeholder="Wishlist owner or conversation"
+					/>
+				</div>
+				<div class="space-y-2">
+					<label class="text-sm font-medium text-stone-800" for="conversation-filter">
+						Filter by type
+					</label>
+					<select id="conversation-filter" class="app-control" bind:value={filter}>
+						<option value="all">All conversations</option>
+						<option value="wishlist_discussion">Talk to wishlist owner</option>
+						<option value="gift_coordination">Private gift planning</option>
+					</select>
+				</div>
 			</div>
 		</div>
 	{/if}

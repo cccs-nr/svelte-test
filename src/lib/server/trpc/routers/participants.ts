@@ -10,6 +10,7 @@ import {
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import type { AppDatabase } from '#lib/server/db/connection.js';
 import { hashPassword } from '#lib/server/auth/password.js';
+import { assertDisplayNameAvailable } from '#lib/server/auth/display-name.js';
 import { createUniqueUsername } from '#lib/server/auth/username.js';
 import { assignments, households, sessions, users } from '#lib/server/db/schema.js';
 import { disconnectUserRealtime, notifyOrganizerDashboard } from '#lib/server/realtime.js';
@@ -87,6 +88,7 @@ export const participantsRouter = router({
 
 		const id = randomUUID();
 		const passwordHash = await hashPassword(input.password);
+		assertDisplayNameAvailable(ctx.db, input.displayName);
 		const username = createUniqueUsername(ctx.db, input.displayName);
 		const insertResult = ctx.db
 			.insert(users)
@@ -192,6 +194,9 @@ export const participantsRouter = router({
 				}
 			}
 
+			if (input.displayName !== current.displayName) {
+				assertDisplayNameAvailable(transaction, input.displayName, current.id);
+			}
 			const username = input.username ?? current.username;
 			if (username !== current.username) {
 				const taken = transaction

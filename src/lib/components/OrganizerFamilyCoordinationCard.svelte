@@ -219,7 +219,7 @@
 		<div class="space-y-3">
 			<div>
 				<h3 class="font-semibold text-stone-900">Reservations</h3>
-				<p class="mt-1 text-sm text-stone-600">
+				<p class="app-hint mt-1 text-sm text-stone-600">
 					Buyers appear by codename until reveal. Corrections require a reason and are audited.
 				</p>
 			</div>
@@ -346,7 +346,7 @@
 		<div class="mb-5 flex items-start justify-between gap-4">
 			<div>
 				<h2 id="codename-dialog-title" class="text-xl font-semibold">Participant codenames</h2>
-				<p class="mt-1 text-sm text-stone-600">
+				<p class="app-hint mt-1 text-sm text-stone-600">
 					This mapping is hidden from the normal Dashboard and each access is recorded.
 				</p>
 			</div>

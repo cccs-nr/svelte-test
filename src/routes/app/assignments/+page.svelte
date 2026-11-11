@@ -12,6 +12,7 @@
 	} from '#lib/components/ui/card/index.js';
 	import AssignmentEditor from '#lib/components/AssignmentEditor.svelte';
 	import PageGuide from '#lib/components/PageGuide.svelte';
+	import PageSummary from '#lib/components/PageSummary.svelte';
 	import { trpc } from '#lib/trpc/client.js';
 
 	type AssignmentStatus = Awaited<ReturnType<typeof trpc.assignments.status.query>>;
@@ -132,19 +133,33 @@
 	<div>
 		<p class="app-page-kicker">Organizer</p>
 		<h1 class="app-page-title">Gift assignments</h1>
-		<p class="app-page-description">
-			Check household constraints, generate a randomized draw, and finalize it when you’re ready.
-			The full list of who buys for whom stays hidden unless you open the editor below.
-		</p>
+		<PageSummary>Generate the draw, check it, then finalize it.</PageSummary>
 	</div>
 
-	<PageGuide simple="Generate the draw, check it, then finalize it.">
+	<PageGuide>
 		<p>
-			This is where you draw names. First check that everyone has joined, then press the button to
-			generate the draw. When you are happy with it, finalize it so people can see who they are
-			buying for. If something looks wrong afterwards, open <strong>Edit who buys for whom</strong> at
-			the bottom to fix a match.
+			This is where you draw names for the Secret Santa. Nobody can see who they drew until you
+			finalize the draw.
 		</p>
+		<ol>
+			<li>
+				Check that everyone has joined. The status below shows how many people are taking part.
+			</li>
+			<li>
+				Press <strong>Generate assignments</strong>. Everyone gets one person to buy for, and people
+				in the same household are never matched. You can regenerate as many times as you like before
+				finalizing.
+			</li>
+			<li>
+				Press <strong>Finalize draw</strong> when you are happy. People can then see their person
+				under <strong>Your Draw</strong>, and the event is locked against changes to who takes part.
+			</li>
+			<li>
+				Something wrong afterwards? Use <strong>Edit who buys for whom</strong> at the bottom to fix
+				a match, or <strong>Reset assignments</strong> to start over.
+			</li>
+		</ol>
+		<p>The full list of who buys for whom stays hidden unless you open the editor.</p>
 	</PageGuide>
 
 	{#if errorMessage}

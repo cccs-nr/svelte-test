@@ -25,13 +25,15 @@
 			(() => {
 				try {
 					const root = document.documentElement;
+					// High Visibility Mode is on unless the person has turned it off.
 					root.dataset.visibility =
-						localStorage.getItem('secret-santa-high-visibility') === 'high' ? 'high' : 'normal';
+						localStorage.getItem('secret-santa-high-visibility') === 'normal' ? 'normal' : 'high';
 					const guidance = localStorage.getItem('secret-santa-guidance');
 					root.dataset.guidance =
 						guidance === 'simple' || guidance === 'off' ? guidance : 'detailed';
 				} catch {
-					// Defaults apply when storage is unavailable.
+					document.documentElement.dataset.visibility = 'high';
+					document.documentElement.dataset.guidance = 'detailed';
 				}
 			})();
 		</script>

@@ -168,16 +168,6 @@
 		}`;
 	}
 
-	async function switchPerson(userId: string): Promise<void> {
-		closeAccountMenu();
-		try {
-			await trpc.members.switchTo.mutate({ userId });
-			window.location.assign(resolve('/app'));
-		} catch {
-			logoutError = 'Could not switch person. Please try again.';
-		}
-	}
-
 	async function handleLogout(): Promise<void> {
 		if (isSigningOut) return;
 
@@ -243,7 +233,7 @@
 		: 'min-h-screen bg-transparent'}
 >
 	<header
-		class={`holiday-topnav sticky top-0 z-40 border-b-4 shadow-sm ${isConversationPage ? 'shrink-0 max-sm:hidden' : ''}`}
+		class={`holiday-topnav sticky top-0 z-40 border-b-4 border-accent-red shadow-sm ${isConversationPage ? 'shrink-0 max-sm:hidden' : ''}`}
 	>
 		<div
 			class="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-2 px-3 py-2 sm:gap-4 sm:px-8"
@@ -428,21 +418,6 @@
 	</header>
 
 	<SwitchUserDialog bind:this={switchDialog} members={data.members} activeId={data.user.id} />
-	{#if data.isManagingOther}
-		<div
-			class="mx-auto mt-4 flex w-[calc(100%-2rem)] max-w-6xl flex-wrap items-center justify-between gap-3 rounded-2xl border-4 border-double border-primary bg-card p-4 text-lg"
-			role="status"
-		>
-			<p>
-				<ArrowLeftRight size={22} class="mr-2 inline" aria-hidden="true" />
-				You are using the app as <strong>{data.user.displayName}</strong>
-				(managed from {data.account.displayName}’s account).
-			</p>
-			<Button type="button" size="lg" onclick={() => switchPerson(data.account.id)}>
-				Switch back to {data.account.displayName}
-			</Button>
-		</div>
-	{/if}
 	{#if logoutError}
 		<p class="app-alert app-alert--error mx-auto mt-4 w-[calc(100%-2rem)] max-w-6xl" role="alert">
 			{logoutError}

@@ -223,9 +223,12 @@
 	<CardHeader class="flex flex-row flex-wrap items-center justify-between gap-4">
 		<div>
 			<CardTitle>Participants and accounts</CardTitle>
-			<CardDescription>
-				{participants.length} accounts · create and edit accounts through dialogs. Participant membership
-				changes require the draw to be reset.
+			<CardDescription essential>
+				{participants.length} accounts
+				<span class="app-hint">
+					· create and edit accounts through dialogs. Participant membership changes require the
+					draw to be reset.
+				</span>
 			</CardDescription>
 		</div>
 		<Button type="button" onclick={openCreateDialog} disabled={assignmentsExist}>
@@ -417,7 +420,7 @@
 									<span class="ml-1 text-sm text-stone-600 capitalize">
 										{participant.role}
 									</span>
-									<p class="mt-1 text-sm text-stone-600">{participant.eventStatus}</p>
+									<p class="app-hint mt-1 text-sm text-stone-600">{participant.eventStatus}</p>
 								</td>
 								<td class="px-3 py-3">
 									<Button
@@ -449,7 +452,7 @@
 		<div class="mb-6 flex items-start justify-between gap-4">
 			<div>
 				<h2 id="create-account-title" class="text-xl font-semibold">Create account</h2>
-				<p class="mt-1 text-sm text-stone-600">
+				<p class="app-hint mt-1 text-sm text-stone-600">
 					Use the name the person will use to sign in. The internal username is generated.
 				</p>
 			</div>
@@ -545,7 +548,7 @@
 		<div class="mb-6 flex items-start justify-between gap-4">
 			<div>
 				<h2 id="edit-account-title" class="text-xl font-semibold">Edit account</h2>
-				<p class="mt-1 text-sm text-stone-600">Disabling an account signs it out.</p>
+				<p class="app-hint mt-1 text-sm text-stone-600">Disabling an account signs it out.</p>
 			</div>
 			<Button
 				type="button"
@@ -583,7 +586,7 @@
 					required
 					disabled={isSaving}
 				/>
-				<p class="text-sm text-stone-600">
+				<p class="app-hint text-sm text-stone-600">
 					The short internal name (letters, numbers, dots, dashes). It can also be used to sign in.
 				</p>
 			</div>
@@ -640,7 +643,7 @@
 			<form class="mt-6 space-y-3 border-t border-stone-100 pt-5" onsubmit={updatePassword}>
 				<div>
 					<h3 class="font-medium">Set a new password</h3>
-					<p class="mt-1 text-sm text-stone-600">
+					<p class="app-hint mt-1 text-sm text-stone-600">
 						Type a new password for this person and give it to them. Their current sessions will be
 						signed out.
 					</p>
@@ -666,7 +669,7 @@
 			<div class="mt-6 space-y-3 border-t border-stone-100 pt-5">
 				<div>
 					<h3 class="font-medium">Delete account</h3>
-					<p class="mt-1 text-sm text-stone-600">
+					<p class="app-hint mt-1 text-sm text-stone-600">
 						Permanently removes this person, their wishlist and their messages. Use “Account is
 						active” above if you only want to block sign-in.
 						{#if assignmentsExist}

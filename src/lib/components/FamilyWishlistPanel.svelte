@@ -274,16 +274,18 @@
 		<CardTitle>
 			{showDirectory ? 'Everyone’s wishlists' : 'Gift ideas'}
 		</CardTitle>
-		<CardDescription>
+		<CardDescription essential>
 			{#if showDirectory}
-				Browse gift ideas from other participants. Wishlist Gifters appear by codename until the
-				organizer reveals identities.
+				<span class="app-hint">
+					Browse gift ideas from other participants. Wishlist Gifters appear by codename until the
+					organizer reveals identities.
+				</span>
 			{:else if wishlist}
 				{wishlist.suggestions.length}
 				{wishlist.suggestions.length === 1 ? ' gift idea' : ' gift ideas'} · Updated
 				{wishlist.suggestions[0] ? formatTimestamp(wishlist.suggestions[0].updatedAt) : 'not yet'}
 			{:else}
-				Review gift ideas and ask the Wishlist Recipient questions.
+				<span class="app-hint">Review gift ideas and ask the Wishlist Recipient questions.</span>
 			{/if}
 			{#if giftBudgetCents !== null}
 				<br />Suggested gift price: {formatEventBudget(giftBudgetCents, currency)} (a suggestion, not
@@ -343,7 +345,7 @@
 			<section class="space-y-3" aria-labelledby="my-reservations-title">
 				<div>
 					<h3 id="my-reservations-title" class="font-semibold text-stone-900">Your reservations</h3>
-					<p class="mt-1 text-sm text-stone-600">
+					<p class="app-hint mt-1 text-sm text-stone-600">
 						These are the gift ideas you reserved for other participants.
 					</p>
 				</div>

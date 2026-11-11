@@ -56,8 +56,9 @@
 <AuthShell
 	title="Welcome to our Secret Santa gift exchange!"
 	intro="Everyone gives one gift and receives one gift. It is a secret until the party!"
+	simple="Sign in with your name and password."
 >
-	<Card class="gap-3 border-4 border-primary bg-white py-4 shadow-xl sm:gap-4 sm:py-6">
+	<Card class="gap-3 border-2 border-border bg-white py-4 shadow-xl sm:gap-4 sm:py-6">
 		<CardHeader class="px-4 sm:px-6">
 			<CardTitle class="flex items-center gap-3 text-2xl tracking-tight sm:text-3xl">
 				<span
@@ -101,7 +102,7 @@
 						disabled={isSubmitting}
 						aria-invalid={Boolean(errorMessage)}
 					/>
-					<p class="hidden text-base text-stone-700 sm:block">
+					<p class="app-hint hidden text-base text-stone-700 sm:block">
 						Press the eye at the end of the box to see what you typed.
 					</p>
 				</div>

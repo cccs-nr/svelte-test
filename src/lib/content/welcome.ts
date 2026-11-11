@@ -29,6 +29,14 @@ export const welcomeGuide: WelcomeGuide = {
 	],
 	sections: [
 		{
+			title: 'What is Secret Santa?',
+			blocks: [
+				p(
+					'Secret Santa is a holiday tradition where each person draws the name of someone else in the group and buys them a gift. No one finds out who their gift came from until the exchange, which is what makes it fun for friends, family, classmates, and coworkers.'
+				)
+			]
+		},
+		{
 			title: '1. Your Wish List: Share Gift Ideas',
 			blocks: [
 				p('Add gift ideas to your wish list so others know what you might enjoy.'),

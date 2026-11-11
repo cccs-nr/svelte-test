@@ -47,7 +47,7 @@
 {/snippet}
 
 <article
-	class="app-surface mx-auto max-w-3xl space-y-8 rounded-3xl border-2 border-emerald-200 p-5 shadow-xl sm:p-10"
+	class="app-surface mx-auto max-w-3xl space-y-8 rounded-3xl border-2 border-accent-red p-5 shadow-xl sm:p-10"
 	aria-labelledby="welcome-letter-title"
 >
 	<header class="space-y-4 text-center">
@@ -82,13 +82,13 @@
 	</div>
 
 	{#each guide.sections as section (section.title)}
-		<section class="space-y-4 border-t-2 border-emerald-100 pt-6 text-xl leading-9">
+		<section class="space-y-4 border-t-2 border-accent-red/30 pt-6 text-xl leading-9">
 			<h2 class="text-2xl leading-snug font-bold text-emerald-900">{section.title}</h2>
 			{@render blocks(section.blocks)}
 		</section>
 	{/each}
 
-	<div class="space-y-4 border-t-2 border-emerald-100 pt-6 text-xl leading-9 font-semibold">
+	<div class="space-y-4 border-t-2 border-accent-red/30 pt-6 text-xl leading-9 font-semibold">
 		{@render blocks(guide.outro)}
 	</div>
 </article>

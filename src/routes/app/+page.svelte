@@ -18,6 +18,7 @@
 	import { Button } from '#lib/components/ui/button/index.js';
 	import HouseholdMembersCard from '#lib/components/HouseholdMembersCard.svelte';
 	import PageGuide from '#lib/components/PageGuide.svelte';
+	import PageSummary from '#lib/components/PageSummary.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 
 	let { data }: PageProps = $props();
@@ -66,8 +67,9 @@
 			<h1 class="app-page-title">
 				Welcome, {data.user.displayName}
 			</h1>
+			<PageSummary>See your draw, messages and the event details at a glance.</PageSummary>
 			{#if !data.event}
-				<p class="app-page-description">
+				<p class="app-page-status">
 					{data.user.role === 'organizer'
 						? 'Set up the event and invite participants to get started.'
 						: 'Your organizer is getting the exchange ready. Check back soon.'}
@@ -76,13 +78,15 @@
 		</div>
 	</header>
 
-	<PageGuide
-		title="How Secret Santa works"
-		simple="Add gift ideas to My Wishlist. After the draw, open Your Draw. Prices are only suggestions."
-	>
+	<PageGuide title="How Secret Santa works">
 		<p>
-			<strong>The goal:</strong> everyone gives one gift and receives one gift. You will be given one
-			person to buy a gift for, and it is a secret until the party.
+			<strong>The goal:</strong> everyone gives one gift and receives one gift. You are given one person
+			to buy a gift for, and it stays a secret until the party.
+		</p>
+		<p>
+			<strong>This Home page</strong> is your starting point. It shows when you last signed in, whether
+			messages are waiting, the event date and suggested gift price, who you drew once the draw is done,
+			and everyone’s wishlists.
 		</p>
 		<ol>
 			{#if data.user.isParticipating}
@@ -91,9 +95,15 @@
 				</li>
 				<li>
 					When the organizer finishes the draw, open <strong>Your Draw</strong> to see who you are buying
-					for.
+					for and their wishlist.
 				</li>
-				<li>Choose a gift from their wishlist. Use <strong>Messages</strong> to ask questions.</li>
+				<li>
+					Choose a gift and press <strong>Reserve</strong> so nobody else buys it. You do not have to
+					pick from the list.
+				</li>
+				<li>
+					Use <strong>Messages</strong> to ask questions. Your codename keeps your identity secret.
+				</li>
 			{/if}
 			{#if data.user.role === 'organizer'}
 				<li>
@@ -101,8 +111,16 @@
 					and run the draw.
 				</li>
 			{/if}
-			<li>Need a reminder? Press <strong>Welcome</strong> at the top any time.</li>
+			<li>
+				Need a reminder? Press <strong>Welcome</strong> at the top for the full explanation.
+			</li>
 		</ol>
+		{#if data.user.isParticipating}
+			<p>
+				<strong>Household:</strong> if you also look after someone else’s gift list, add them in the Household
+				section below. This is optional, and they can simply create their own account instead.
+			</p>
+		{/if}
 		<p>The gift price is only a suggestion, not a limit.</p>
 	</PageGuide>
 
@@ -238,7 +256,7 @@
 		<Card>
 			<CardHeader>
 				<CardTitle>The exchange is being prepared</CardTitle>
-				<CardDescription>
+				<CardDescription essential>
 					Your account is ready. Event details will appear here after the organizer saves them.
 				</CardDescription>
 			</CardHeader>

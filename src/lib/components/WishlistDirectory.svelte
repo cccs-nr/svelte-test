@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageSummary from '#lib/components/PageSummary.svelte';
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
@@ -58,7 +59,8 @@
 	<div class="flex flex-wrap items-end justify-between gap-4">
 		<div>
 			<h2 id="wishlist-directory-title" class="text-xl font-semibold text-stone-950">Wishlists</h2>
-			<p class="mt-1 text-sm text-stone-600">
+			<PageSummary>Browse gift ideas from everyone.</PageSummary>
+			<p class="app-hint mt-1 text-sm text-stone-600">
 				Browse gift ideas from participants. Reservation and purchase details remain private to gift
 				buyers.
 			</p>

@@ -248,7 +248,7 @@
 		<div class="mb-6 flex items-start justify-between gap-4">
 			<div>
 				<h2 id="create-household-title" class="text-xl font-semibold">Create household</h2>
-				<p class="mt-1 text-sm text-stone-600">
+				<p class="app-hint mt-1 text-sm text-stone-600">
 					Choose a name and assign the members who live together.
 				</p>
 			</div>
@@ -334,7 +334,9 @@
 		<div class="mb-6 flex items-start justify-between gap-4">
 			<div>
 				<h2 id="edit-household-title" class="text-xl font-semibold">Edit household</h2>
-				<p class="mt-1 text-sm text-stone-600">Update the household name and membership.</p>
+				<p class="app-hint mt-1 text-sm text-stone-600">
+					Update the household name and membership.
+				</p>
 			</div>
 			<Button
 				type="button"

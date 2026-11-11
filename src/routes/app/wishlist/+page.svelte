@@ -5,6 +5,7 @@
 	import { Plus, X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import PageGuide from '#lib/components/PageGuide.svelte';
+	import PageSummary from '#lib/components/PageSummary.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { formatEventBudget, formatBudgetInput } from '#lib/models/event.js';
@@ -309,21 +310,34 @@
 			<h1 class="app-page-title mt-2">
 				{data.user.displayName}
 			</h1>
+			<PageSummary>Add gift ideas so others know what you would like.</PageSummary>
 		</div>
 	</div>
-	<PageGuide simple="Press Add Gift Idea and fill in the form. Prices are only suggestions.">
+	<PageGuide>
 		<p>
-			This is your own wishlist. Add a few things you would like to receive, so the person buying
-			your gift knows what to pick.
+			This is your own wishlist. Everyone in the event can read it, so the person buying your gift
+			knows what you would enjoy. You can add and change ideas at any time.
 		</p>
 		<ol>
-			<li>Press the big <strong>Add Gift Idea</strong> button.</li>
+			<li>Press <strong>Add Gift Idea</strong>.</li>
 			<li>
-				Type what the gift is. If you found it online, paste the <strong>Link to gift</strong> too.
+				Type a <strong>Gift name</strong>, and add a description if it helps. Add each gift as its
+				own idea instead of combining several things.
+			</li>
+			<li>
+				If you found it online, paste the <strong>Link to gift</strong>. You can also add a
+				suggested price and a picture.
 			</li>
 			<li>Press <strong>Add gift idea</strong> at the bottom of the form to save it.</li>
+			<li>
+				To change or remove an idea later, press the button beside it. Ideas that someone has
+				already reserved cannot be deleted.
+			</li>
 		</ol>
-		<p>The gift price is only a suggestion, not a limit.</p>
+		<p>
+			Prices are only suggestions. Nobody has to buy everything on your list or spend an exact
+			amount. If someone has a question about an idea, they will send you a message.
+		</p>
 	</PageGuide>
 
 	{#if errorMessage}
@@ -339,7 +353,7 @@
 			<CardHeader class="flex flex-row flex-wrap items-center justify-between gap-4">
 				<div class="min-w-0">
 					<CardTitle>My Gift Ideas</CardTitle>
-					<CardDescription>
+					<CardDescription essential>
 						{#if data.giftBudgetCents !== null}
 							Suggested gift price: {formatEventBudget(data.giftBudgetCents, data.currency)} (a suggestion,
 							not a limit).
@@ -649,17 +663,9 @@
 						placeholder="25.00"
 						disabled={isFormDisabled}
 					/>
-					<p class="text-sm text-stone-600">Enter dollars with up to two decimal places.</p>
-				</div>
-				<div class="space-y-2">
-					<label class="text-base font-semibold" for="wishlist-notes">Notes</label>
-					<textarea
-						id="wishlist-notes"
-						bind:value={notes}
-						maxlength={2000}
-						rows="2"
-						disabled={isFormDisabled}
-						class="app-control"></textarea>
+					<p class="app-hint text-sm text-stone-600">
+						Enter dollars with up to two decimal places.
+					</p>
 				</div>
 				<div class="space-y-2">
 					<label class="text-base font-semibold" for="wishlist-image">Optional image</label>
@@ -670,7 +676,7 @@
 						bind:files={selectedFiles}
 						disabled={isFormDisabled}
 					/>
-					<p class="text-sm text-stone-600">
+					<p class="app-hint text-sm text-stone-600">
 						JPEG, PNG, or WebP up to {formatFileSize(data.maxImageBytes)}.
 					</p>
 					{#if editingId && suggestions.find((suggestion) => suggestion.id === editingId)?.imageKey}

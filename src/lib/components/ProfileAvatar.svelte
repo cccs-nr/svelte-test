@@ -35,7 +35,7 @@
 </script>
 
 <span
-	class={`inline-grid shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-100 font-semibold text-emerald-900 ${avatarSize} ${className}`}
+	class={`inline-grid shrink-0 place-items-center overflow-hidden rounded-full bg-primary font-semibold text-primary-foreground ${avatarSize} ${className}`}
 	role="img"
 	aria-label={`${displayName} avatar`}
 >

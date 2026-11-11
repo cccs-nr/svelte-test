@@ -134,19 +134,13 @@ describe('auth router', () => {
 			caller.auth.login({ identifier: 'New Member', password: ' !a' })
 		).resolves.toMatchObject({ id: user.id });
 
-		const duplicateNameUser = await caller.auth.register({
-			displayName: 'New Member',
-			password: ' !b'
-		});
-		const duplicateNameAccount = db
-			.select()
-			.from(users)
-			.where(eq(users.id, duplicateNameUser.id))
-			.get();
-		expect(duplicateNameAccount?.username).toBe('new.member.2');
-		await expect(
-			caller.auth.login({ identifier: 'New Member', password: ' !b' })
-		).resolves.toMatchObject({ id: duplicateNameUser.id });
+		for (const displayName of ['New Member', '  new member ', 'organizer']) {
+			await expect(caller.auth.register({ displayName, password: ' !b' })).rejects.toMatchObject({
+				code: 'CONFLICT',
+				message: expect.stringContaining('already taken')
+			});
+		}
+		expect(db.select().from(users).all()).toHaveLength(2);
 	});
 
 	it('rejects passwords shorter than three characters', async () => {
