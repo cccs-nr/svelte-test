@@ -68,6 +68,6 @@ server {
 	}
 
 	location / {
-		return 404;
+		return 308 ${APP_BASE_PATH}$request_uri;
 	}
 }

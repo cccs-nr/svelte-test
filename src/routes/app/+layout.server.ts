@@ -1,3 +1,4 @@
+import { resolve } from '$app/paths';
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 import { isExchangeParticipant } from '#lib/auth.js';
@@ -9,7 +10,7 @@ import { getParticipantCodename } from '#lib/server/codenames.js';
 import { isActiveExchangeParticipant } from '#lib/server/wishlist-access.js';
 
 export const load: LayoutServerLoad = ({ locals }) => {
-	if (!locals.user) redirect(303, '/login');
+	if (!locals.user) redirect(303, resolve('/login'));
 	const avatar = db
 		.select({ key: users.avatarKey, updatedAt: users.updatedAt })
 		.from(users)

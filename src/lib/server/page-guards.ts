@@ -1,14 +1,15 @@
 import { error, redirect } from '@sveltejs/kit';
+import { resolve } from '$app/paths';
 import { isExchangeParticipant, type AuthenticatedUser } from '#lib/auth.js';
 
 export function requireOrganizerPage(user: AuthenticatedUser | null): AuthenticatedUser {
-	if (!user) redirect(303, '/login');
+	if (!user) redirect(303, resolve('/login'));
 	if (user.role !== 'organizer') error(403, 'Organizer access is required.');
 	return user;
 }
 
 export function requireParticipantPage(user: AuthenticatedUser | null): AuthenticatedUser {
-	if (!user) redirect(303, '/login');
+	if (!user) redirect(303, resolve('/login'));
 	if (!isExchangeParticipant(user)) error(403, 'Participant access is required.');
 	return user;
 }

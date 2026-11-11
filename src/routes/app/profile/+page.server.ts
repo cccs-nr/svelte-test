@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import { resolve } from '$app/paths';
 import { redirect } from '@sveltejs/kit';
 import { MAX_IMAGE_BYTES } from '$app/env/private';
 import type { PageServerLoad } from './$types';
@@ -9,7 +10,7 @@ import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import { isActiveExchangeParticipant } from '#lib/server/wishlist-access.js';
 
 export const load: PageServerLoad = ({ locals }) => {
-	if (!locals.user) redirect(303, '/login');
+	if (!locals.user) redirect(303, resolve('/login'));
 
 	const profile = db
 		.select({
@@ -26,7 +27,7 @@ export const load: PageServerLoad = ({ locals }) => {
 		.where(eq(users.id, locals.user.id))
 		.get();
 
-	if (!profile) redirect(303, '/login');
+	if (!profile) redirect(303, resolve('/login'));
 	const { avatarKey, avatarVersion, ...profileDetails } = profile;
 	const hasAssignments = Boolean(
 		db

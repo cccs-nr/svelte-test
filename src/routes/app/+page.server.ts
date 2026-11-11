@@ -1,4 +1,5 @@
 import { and, eq, isNotNull } from 'drizzle-orm';
+import { resolve } from '$app/paths';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { isExchangeParticipant } from '#lib/auth.js';
@@ -7,7 +8,7 @@ import { db } from '#lib/server/db/index.js';
 import { assignments, events, users } from '#lib/server/db/schema.js';
 
 export const load: PageServerLoad = ({ locals }) => {
-	if (!locals.user) redirect(303, '/login');
+	if (!locals.user) redirect(303, resolve('/login'));
 	const user = {
 		id: locals.user.id,
 		displayName: locals.user.displayName,

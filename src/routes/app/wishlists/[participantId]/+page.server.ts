@@ -1,4 +1,5 @@
 import { error, redirect } from '@sveltejs/kit';
+import { resolve } from '$app/paths';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
@@ -9,7 +10,7 @@ import { isActiveExchangeParticipant } from '#lib/server/wishlist-access.js';
 
 export const load: PageServerLoad = ({ locals, params }) => {
 	const user = requireParticipantPage(locals.user);
-	if (params.participantId === user.id) redirect(303, '/app/wishlist');
+	if (params.participantId === user.id) redirect(303, resolve('/app/wishlist'));
 	if (!isActiveExchangeParticipant(db, params.participantId)) {
 		error(404, 'Family member not found.');
 	}

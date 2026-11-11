@@ -145,7 +145,7 @@ docker compose restart proxy
 
 Replace the example email and domain with the values from `.env`.
 
-The app is then available at `https://santa.example.com/secret-santa/`. HTTP on port 80 redirects to HTTPS, except for the ACME challenge path used for certificate renewal. Visiting the HTTPS site before the trusted certificate is installed will show a browser certificate warning; do not treat the temporary certificate as trusted.
+The app is then available at `https://santa.example.com/secret-santa/`. HTTP on port 80 redirects to HTTPS, except for the ACME challenge path used for certificate renewal. The HTTPS proxy redirects the domain root and unprefixed app paths into `/secret-santa`. Visiting the HTTPS site before the trusted certificate is installed will show a browser certificate warning; do not treat the temporary certificate as trusted.
 
 The internal health endpoint is `/secret-santa/api/health`. SQLite data, uploaded images, ACME challenge files, and certificates persist in named Docker volumes. App startup applies database migrations before starting the Node adapter. Configure regular off-VM backups for both `secret-santa-data` and `secret-santa-uploads`.
 
@@ -173,16 +173,7 @@ Changing `PUBLIC_ORIGIN` or `APP_BASE_PATH` requires rebuilding the app image an
 To create the initial organizer in Docker, provide the display name and password as environment variables to a one-off container, then remove them from the shell environment:
 
 ```sh
-read -r -p "Organizer display name: " INITIAL_ORGANIZER_DISPLAY_NAME
-export INITIAL_ORGANIZER_DISPLAY_NAME
-read -r -s -p "Organizer password: " INITIAL_ORGANIZER_PASSWORD
-printf '\n'
-export INITIAL_ORGANIZER_PASSWORD
-docker compose run --rm \
-  -e INITIAL_ORGANIZER_DISPLAY_NAME \
-  -e INITIAL_ORGANIZER_PASSWORD \
-  app node --experimental-strip-types scripts/create-organizer.mjs
-unset INITIAL_ORGANIZER_DISPLAY_NAME INITIAL_ORGANIZER_PASSWORD
+read -r -p "Organizer display name: " INITIAL_ORGANIZER_DISPLAY_NAME && export INITIAL_ORGANIZER_DISPLAY_NAME && read -r -s -p "Organizer password: " INITIAL_ORGANIZER_PASSWORD && printf '\n' && export INITIAL_ORGANIZER_PASSWORD && docker compose run --rm -e INITIAL_ORGANIZER_DISPLAY_NAME -e INITIAL_ORGANIZER_PASSWORD app node --experimental-strip-types scripts/create-organizer.mjs; unset INITIAL_ORGANIZER_DISPLAY_NAME INITIAL_ORGANIZER_PASSWORD
 ```
 
 ## Development checks

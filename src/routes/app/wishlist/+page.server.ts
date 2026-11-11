@@ -1,4 +1,5 @@
 import { redirect } from '@sveltejs/kit';
+import { resolve } from '$app/paths';
 import { eq } from 'drizzle-orm';
 import { MAX_IMAGE_BYTES } from '$app/env/private';
 import type { PageServerLoad } from './$types';
@@ -10,9 +11,9 @@ import { requireParticipantPage } from '#lib/server/page-guards.js';
 export const load: PageServerLoad = ({ locals, url }) => {
 	requireParticipantPage(locals.user);
 	const legacyTab = url.searchParams.get('tab');
-	if (legacyTab === 'recipient') redirect(303, '/app/gift-giving');
-	if (legacyTab === 'family') redirect(303, '/app/gift-giving');
-	if (legacyTab === 'messages') redirect(303, '/app/messages');
+	if (legacyTab === 'recipient') redirect(303, resolve('/app/gift-giving'));
+	if (legacyTab === 'family') redirect(303, resolve('/app/gift-giving'));
+	if (legacyTab === 'messages') redirect(303, resolve('/app/messages'));
 
 	const event = db
 		.select({ giftBudgetCents: events.giftBudgetCents, currency: events.currency })
