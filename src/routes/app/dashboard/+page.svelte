@@ -39,31 +39,36 @@
 <section class="space-y-6">
 	<div>
 		<p class="app-page-kicker">Organizer</p>
-		<h1 class="app-page-title mt-2">Dashboard</h1>
-		<PageSummary>Set up the event, follow progress and manage accounts.</PageSummary>
+		<div class="app-page-titlebar">
+			<h1 class="app-page-title mt-2">Dashboard</h1>
+			<PageGuide pageId="dashboard">
+				<p>This is the organizer’s control center. Work through it from top to bottom:</p>
+				<ol>
+					<li>
+						<strong>Event overview:</strong> set the event name, date and suggested gift price, then open
+						the event so people can take part.
+					</li>
+					<li>
+						<strong>Accounts:</strong> see who has joined. Press <strong>Edit</strong> beside a name
+						to change their name or account name, set a new password, deactivate or delete them.
+						Press
+						<strong>Create account</strong> to add someone yourself.
+					</li>
+					<li>
+						<strong>Households:</strong> group people who live together so the draw never pairs them.
+					</li>
+					<li>
+						When everyone has joined, go to <strong>Assignments</strong> to run the draw.
+					</li>
+				</ol>
+				<p>Private messages are never shown here. Only totals and progress are.</p>
+			</PageGuide>
+		</div>
+		<PageSummary simple="Set up the event, follow progress and manage accounts."
+			>Set up the event, watch everyone’s progress and manage accounts and households. Private
+			conversations are never shown here.</PageSummary
+		>
 	</div>
-
-	<PageGuide>
-		<p>This is the organizer’s control center. Work through it from top to bottom:</p>
-		<ol>
-			<li>
-				<strong>Event overview:</strong> set the event name, date and suggested gift price, then open
-				the event so people can take part.
-			</li>
-			<li>
-				<strong>Accounts:</strong> see who has joined. Press <strong>Edit</strong> beside a name to
-				change their name or account name, set a new password, deactivate or delete them. Press
-				<strong>Create account</strong> to add someone yourself.
-			</li>
-			<li>
-				<strong>Households:</strong> group people who live together so the draw never pairs them.
-			</li>
-			<li>
-				When everyone has joined, go to <strong>Assignments</strong> to run the draw.
-			</li>
-		</ol>
-		<p>Private messages are never shown here. Only totals and progress are.</p>
-	</PageGuide>
 
 	<EventOverviewCard
 		event={data.event}

@@ -1,8 +1,18 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	let { children }: { children: Snippet } = $props();
+	let {
+		simple,
+		children
+	}: {
+		/** One short sentence, shown when Page guidance is Simple. */
+		simple: string;
+		/** The fuller description, shown when Page guidance is Detailed. */
+		children?: Snippet;
+	} = $props();
 </script>
 
-<!-- One short sentence under the page title; shown only when Page guidance is Simple. -->
-<p class="app-page-simple">{@render children()}</p>
+{#if children}
+	<p class="app-page-text app-description">{@render children()}</p>
+{/if}
+<p class="app-page-simple app-page-text">{simple}</p>

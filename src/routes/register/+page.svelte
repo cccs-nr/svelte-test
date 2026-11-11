@@ -121,6 +121,7 @@
 					</p>
 				{/if}
 				<Button size="cta" class="w-full" type="submit" disabled={isSubmitting}>
+					<UserPlus aria-hidden="true" />
 					{isSubmitting ? 'Creating account…' : 'Create My Account'}
 				</Button>
 			</form>

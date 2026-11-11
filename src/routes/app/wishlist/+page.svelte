@@ -1,8 +1,9 @@
 <script lang="ts">
+	import ExternalLink from '#lib/components/ExternalLink.svelte';
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
-	import { Plus, X } from '@lucide/svelte';
+	import { Pencil, Plus, RefreshCw, Save, Trash2, X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import PageGuide from '#lib/components/PageGuide.svelte';
 	import PageSummary from '#lib/components/PageSummary.svelte';
@@ -305,40 +306,45 @@
 			imageVersion={data.avatarVersion}
 			size="lg"
 		/>
-		<div>
+		<div class="min-w-0 flex-1">
 			<p class="app-page-kicker">My Wishlist</p>
-			<h1 class="app-page-title mt-2">
-				{data.user.displayName}
-			</h1>
-			<PageSummary>Add gift ideas so others know what you would like.</PageSummary>
+			<div class="app-page-titlebar">
+				<h1 class="app-page-title mt-2">
+					{data.user.displayName}
+				</h1>
+				<PageGuide pageId="wishlist">
+					<p>
+						This is your own wishlist. Everyone in the event can read it, so the person buying your
+						gift knows what you would enjoy. You can add and change ideas at any time.
+					</p>
+					<ol>
+						<li>Press <strong>Add Gift Idea</strong>.</li>
+						<li>
+							Type a <strong>Gift name</strong>, and add a description if it helps. Add each gift as
+							its own idea instead of combining several things.
+						</li>
+						<li>
+							If you found it online, paste the <strong>Link to gift</strong>. You can also add a
+							suggested price and a picture.
+						</li>
+						<li>Press <strong>Add gift idea</strong> at the bottom of the form to save it.</li>
+						<li>
+							To change or remove an idea later, press the button beside it. Ideas that someone has
+							already reserved cannot be deleted.
+						</li>
+					</ol>
+					<p>
+						Prices are only suggestions. Nobody has to buy everything on your list or spend an exact
+						amount. If someone has a question about an idea, they will send you a message.
+					</p>
+				</PageGuide>
+			</div>
+			<PageSummary simple="Add gift ideas so others know what you would like."
+				>This is your own wishlist. Everyone in the event can read it, so the person buying your
+				gift knows what you would enjoy.</PageSummary
+			>
 		</div>
 	</div>
-	<PageGuide>
-		<p>
-			This is your own wishlist. Everyone in the event can read it, so the person buying your gift
-			knows what you would enjoy. You can add and change ideas at any time.
-		</p>
-		<ol>
-			<li>Press <strong>Add Gift Idea</strong>.</li>
-			<li>
-				Type a <strong>Gift name</strong>, and add a description if it helps. Add each gift as its
-				own idea instead of combining several things.
-			</li>
-			<li>
-				If you found it online, paste the <strong>Link to gift</strong>. You can also add a
-				suggested price and a picture.
-			</li>
-			<li>Press <strong>Add gift idea</strong> at the bottom of the form to save it.</li>
-			<li>
-				To change or remove an idea later, press the button beside it. Ideas that someone has
-				already reserved cannot be deleted.
-			</li>
-		</ol>
-		<p>
-			Prices are only suggestions. Nobody has to buy everything on your list or spend an exact
-			amount. If someone has a question about an idea, they will send you a message.
-		</p>
-	</PageGuide>
 
 	{#if errorMessage}
 		<p class="app-alert app-alert--error" role="alert">
@@ -370,6 +376,7 @@
 						onclick={() => void loadWishlists(true)}
 						disabled={isLoading || isSaving || isDeleting !== null}
 					>
+						<RefreshCw aria-hidden="true" />
 						Refresh
 					</Button>
 					<Button
@@ -415,14 +422,7 @@
 									<div class="min-w-0 flex-1">
 										<p class="font-semibold text-foreground">
 											{#if suggestion.url}
-												<a
-													class="text-primary underline underline-offset-4"
-													href={suggestion.url}
-													target="_blank"
-													rel="noopener noreferrer external"
-												>
-													{suggestion.title}
-												</a>
+												<ExternalLink href={suggestion.url}>{suggestion.title}</ExternalLink>
 											{:else}
 												{suggestion.title}
 											{/if}
@@ -461,6 +461,7 @@
 											onclick={() => startEditing(suggestion)}
 											disabled={isSaving || isDeleting !== null}
 										>
+											<Pencil aria-hidden="true" />
 											Edit
 										</Button>
 										<Button
@@ -470,6 +471,7 @@
 											onclick={() => deleteSuggestion(suggestion)}
 											disabled={isSaving || isDeleting !== null}
 										>
+											<Trash2 aria-hidden="true" />
 											{isDeleting === suggestion.id ? 'Deleting…' : 'Delete'}
 										</Button>
 									</div>
@@ -519,14 +521,7 @@
 												<div class="min-w-0">
 													<p class="font-semibold">
 														{#if suggestion.url}
-															<a
-																class="text-emerald-800 underline underline-offset-4"
-																href={suggestion.url}
-																target="_blank"
-																rel="noopener noreferrer external"
-															>
-																{suggestion.title}
-															</a>
+															<ExternalLink href={suggestion.url}>{suggestion.title}</ExternalLink>
 														{:else}
 															<span class="text-stone-950">{suggestion.title}</span>
 														{/if}
@@ -563,6 +558,7 @@
 													onclick={() => startEditing(suggestion)}
 													disabled={isSaving || isDeleting !== null}
 												>
+													<Pencil aria-hidden="true" />
 													Edit
 												</Button>
 												<Button
@@ -572,6 +568,7 @@
 													onclick={() => deleteSuggestion(suggestion)}
 													disabled={isSaving || isDeleting !== null}
 												>
+													<Trash2 aria-hidden="true" />
 													{isDeleting === suggestion.id ? 'Deleting…' : 'Delete'}
 												</Button>
 											</div>
@@ -609,6 +606,7 @@
 					</p>
 				</div>
 				<Button type="button" variant="outline" onclick={closeIdeaDialog} disabled={isSaving}>
+					<X aria-hidden="true" />
 					Close
 				</Button>
 			</div>
@@ -692,9 +690,11 @@
 				</div>
 				<div class="flex flex-wrap justify-end gap-3">
 					<Button type="button" variant="outline" onclick={closeIdeaDialog} disabled={isSaving}>
+						<X aria-hidden="true" />
 						Cancel
 					</Button>
 					<Button type="submit" disabled={isFormDisabled}>
+						<Save aria-hidden="true" />
 						{isSaving ? 'Saving…' : editingId ? 'Save changes' : 'Add gift idea'}
 					</Button>
 				</div>

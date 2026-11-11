@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Eye, PackageCheck, Save, Undo2, Users, X } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { TRPCClientError } from '@trpc/client';
@@ -200,6 +201,7 @@
 
 		<div class="flex flex-wrap items-center gap-3">
 			<Button type="button" variant="outline" onclick={() => void openMappingDialog()}>
+				<Users aria-hidden="true" />
 				Manage codenames
 			</Button>
 			{#if revealedAtText}
@@ -211,6 +213,7 @@
 					onclick={() => void revealIdentities()}
 					disabled={eventStatus !== 'completed' || isSaving}
 				>
+					<Eye aria-hidden="true" />
 					{eventStatus === 'completed' ? 'Reveal identities' : 'Reveal after event completion'}
 				</Button>
 			{/if}
@@ -260,6 +263,7 @@
 											onclick={() => openCorrection(reservation, 'purchased')}
 											disabled={isSaving}
 										>
+											<PackageCheck aria-hidden="true" />
 											Purchased
 										</Button>
 									{/if}
@@ -270,6 +274,7 @@
 										onclick={() => openCorrection(reservation, 'released')}
 										disabled={isSaving}
 									>
+										<Undo2 aria-hidden="true" />
 										Release
 									</Button>
 								</div>
@@ -312,6 +317,7 @@
 													onclick={() => openCorrection(reservation, 'purchased')}
 													disabled={isSaving}
 												>
+													<PackageCheck aria-hidden="true" />
 													Mark purchased
 												</Button>
 											{/if}
@@ -322,6 +328,7 @@
 												onclick={() => openCorrection(reservation, 'released')}
 												disabled={isSaving}
 											>
+												<Undo2 aria-hidden="true" />
 												Release
 											</Button>
 										</div>
@@ -350,7 +357,9 @@
 					This mapping is hidden from the normal Dashboard and each access is recorded.
 				</p>
 			</div>
-			<Button type="button" variant="outline" onclick={() => mappingDialog?.close()}>Close</Button>
+			<Button type="button" variant="outline" onclick={() => mappingDialog?.close()}>
+				<X aria-hidden="true" />Close</Button
+			>
 		</div>
 		<ul class="space-y-3 md:hidden" aria-label="Participant codenames">
 			{#each mapping as row (row.userId)}
@@ -372,6 +381,7 @@
 								!editedCodenames[row.userId]?.trim() ||
 								editedCodenames[row.userId]?.trim() === row.codename}
 						>
+							<Save aria-hidden="true" />
 							Save
 						</Button>
 					</div>
@@ -409,6 +419,7 @@
 										!editedCodenames[row.userId]?.trim() ||
 										editedCodenames[row.userId]?.trim() === row.codename}
 								>
+									<Save aria-hidden="true" />
 									Save
 								</Button>
 							</td>
@@ -451,9 +462,11 @@
 				onclick={() => correctionDialog?.close()}
 				disabled={isSaving}
 			>
+				<X aria-hidden="true" />
 				Cancel
 			</Button>
 			<Button type="submit" disabled={isSaving || correctionReason.trim().length < 3}>
+				<Save aria-hidden="true" />
 				{isSaving ? 'Saving…' : 'Save correction'}
 			</Button>
 		</div>

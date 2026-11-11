@@ -217,7 +217,7 @@ describe('organizer account deletion', () => {
 				eventId: SINGLE_EVENT_ID,
 				wishlistOwnerId: 'mom',
 				type: 'wishlist_discussion',
-				title: 'Talk to Mom'
+				title: 'Mom - messages'
 			})
 			.run();
 		db.insert(wishlistConversationParticipants)

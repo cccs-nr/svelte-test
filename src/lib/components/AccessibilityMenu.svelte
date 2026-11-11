@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { positionDropdown } from '#lib/dropdown-position.js';
 	import { ChevronDown, Eye } from '@lucide/svelte';
 	import PreferenceSwitch from '#lib/components/PreferenceSwitch.svelte';
 	import {
@@ -21,6 +22,14 @@
 		{ value: 'simple', label: 'Simple' },
 		{ value: 'off', label: 'Off' }
 	];
+
+	$effect(() => {
+		if (!isOpen || !trigger || !panel) return;
+		const place = () => positionDropdown(trigger!, panel!);
+		place();
+		window.addEventListener('resize', place);
+		return () => window.removeEventListener('resize', place);
+	});
 
 	onMount(() => {
 		loadPreferences();

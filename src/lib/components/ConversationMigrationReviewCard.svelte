@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { CheckCheck } from '@lucide/svelte';
 	import { TRPCClientError } from '@trpc/client';
 	import { trpc } from '#lib/trpc/client.js';
 	import { Button } from '#lib/components/ui/button/index.js';
@@ -78,6 +79,7 @@
 							onclick={() => void markReviewed(item.id)}
 							disabled={resolvingId !== null}
 						>
+							<CheckCheck aria-hidden="true" />
 							{resolvingId === item.id ? 'Saving…' : 'Mark reviewed'}
 						</Button>
 					</li>

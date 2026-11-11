@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { positionDropdown } from '#lib/dropdown-position.js';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -8,23 +9,27 @@
 		ArrowLeftRight,
 		BookOpen,
 		ChevronDown,
+		ClipboardCheck,
 		Gift,
+		House,
+		LayoutDashboard,
+		ListChecks,
 		LogOut,
-		Menu,
-		UserRound,
-		X
+		MessageCircle,
+		Shuffle,
+		UserRound
 	} from '@lucide/svelte';
 	import type { LayoutProps } from './$types';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import CodenameAvatar from '#lib/components/CodenameAvatar.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
+	import NavigationMenu from '#lib/components/NavigationMenu.svelte';
 	import AccessibilityMenu from '#lib/components/AccessibilityMenu.svelte';
 	import SwitchUserDialog from '#lib/components/SwitchUserDialog.svelte';
 	import { connectRealtime, disconnectRealtime } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
 
 	let { children, data }: LayoutProps = $props();
-	let isMobileNavigationOpen = $state(false);
 	let isAccountMenuOpen = $state(false);
 	let accountButton = $state<HTMLButtonElement>();
 	let accountMenu = $state<HTMLDivElement>();
@@ -39,9 +44,84 @@
 	let isAssignmentsActive = $derived(page.url.pathname === resolve('/app/assignments'));
 	let isGiftGivingActive = $derived(page.url.pathname.startsWith(resolve('/app/gift-giving')));
 	let isMessagesActive = $derived(page.url.pathname.startsWith(resolve('/app/messages')));
-	let isConversationPage = $derived(page.url.pathname.startsWith(`${resolve('/app/messages')}/`));
 	let isWelcomeActive = $derived(page.url.pathname === resolve('/app/welcome'));
+	let isProfileActive = $derived(page.url.pathname === resolve('/app/profile'));
 	let isWishlistActive = $derived(page.url.pathname === resolve('/app/wishlist'));
+	let navigationItems = $derived([
+		...(data.user.isParticipating
+			? [
+					{ href: resolve('/app'), label: 'Home', icon: House, isActive: isHomeActive, group: 1 },
+					{
+						href: resolve('/app/wishlist'),
+						label: 'My Wishlist',
+						icon: ListChecks,
+						isActive: isWishlistActive,
+						badge: badgeCounts.wishlist,
+						badgeText: 'new updates',
+						group: 1
+					},
+					{
+						href: resolve('/app/gift-giving'),
+						label: 'Your Draw',
+						icon: Shuffle,
+						isActive: isGiftGivingActive,
+						badge: badgeCounts.gift,
+						badgeText: 'new updates',
+						group: 1
+					},
+					{
+						href: resolve('/app/messages'),
+						label: 'Messages',
+						icon: MessageCircle,
+						isActive: isMessagesActive,
+						badge: badgeCounts.messages,
+						badgeText: 'unread',
+						group: 1
+					}
+				]
+			: []),
+		...(data.user.role === 'organizer'
+			? [
+					{
+						href: resolve('/app/dashboard'),
+						label: 'Dashboard',
+						icon: LayoutDashboard,
+						isActive: isDashboardActive,
+						group: 2
+					},
+					{
+						href: resolve('/app/assignments'),
+						label: 'Assignments',
+						icon: ClipboardCheck,
+						isActive: isAssignmentsActive,
+						group: 2
+					}
+				]
+			: []),
+		{
+			href: resolve('/app/welcome'),
+			label: 'Welcome',
+			icon: BookOpen,
+			isActive: isWelcomeActive,
+			group: 3
+		},
+		{
+			href: resolve('/app/profile'),
+			label: 'Profile',
+			icon: UserRound,
+			isActive: isProfileActive,
+			group: 3
+		}
+	]);
+	let isConversationPage = $derived(page.url.pathname.startsWith(`${resolve('/app/messages')}/`));
+
+	$effect(() => {
+		if (!isAccountMenuOpen || !accountButton || !accountMenu) return;
+		const place = () => positionDropdown(accountButton!, accountMenu!);
+		place();
+		window.addEventListener('resize', place);
+		return () => window.removeEventListener('resize', place);
+	});
 
 	onMount(() => {
 		const socket = connectRealtime();
@@ -154,18 +234,8 @@
 		};
 	});
 
-	function closeMobileNavigation(): void {
-		isMobileNavigationOpen = false;
-	}
-
 	function closeAccountMenu(): void {
 		isAccountMenuOpen = false;
-	}
-
-	function navigationClass(isActive: boolean): string {
-		return `holiday-topnav__link rounded-lg px-3 py-2 transition-colors ${
-			isActive ? 'is-current shadow-sm' : ''
-		}`;
 	}
 
 	async function handleLogout(): Promise<void> {
@@ -188,40 +258,6 @@
 		}
 	}
 </script>
-
-{#snippet navLink(
-	path:
-		| '/app'
-		| '/app/welcome'
-		| '/app/wishlist'
-		| '/app/gift-giving'
-		| '/app/messages'
-		| '/app/dashboard'
-		| '/app/assignments',
-	label: string,
-	isActive: boolean,
-	badge = 0,
-	badgeText = ''
-)}
-	<a
-		href={resolve(path)}
-		onclick={closeMobileNavigation}
-		class={`${navigationClass(isActive)} inline-flex items-center gap-2`}
-		aria-current={isActive ? 'page' : undefined}
-		aria-label={badge > 0 ? `${label}, ${badge} ${badgeText}` : undefined}
-	>
-		{#if path === '/app/welcome'}<BookOpen size={18} aria-hidden="true" />{/if}
-		{label}
-		{#if badge > 0}
-			<span
-				class="holiday-topnav__badge grid min-w-5 place-items-center rounded-md px-1.5 py-0.5 text-sm font-semibold"
-				aria-hidden="true"
-			>
-				{badge}
-			</span>
-		{/if}
-	</a>
-{/snippet}
 
 <svelte:head>
 	<title>Secret Santa</title>
@@ -246,63 +282,10 @@
 				<span class="holiday-topnav__brand-mark grid size-9 place-items-center rounded-lg">
 					<Gift size={18} aria-hidden="true" />
 				</span>
-				<span class="whitespace-nowrap max-2xl:sr-only">Secret Santa</span>
+				<span class="whitespace-nowrap">Secret Santa</span>
 			</a>
-			<nav
-				id="main-navigation"
-				class={`order-3 ${isMobileNavigationOpen ? 'flex' : 'hidden'} w-full flex-col gap-1 text-base sm:order-none sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:gap-2`}
-				aria-label="Main navigation"
-			>
-				{@render navLink('/app/welcome', 'Welcome', isWelcomeActive)}
-				{#if data.user.isParticipating}
-					{@render navLink('/app', 'Home', isHomeActive)}
-					{@render navLink(
-						'/app/wishlist',
-						'My Wishlist',
-						isWishlistActive,
-						badgeCounts.wishlist,
-						'new updates'
-					)}
-					{@render navLink(
-						'/app/gift-giving',
-						'Your Draw',
-						isGiftGivingActive,
-						badgeCounts.gift,
-						'new updates'
-					)}
-					{@render navLink(
-						'/app/messages',
-						'Messages',
-						isMessagesActive,
-						badgeCounts.messages,
-						'unread'
-					)}
-				{/if}
-				{#if data.user.role === 'organizer'}
-					{@render navLink('/app/dashboard', 'Dashboard', isDashboardActive)}
-					{@render navLink('/app/assignments', 'Assignments', isAssignmentsActive)}
-				{/if}
-			</nav>
 			<div class="flex items-center gap-2 sm:gap-4">
-				<Button
-					type="button"
-					variant="outline"
-					class="holiday-topnav__menu-toggle sm:hidden"
-					size="icon"
-					aria-controls="main-navigation"
-					aria-expanded={isMobileNavigationOpen}
-					aria-label={isMobileNavigationOpen ? 'Close navigation' : 'Open navigation'}
-					onclick={() => {
-						isAccountMenuOpen = false;
-						isMobileNavigationOpen = !isMobileNavigationOpen;
-					}}
-				>
-					{#if isMobileNavigationOpen}
-						<X aria-hidden="true" />
-					{:else}
-						<Menu aria-hidden="true" />
-					{/if}
-				</Button>
+				<NavigationMenu items={navigationItems} />
 				<AccessibilityMenu variant="dark" />
 				<div class="relative">
 					<button
@@ -315,7 +298,6 @@
 						aria-expanded={isAccountMenuOpen}
 						aria-controls="account-menu"
 						onclick={() => {
-							isMobileNavigationOpen = false;
 							isAccountMenuOpen = !isAccountMenuOpen;
 							if (isAccountMenuOpen) {
 								requestAnimationFrame(() => {
@@ -330,7 +312,9 @@
 							imageVersion={data.avatarVersion}
 							size="sm"
 						/>
-						<span class="min-w-0 truncate text-base font-semibold">{data.user.displayName}</span>
+						<span class="min-w-0 truncate text-base font-semibold max-[600px]:sr-only"
+							>{data.user.displayName}</span
+						>
 						<ChevronDown size={20} class="shrink-0" aria-hidden="true" />
 					</button>
 					<div
@@ -372,6 +356,17 @@
 							</div>
 						{/if}
 						<div class="my-2 border-t border-border"></div>
+						<Button
+							variant="ghost"
+							class="w-full justify-start"
+							role="menuitem"
+							tabindex={-1}
+							href={resolve('/app/profile')}
+							onclick={closeAccountMenu}
+						>
+							<UserRound aria-hidden="true" />
+							Profile
+						</Button>
 						{#if data.members.length > 1}
 							<Button
 								type="button"
@@ -388,17 +383,6 @@
 								Switch User
 							</Button>
 						{/if}
-						<Button
-							href={resolve('/app/profile')}
-							variant="ghost"
-							class="w-full justify-start"
-							onclick={closeAccountMenu}
-							role="menuitem"
-							tabindex={-1}
-						>
-							<UserRound aria-hidden="true" />
-							Profile
-						</Button>
 						<Button
 							type="button"
 							variant="ghost"

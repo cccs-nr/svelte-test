@@ -145,7 +145,7 @@ describe('wishlist-centric conversations', () => {
 			(item) => item.wishlistOwner.userId === 'bob' && item.type === 'wishlist_discussion'
 		);
 		if (!conversation) throw new Error('Expected Alice to have a conversation for Bob’s wishlist.');
-		expect(conversation.title).toBe('Bob — Talk to Bob');
+		expect(conversation.title).toBe('Bob - messages');
 
 		await alice.conversations.send({
 			conversationId: conversation.id,
@@ -154,7 +154,7 @@ describe('wishlist-centric conversations', () => {
 		const bobThread = await bob.conversations.thread({ conversationId: conversation.id });
 		expect(bobThread).toMatchObject({
 			type: 'wishlist_discussion',
-			title: 'Bob — Talk to Bob',
+			title: 'Bob - messages',
 			wishlistOwner: { displayName: 'Bob', userId: 'bob' },
 			messages: [
 				{

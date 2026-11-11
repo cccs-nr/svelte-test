@@ -1,32 +1,47 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, type Snippet } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
-	import { Check, CheckCheck, Gift } from '@lucide/svelte';
+	import {
+		Check,
+		CheckCheck,
+		Eraser,
+		Gift,
+		Lock,
+		MessageCircle,
+		Send,
+		Users,
+		X
+	} from '@lucide/svelte';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import CodenameAvatar from '#lib/components/CodenameAvatar.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
-	import {
-		Card,
-		CardContent,
-		CardDescription,
-		CardHeader,
-		CardTitle
-	} from '#lib/components/ui/card/index.js';
+	import { Card, CardContent, CardHeader, CardTitle } from '#lib/components/ui/card/index.js';
 
 	type Thread = Awaited<ReturnType<typeof trpc.conversations.thread.query>>;
 	type Props = {
 		conversationId: string;
 		onWishlistOwnerChange?: (ownerId: string | null) => void;
 		fullHeight?: boolean;
+		isLoading?: boolean;
+		/** Rendered at the start and end of the compact header row. */
+		leading?: Snippet;
+		actions?: Snippet;
 	};
 
-	let { conversationId, onWishlistOwnerChange, fullHeight = false }: Props = $props();
+	let {
+		conversationId,
+		onWishlistOwnerChange,
+		fullHeight = false,
+		isLoading = $bindable(true),
+		leading,
+		actions
+	}: Props = $props();
 	let thread = $state<Thread | null>(null);
 	let draft = $state('');
-	let isLoading = $state(true);
+	let participantsDialog = $state<HTMLDialogElement>();
 	let isSending = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let notice = $state<string | null>(null);
@@ -46,6 +61,10 @@
 			socket.off('connect', refresh);
 		};
 	});
+
+	export function refresh(): Promise<void> {
+		return loadConversation();
+	}
 
 	async function loadConversation(): Promise<void> {
 		const sequence = ++loadSequence;
@@ -107,6 +126,8 @@
 		}
 	}
 
+	let isPrivate = $derived(thread?.type === 'gift_coordination');
+
 	function formatTimestamp(value: string): string {
 		return new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium', timeStyle: 'short' }).format(
 			new Date(value)
@@ -122,14 +143,18 @@
 </script>
 
 <Card
+	style="background-color: var({isPrivate
+		? '--convo-private-bg'
+		: '--convo-open-bg'}); border-color: var({isPrivate ? '--accent-red' : '--primary'})"
 	class={fullHeight
-		? 'flex min-h-0 flex-1 flex-col rounded-none border-0 shadow-none sm:rounded-xl sm:border sm:shadow-sm'
+		? 'flex min-h-0 flex-1 flex-col rounded-none border-0 shadow-none sm:rounded-xl sm:border-2 sm:shadow-sm'
 		: ''}
 >
 	<CardHeader
-		class={fullHeight ? 'shrink-0 border-b border-border px-4 py-2 sm:border-0 sm:py-0' : undefined}
+		style="border-color: var({isPrivate ? '--accent-red' : '--primary'})"
+		class={fullHeight ? 'shrink-0 border-b-4 px-4 py-2 sm:border-b-0 sm:py-0' : undefined}
 	>
-		<div class="flex w-full flex-nowrap items-start justify-between gap-2 sm:gap-3">
+		<div class="flex w-full flex-nowrap items-center justify-between gap-2 sm:gap-3">
 			<div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
 				{#if thread}
 					<ProfileAvatar
@@ -137,35 +162,35 @@
 						hasAvatar={thread.wishlistOwner.avatar.hasAvatar}
 						imageVersion={thread.wishlistOwner.avatar.avatarVersion}
 						imageSrc={profileImageUrl(thread.wishlistOwner.avatar.userId)}
-						size="md"
+						size="sm"
+						class="hidden sm:inline-grid"
 					/>
 				{/if}
-				<div class="min-w-0">
-					<CardTitle
-						>{thread?.title ?? (isLoading ? 'Loading conversation…' : 'Conversation')}</CardTitle
-					>
-					<CardDescription class="text-sm leading-snug sm:text-sm sm:leading-normal">
-						{#if thread}
-							{#if thread.type === 'wishlist_discussion'}
-								The wishlist owner and invited gift givers can read and reply.
-							{:else}
-								Private to participating gift givers. The wishlist owner is excluded.
-							{/if}
-						{:else}
-							Conversation access is limited to its authorized participants.
-						{/if}
-					</CardDescription>
-				</div>
+				<CardTitle class="flex min-w-0 items-center gap-2 text-lg sm:text-xl">
+					{#if thread?.type === 'gift_coordination'}
+						<Lock size={20} aria-hidden="true" class="shrink-0 text-(--accent-red)" />
+					{:else if thread}
+						<MessageCircle size={20} aria-hidden="true" class="shrink-0 text-primary" />
+					{/if}
+					<span class="min-w-0 truncate">
+						{thread?.title ?? (isLoading ? 'Loading conversation…' : 'Conversation')}
+					</span>
+				</CardTitle>
 			</div>
-			<Button
-				type="button"
-				size="sm"
-				variant="outline"
-				onclick={() => void loadConversation()}
-				disabled={isLoading || isSending}
-			>
-				Refresh
-			</Button>
+			<div class="flex shrink-0 items-center gap-2">
+				{#if thread}
+					<Button
+						variant="outline"
+						size="icon"
+						aria-label={`Participants (${thread.participants.length})`}
+						title="Participants"
+						onclick={() => participantsDialog?.showModal()}
+					>
+						<Users aria-hidden="true" />
+					</Button>
+				{/if}
+				{@render actions?.()}
+			</div>
 		</div>
 	</CardHeader>
 	<CardContent
@@ -183,41 +208,6 @@
 		{/if}
 
 		{#if thread}
-			<div class="app-table-scroll shrink-0 border-b border-border pb-2 sm:pb-3">
-				<p class="mb-2 hidden text-sm font-medium text-muted-foreground sm:block">Participants</p>
-				<ul
-					class="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0"
-					aria-label="Conversation participants"
-				>
-					{#each thread.participants as participant, index (`${participant.label}-${index}`)}
-						<li
-							class="inline-flex shrink-0 items-center gap-2 rounded-full bg-secondary py-1 pr-3 pl-1 text-sm text-secondary-foreground sm:text-sm"
-						>
-							{#if participant.avatar.type === 'profile'}
-								<ProfileAvatar
-									displayName={participant.label}
-									hasAvatar={participant.avatar.hasAvatar}
-									imageVersion={participant.avatar.avatarVersion}
-									imageSrc={profileImageUrl(participant.avatar.userId)}
-									size="sm"
-									class="size-7 text-sm"
-								/>
-							{:else if participant.avatar.type === 'codename'}
-								<CodenameAvatar codename={participant.avatar.codename} size="sm" />
-							{:else}
-								<span
-									class="grid size-7 place-items-center rounded-full bg-emerald-100 text-emerald-800"
-									aria-label="Secret Santa identity hidden"
-								>
-									<Gift size={14} aria-hidden="true" />
-								</span>
-							{/if}
-							{participant.label}
-						</li>
-					{/each}
-				</ul>
-			</div>
-
 			{#if (thread.messages?.length ?? 0) === 0}
 				<p class="min-h-0 flex-1 overflow-y-auto py-4 text-sm text-muted-foreground">
 					No messages yet. Send the first note.
@@ -251,20 +241,20 @@
 								</span>
 							{/if}
 							<div
-								class={`max-w-[85%] min-w-0 flex-1 rounded-2xl p-4 ${message.isOwnMessage ? 'bg-emerald-100' : 'bg-stone-50'}`}
+								class={`max-w-[85%] min-w-0 flex-1 rounded-2xl p-4 ${message.isOwnMessage ? (thread.type === 'gift_coordination' ? 'bg-(--convo-private-bubble)' : 'bg-(--convo-open-bubble)') : 'bg-stone-50'}`}
 							>
 								<div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-									<p class="font-medium text-stone-900">{message.senderLabel}</p>
-									<time class="text-sm text-stone-600" datetime={message.sentAt}>
+									<p class="app-convo-text font-medium text-stone-900">{message.senderLabel}</p>
+									<time class="app-convo-meta text-stone-600" datetime={message.sentAt}>
 										{formatTimestamp(message.sentAt)}
 									</time>
 								</div>
-								<p class="mt-2 text-sm whitespace-pre-wrap text-stone-700">
+								<p class="app-convo-text mt-2 whitespace-pre-wrap text-stone-800">
 									{message.content}
 								</p>
 								{#if message.receipt}
 									<p
-										class="mt-2 flex items-center justify-end gap-1.5 text-sm font-medium text-stone-700"
+										class="app-convo-meta mt-2 flex items-center justify-end gap-1.5 font-medium text-stone-700"
 									>
 										{#if message.receipt.seenLabels.length > 0}
 											<CheckCheck size={18} aria-hidden="true" />
@@ -324,22 +314,91 @@
 						placeholder="Write a message…"
 						disabled={isSending}
 						onkeydown={handleComposerKeydown}></textarea>
-					<div class="flex items-center justify-between gap-3">
-						<p class="app-hint text-sm text-stone-600">
+					<div class="flex flex-wrap items-center gap-2 sm:gap-3">
+						{@render leading?.()}
+						<p class="app-hint hidden min-w-0 flex-1 text-sm text-stone-600 lg:block">
 							Enter to send · Shift+Enter for a new line
 						</p>
-						<Button type="submit" disabled={isSending || !draft.trim()}>
-							{isSending ? 'Sending…' : 'Send'}
-						</Button>
+						<div class="ml-auto flex items-center gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								onclick={() => (draft = '')}
+								disabled={isSending || !draft}
+							>
+								<Eraser aria-hidden="true" />
+								Clear
+							</Button>
+							<Button type="submit" disabled={isSending || !draft.trim()}>
+								<Send aria-hidden="true" />
+								{isSending ? 'Sending…' : 'Send'}
+							</Button>
+						</div>
 					</div>
 				</form>
 			{:else}
-				<p class="shrink-0 border-t border-stone-200 pt-3 text-sm text-stone-600">
-					This event is complete. Messages are available to read but cannot be changed.
-				</p>
+				<div class="flex shrink-0 flex-wrap items-center gap-3 border-t border-stone-200 pt-3">
+					{@render leading?.()}
+					<p class="min-w-0 flex-1 text-sm text-stone-600">
+						This event is complete. Messages are available to read but cannot be changed.
+					</p>
+				</div>
 			{/if}
 		{:else if !isLoading}
 			<p class="m-auto p-6 text-center text-sm text-stone-600">This conversation is unavailable.</p>
+			<div class="shrink-0 border-t border-stone-200 pt-3">{@render leading?.()}</div>
 		{/if}
 	</CardContent>
 </Card>
+
+{#if thread}
+	<dialog
+		bind:this={participantsDialog}
+		class="app-dialog m-auto max-h-[92dvh] w-[min(95vw,26rem)] overflow-y-auto rounded-xl p-0 shadow-2xl backdrop:bg-black/60"
+		aria-labelledby="participants-title"
+		onclick={(event) => {
+			if (event.target === participantsDialog) participantsDialog?.close();
+		}}
+	>
+		<div class="space-y-4 p-5">
+			<h2 id="participants-title" class="flex items-center gap-2 text-xl font-semibold">
+				<Users aria-hidden="true" />
+				Participants
+			</h2>
+			<ul class="space-y-2" aria-label="Conversation participants">
+				{#each thread.participants as participant, index (`${participant.label}-${index}`)}
+					<li
+						class="flex items-center gap-3 rounded-xl bg-secondary p-2 text-base text-secondary-foreground"
+					>
+						{#if participant.avatar.type === 'profile'}
+							<ProfileAvatar
+								displayName={participant.label}
+								hasAvatar={participant.avatar.hasAvatar}
+								imageVersion={participant.avatar.avatarVersion}
+								imageSrc={profileImageUrl(participant.avatar.userId)}
+								size="sm"
+								class="size-7 text-sm"
+							/>
+						{:else if participant.avatar.type === 'codename'}
+							<CodenameAvatar codename={participant.avatar.codename} size="sm" />
+						{:else}
+							<span
+								class="grid size-7 place-items-center rounded-full bg-emerald-100 text-emerald-800"
+								aria-label="Secret Santa identity hidden"
+							>
+								<Gift size={14} aria-hidden="true" />
+							</span>
+						{/if}
+						{participant.label}
+					</li>
+				{/each}
+			</ul>
+			<div class="flex justify-end">
+				<Button type="button" onclick={() => participantsDialog?.close()}>
+					<X aria-hidden="true" />
+					Close
+				</Button>
+			</div>
+		</div>
+	</dialog>
+{/if}

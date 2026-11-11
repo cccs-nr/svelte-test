@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
-	import { Gift } from '@lucide/svelte';
+	import { Gift, Lock, MessageCircle, MessagesSquare } from '@lucide/svelte';
 	import PageGuide from '#lib/components/PageGuide.svelte';
 	import PageSummary from '#lib/components/PageSummary.svelte';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
@@ -93,47 +93,56 @@
 
 <section class="space-y-5" aria-labelledby="conversation-directory-title">
 	<div class="flex flex-wrap items-end justify-between gap-4">
-		<div>
+		<div class="min-w-0 flex-1">
 			{#if !compact}
 				<p class="app-page-kicker">Conversations</p>
 			{/if}
-			<h1
-				id="conversation-directory-title"
-				class={compact ? 'text-xl font-semibold text-stone-950' : 'app-page-title'}
-			>
-				{compact ? 'Recent conversations' : 'Messages'}
-			</h1>
+			<div class="app-page-titlebar">
+				<h1
+					id="conversation-directory-title"
+					class={compact ? 'text-xl font-semibold text-stone-950' : 'app-page-title'}
+				>
+					{compact ? 'Recent conversations' : 'Messages'}
+				</h1>
+				{#if !compact}
+					<PageGuide pageId="messages">
+						<p>
+							Messages is where you talk with other participants, usually to ask a question about a
+							gift idea. Every conversation belongs to one person’s wishlist.
+						</p>
+						<ul>
+							<li>
+								<strong>Messages</strong> is a conversation with the wishlist’s owner. If you are their
+								Secret Santa, they see you only as “Secret Santa”.
+							</li>
+							<li>
+								<strong>Private conversation</strong> is only for people buying for that person, for example
+								to share ideas. The person receiving the gift cannot see it.
+							</li>
+						</ul>
+						<p>
+							Press a conversation to open it, type your message, and press <strong>Send</strong>.
+							You appear by your codename, never your real name. A number beside a conversation
+							means it has new messages. Use the search box and the filter to find a conversation.
+						</p>
+					</PageGuide>
+				{/if}
+			</div>
 			{#if !compact}
-				<PageSummary>Send and receive messages from other participants.</PageSummary>
+				<PageSummary simple="Send and receive messages from other participants.">
+					Every conversation is organized around a participant’s wishlist. Your codename keeps your
+					identity secret.
+				</PageSummary>
 			{/if}
 		</div>
 		{#if compact}
-			<Button variant="outline" href={resolve('/app/messages')}>View all messages</Button>
+			<Button variant="outline" href={resolve('/app/messages')}>
+				<MessagesSquare aria-hidden="true" />View all messages</Button
+			>
 		{/if}
 	</div>
 
 	{#if !compact}
-		<PageGuide>
-			<p>
-				Messages is where you talk with other participants, usually to ask a question about a gift
-				idea. Every conversation belongs to one person’s wishlist.
-			</p>
-			<ul>
-				<li>
-					<strong>Talk to [name]</strong> is a conversation with the wishlist’s owner. If you are their
-					Secret Santa, they see you only as “Secret Santa”.
-				</li>
-				<li>
-					<strong>Private gift planning</strong> is only for people buying for that person, for example
-					to share ideas. The person receiving the gift cannot see it.
-				</li>
-			</ul>
-			<p>
-				Press a conversation to open it, type your message, and press <strong>Send</strong>. You
-				appear by your codename, never your real name. A number beside a conversation means it has
-				new messages. Use the search box and the filter to find a conversation.
-			</p>
-		</PageGuide>
 		<div class="app-surface rounded-xl border-2 border-border">
 			<div class="grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_14rem]">
 				<div class="space-y-2">
@@ -153,8 +162,8 @@
 					</label>
 					<select id="conversation-filter" class="app-control" bind:value={filter}>
 						<option value="all">All conversations</option>
-						<option value="wishlist_discussion">Talk to wishlist owner</option>
-						<option value="gift_coordination">Private gift planning</option>
+						<option value="wishlist_discussion">Messages</option>
+						<option value="gift_coordination">Private conversation</option>
 					</select>
 				</div>
 			</div>
@@ -185,7 +194,10 @@
 			{#each displayedConversations as conversation (conversation.id)}
 				<li>
 					<article
-						class="app-surface rounded-xl border p-3 transition hover:border-emerald-300 hover:bg-emerald-50 sm:p-4"
+						class="app-surface relative rounded-xl border border-l-4 p-3 transition sm:p-4 {conversation.type ===
+						'gift_coordination'
+							? 'border-l-(--accent-red) hover:bg-(--convo-private-bubble)'
+							: 'border-l-primary hover:bg-(--convo-open-bubble)'}"
 					>
 						<a
 							class="flex min-w-0 items-start gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800 sm:gap-4"
@@ -201,8 +213,22 @@
 								size="md"
 							/>
 							<div class="min-w-0 flex-1">
-								<span class="flex flex-wrap items-center justify-between gap-2">
-									<span class="font-semibold text-stone-950">{conversation.title}</span>
+								<span class="flex flex-wrap items-center gap-2 pr-36">
+									<span class="min-w-0">
+										<span class="flex items-center gap-2 font-semibold text-stone-950">
+											{#if conversation.type === 'gift_coordination'}
+												<Lock size={18} aria-hidden="true" class="shrink-0 text-(--accent-red)" />
+											{:else}
+												<MessageCircle size={18} aria-hidden="true" class="shrink-0 text-primary" />
+											{/if}
+											<span>{conversation.wishlistOwner.displayName}</span>
+										</span>
+										<span class="block text-sm text-stone-600">
+											({conversation.type === 'gift_coordination'
+												? 'private conversation'
+												: 'messages'})
+										</span>
+									</span>
 									{#if conversation.unreadCount > 0}
 										<span class="app-status app-status--unread">
 											{conversation.unreadCount} unread
@@ -217,45 +243,47 @@
 										{conversation.lastMessagePreview}
 									</span>
 								{/if}
-								<ul class="mt-3 flex flex-wrap gap-1.5" aria-label="Conversation participants">
-									{#each conversation.participants as participant, index (`${participant.label}-${index}`)}
-										<li
-											class="inline-flex items-center gap-1.5 rounded-full bg-stone-100 py-0.5 pr-2 pl-0.5 text-sm text-stone-700"
+								<div class="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
+									<ul class="flex min-w-0 flex-wrap gap-1.5" aria-label="Conversation participants">
+										{#each conversation.participants as participant, index (`${participant.label}-${index}`)}
+											<li
+												class="inline-flex items-center gap-1.5 rounded-full bg-stone-100 py-0.5 pr-2 pl-0.5 text-sm text-stone-700"
+											>
+												{#if participant.avatar.type === 'profile'}
+													<ProfileAvatar
+														displayName={participant.label}
+														hasAvatar={participant.avatar.hasAvatar}
+														imageVersion={participant.avatar.avatarVersion}
+														imageSrc={profileImageUrl(conversation, participant.avatar.userId)}
+														size="sm"
+														class="size-6 text-[0.625rem]"
+													/>
+												{:else if participant.avatar.type === 'codename'}
+													<CodenameAvatar codename={participant.avatar.codename} size="xs" />
+												{:else}
+													<span
+														class="grid size-6 place-items-center rounded-full bg-emerald-100 text-emerald-800"
+														aria-label="Secret Santa identity hidden"
+													>
+														<Gift size={12} aria-hidden="true" />
+													</span>
+												{/if}
+												{participant.label}
+											</li>
+										{/each}
+									</ul>
+									{#if conversation.lastMessageAt}
+										<time
+											class="ml-auto shrink-0 text-sm text-muted-foreground"
+											datetime={conversation.lastMessageAt}
 										>
-											{#if participant.avatar.type === 'profile'}
-												<ProfileAvatar
-													displayName={participant.label}
-													hasAvatar={participant.avatar.hasAvatar}
-													imageVersion={participant.avatar.avatarVersion}
-													imageSrc={profileImageUrl(conversation, participant.avatar.userId)}
-													size="sm"
-													class="size-6 text-[0.625rem]"
-												/>
-											{:else if participant.avatar.type === 'codename'}
-												<CodenameAvatar codename={participant.avatar.codename} size="xs" />
-											{:else}
-												<span
-													class="grid size-6 place-items-center rounded-full bg-emerald-100 text-emerald-800"
-													aria-label="Secret Santa identity hidden"
-												>
-													<Gift size={12} aria-hidden="true" />
-												</span>
-											{/if}
-											{participant.label}
-										</li>
-									{/each}
-								</ul>
-								{#if conversation.lastMessageAt}
-									<time
-										class="mt-3 block text-sm text-muted-foreground"
-										datetime={conversation.lastMessageAt}
-									>
-										{formatTimestamp(conversation.lastMessageAt)}
-									</time>
-								{/if}
+											{formatTimestamp(conversation.lastMessageAt)}
+										</time>
+									{/if}
+								</div>
 							</div>
 						</a>
-						<div class="mt-2 flex justify-end">
+						<div class="absolute top-3 right-3 z-10 sm:top-4 sm:right-4">
 							<Button
 								variant="outline"
 								href={conversation.isWishlistOwner
@@ -264,7 +292,8 @@
 											participantId: conversation.wishlistOwner.userId
 										})}
 							>
-								View wishlist
+								<Gift aria-hidden="true" />
+								Wishlist
 							</Button>
 						</div>
 					</article>

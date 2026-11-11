@@ -50,14 +50,15 @@
 	class="app-surface mx-auto max-w-3xl space-y-8 rounded-3xl border-2 border-accent-red p-5 shadow-xl sm:p-10"
 	aria-labelledby="welcome-letter-title"
 >
-	<header class="space-y-4 text-center">
-		<p class="text-4xl sm:text-5xl" aria-hidden="true">🎄🎁🎅</p>
-		<h1
-			id="welcome-letter-title"
-			class="text-3xl leading-tight font-bold tracking-tight text-emerald-900 sm:text-4xl"
-		>
-			{guide.title}
-		</h1>
+	<header>
+		<img
+			src="{__APP_BASE_PATH__}/welcome-banner.jpg"
+			alt="Santa and a reindeer peeking over a parchment sign that reads Secret Santa"
+			width="1365"
+			height="768"
+			class="aspect-video w-full rounded-2xl object-cover shadow-md"
+		/>
+		<h1 id="welcome-letter-title" class="sr-only">{guide.title}</h1>
 	</header>
 
 	{#if event}

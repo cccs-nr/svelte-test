@@ -1,4 +1,6 @@
 <script lang="ts">
+	import ExternalLink from '#lib/components/ExternalLink.svelte';
+	import { Bookmark, Lock, MessageCircle, PackageCheck, Undo2 } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -26,7 +28,6 @@
 	>;
 	type Props = {
 		currentUserId: string;
-		giftBudgetCents: number | null;
 		currency: string;
 		initialRecipientId?: string | null;
 		showDirectory?: boolean;
@@ -36,7 +37,6 @@
 
 	let {
 		currentUserId,
-		giftBudgetCents,
 		currency,
 		initialRecipientId = null,
 		showDirectory = true,
@@ -281,15 +281,17 @@
 					organizer reveals identities.
 				</span>
 			{:else if wishlist}
-				{wishlist.suggestions.length}
-				{wishlist.suggestions.length === 1 ? ' gift idea' : ' gift ideas'} · Updated
-				{wishlist.suggestions[0] ? formatTimestamp(wishlist.suggestions[0].updatedAt) : 'not yet'}
+				<span class="block">
+					{wishlist.suggestions.length}
+					{wishlist.suggestions.length === 1 ? 'gift idea' : 'gift ideas'}
+				</span>
+				<span class="block">
+					Updated {wishlist.suggestions[0]
+						? formatTimestamp(wishlist.suggestions[0].updatedAt)
+						: 'not yet'}
+				</span>
 			{:else}
 				<span class="app-hint">Review gift ideas and ask the Wishlist Recipient questions.</span>
-			{/if}
-			{#if giftBudgetCents !== null}
-				<br />Suggested gift price: {formatEventBudget(giftBudgetCents, currency)} (a suggestion, not
-				a limit).
 			{/if}
 		</CardDescription>
 		{#if !showDirectory && wishlist}
@@ -298,18 +300,24 @@
 					type="button"
 					size="sm"
 					variant="outline"
+					class="border-primary bg-(--convo-open-bg) hover:bg-(--convo-open-bubble)"
+					aria-label="Message {wishlist.recipient.displayName}"
 					onclick={() => void openGiftConversation('recipient_visible')}
 					disabled={isOpeningConversation || isLoadingWishlist}
 				>
-					Talk to {wishlist.recipient.displayName}
+					<MessageCircle aria-hidden="true" />
+					Message
 				</Button>
 				<Button
 					type="button"
 					size="sm"
+					variant="outline"
+					class="border-(--accent-red) bg-(--convo-private-bg) hover:bg-(--convo-private-bubble)"
 					onclick={() => void openGiftConversation('private_coordination')}
 					disabled={isOpeningConversation || isLoadingWishlist}
 				>
-					Plan gifts privately
+					<Lock aria-hidden="true" />
+					Private conversation
 				</Button>
 			</CardAction>
 		{/if}
@@ -373,6 +381,7 @@
 											)}
 										disabled={actionId !== null}
 									>
+										<PackageCheck aria-hidden="true" />
 										Mark purchased
 									</Button>
 									<Button
@@ -387,6 +396,7 @@
 											)}
 										disabled={actionId !== null}
 									>
+										<Undo2 aria-hidden="true" />
 										Release
 									</Button>
 								</div>
@@ -477,14 +487,7 @@
 										<div class="min-w-0 flex-1">
 											<p class="font-semibold text-foreground">
 												{#if suggestion.url}
-													<a
-														class="text-primary underline underline-offset-4"
-														href={suggestion.url}
-														target="_blank"
-														rel="noopener noreferrer external"
-													>
-														{suggestion.title}
-													</a>
+													<ExternalLink href={suggestion.url}>{suggestion.title}</ExternalLink>
 												{:else}
 													{suggestion.title}
 												{/if}
@@ -530,6 +533,7 @@
 											onclick={() => void updateReservation(suggestion.id, null, 'reserve')}
 											disabled={actionId !== null}
 										>
+											<Bookmark aria-hidden="true" />
 											{actionId === suggestion.id ? 'Reserving…' : 'Reserve Wishlist Gift'}
 										</Button>
 									{:else if suggestion.reservedByMe && suggestion.reservationStatus === 'reserved'}
@@ -546,6 +550,7 @@
 													)}
 												disabled={actionId !== null || !suggestion.reservationId}
 											>
+												<PackageCheck aria-hidden="true" />
 												{actionId === suggestion.id ? 'Updating…' : 'Mark purchased'}
 											</Button>
 											<Button
@@ -561,6 +566,7 @@
 													)}
 												disabled={actionId !== null || !suggestion.reservationId}
 											>
+												<Undo2 aria-hidden="true" />
 												Release reservation
 											</Button>
 										</div>
@@ -610,14 +616,8 @@
 													<div class="min-w-0">
 														<p class="font-semibold">
 															{#if suggestion.url}
-																<a
-																	class="text-emerald-800 underline underline-offset-4"
-																	href={suggestion.url}
-																	target="_blank"
-																	rel="noopener noreferrer external"
+																<ExternalLink href={suggestion.url}>{suggestion.title}</ExternalLink
 																>
-																	{suggestion.title}
-																</a>
 															{:else}
 																<span class="text-stone-950">{suggestion.title}</span>
 															{/if}
@@ -671,6 +671,7 @@
 														onclick={() => void updateReservation(suggestion.id, null, 'reserve')}
 														disabled={actionId !== null}
 													>
+														<Bookmark aria-hidden="true" />
 														{actionId === suggestion.id ? 'Reserving…' : 'Reserve Wishlist Gift'}
 													</Button>
 												{:else if suggestion.reservedByMe && suggestion.reservationStatus === 'reserved'}
@@ -686,6 +687,7 @@
 																)}
 															disabled={actionId !== null || !suggestion.reservationId}
 														>
+															<PackageCheck aria-hidden="true" />
 															{actionId === suggestion.id ? 'Updating…' : 'Mark purchased'}
 														</Button>
 														<Button
@@ -700,6 +702,7 @@
 																)}
 															disabled={actionId !== null || !suggestion.reservationId}
 														>
+															<Undo2 aria-hidden="true" />
 															Release reservation
 														</Button>
 													</div>

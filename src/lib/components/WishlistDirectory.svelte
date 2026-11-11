@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Gift, Lock, MessageCircle, RefreshCw } from '@lucide/svelte';
 	import PageSummary from '#lib/components/PageSummary.svelte';
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
@@ -53,13 +54,19 @@
 	function profileImageUrl(participantId: string): string {
 		return resolve('/api/participant-avatar/[participantId]', { participantId });
 	}
+	// Messages are tinted green and private conversations red, matching the conversation page.
+	function conversationPillClass(type: string): string {
+		return type === 'gift_coordination'
+			? 'border-(--accent-red) bg-(--convo-private-bg) hover:bg-(--convo-private-bubble)'
+			: 'border-primary bg-(--convo-open-bg) hover:bg-(--convo-open-bubble)';
+	}
 </script>
 
 <section class="space-y-4" aria-labelledby="wishlist-directory-title">
 	<div class="flex flex-wrap items-end justify-between gap-4">
 		<div>
 			<h2 id="wishlist-directory-title" class="text-xl font-semibold text-stone-950">Wishlists</h2>
-			<PageSummary>Browse gift ideas from everyone.</PageSummary>
+			<PageSummary simple="Browse gift ideas from everyone." />
 			<p class="app-hint mt-1 text-sm text-stone-600">
 				Browse gift ideas from participants. Reservation and purchase details remain private to gift
 				buyers.
@@ -72,6 +79,7 @@
 			onclick={() => void loadMembers()}
 			disabled={isLoading}
 		>
+			<RefreshCw aria-hidden="true" />
 			Refresh
 		</Button>
 	</div>
@@ -119,6 +127,7 @@
 										participantId: member.id
 									})}
 						>
+							<Gift aria-hidden="true" />
 							{member.id === currentUserId ? 'Your Wishlist' : 'View'}
 						</Button>
 					</div>
@@ -130,14 +139,20 @@
 							{#each member.conversations as conversation (conversation.id)}
 								<li>
 									<a
-										class="inline-flex min-h-9 items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+										class="inline-flex min-h-9 items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring {conversationPillClass(
+											conversation.type
+										)}"
 										href={resolve('/app/messages/[conversationId]', {
 											conversationId: conversation.id
 										})}
 									>
-										{conversation.type === 'wishlist_discussion'
-											? `Talk to ${member.displayName}`
-											: 'Plan gifts privately'}
+										{#if conversation.type === 'wishlist_discussion'}
+											<MessageCircle size={16} aria-hidden="true" />
+											Message
+										{:else}
+											<Lock size={16} aria-hidden="true" />
+											Private conversation
+										{/if}
 										{#if conversation.unreadCount > 0}
 											<span
 												class="app-status app-status--unread"
@@ -209,14 +224,20 @@
 										{#each member.conversations as conversation (conversation.id)}
 											<li class="flex items-center gap-2">
 												<a
-													class="font-medium text-emerald-800 underline underline-offset-4"
+													class="inline-flex min-h-9 items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium text-foreground no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring {conversationPillClass(
+														conversation.type
+													)}"
 													href={resolve('/app/messages/[conversationId]', {
 														conversationId: conversation.id
 													})}
 												>
-													{conversation.type === 'wishlist_discussion'
-														? `Talk to ${member.displayName}`
-														: 'Plan gifts privately'}
+													{#if conversation.type === 'wishlist_discussion'}
+														<MessageCircle size={16} aria-hidden="true" />
+														Message
+													{:else}
+														<Lock size={16} aria-hidden="true" />
+														Private conversation
+													{/if}
 												</a>
 												{#if conversation.unreadCount > 0}
 													<span
@@ -240,6 +261,7 @@
 												participantId: member.id
 											})}
 								>
+									<Gift aria-hidden="true" />
 									{member.id === currentUserId ? 'Your Wishlist' : 'View Wishlist'}
 								</Button>
 							</td>

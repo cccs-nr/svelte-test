@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Camera, KeyRound, Save, Shuffle, Trash2, X } from '@lucide/svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
@@ -222,32 +223,36 @@
 <section class="mx-auto max-w-3xl space-y-8">
 	<div>
 		<p class="app-page-kicker">Account</p>
-		<h1 class="app-page-title">Your profile</h1>
-		<PageSummary>Change your name, picture or password.</PageSummary>
+		<div class="app-page-titlebar">
+			<h1 class="app-page-title">Your profile</h1>
+			<PageGuide pageId="profile">
+				<p>
+					This page is about you and your account. Press the button in each section to change that
+					part.
+				</p>
+				<ul>
+					<li>
+						<strong>Profile picture:</strong> choose a photo to show beside your name. In messages, your
+						codename picture is used instead, so you stay anonymous.
+					</li>
+					<li>
+						<strong>Your codename:</strong> after the draw you receive a Christmas codename. You can pick
+						a different one until the event is complete.
+					</li>
+					<li>
+						<strong>Profile details:</strong> change the name other people see. It is also what you use
+						to sign in.
+					</li>
+					<li>
+						<strong>Change password:</strong> choose a new password. Other devices will be signed out.
+					</li>
+				</ul>
+			</PageGuide>
+		</div>
+		<PageSummary simple="Change your name, picture or password."
+			>Update the name other participants see and keep your password secure.</PageSummary
+		>
 	</div>
-
-	<PageGuide>
-		<p>
-			This page is about you and your account. Press the button in each section to change that part.
-		</p>
-		<ul>
-			<li>
-				<strong>Profile picture:</strong> choose a photo to show beside your name. In messages, your codename
-				picture is used instead, so you stay anonymous.
-			</li>
-			<li>
-				<strong>Your codename:</strong> after the draw you receive a Christmas codename. You can pick
-				a different one until the event is complete.
-			</li>
-			<li>
-				<strong>Profile details:</strong> change the name other people see. It is also what you use to
-				sign in.
-			</li>
-			<li>
-				<strong>Change password:</strong> choose a new password. Other devices will be signed out.
-			</li>
-		</ul>
-	</PageGuide>
 
 	{#if errorMessage}
 		<p class="app-alert app-alert--error" role="alert">
@@ -289,6 +294,7 @@
 						</p>
 					</div>
 					<Button type="submit" disabled={isSavingAvatar}>
+						<Camera aria-hidden="true" />
 						{isSavingAvatar
 							? 'Uploading…'
 							: data.profile.hasAvatar
@@ -302,6 +308,7 @@
 							onclick={removeAvatar}
 							disabled={isSavingAvatar}
 						>
+							<Trash2 aria-hidden="true" />
 							Remove
 						</Button>
 					{/if}
@@ -351,6 +358,7 @@
 								onclick={() => void changeCodename()}
 								disabled={isSavingCodename}
 							>
+								<Shuffle aria-hidden="true" />
 								{isSavingCodename ? 'Choosing…' : 'Pick a new codename'}
 							</Button>
 						</div>
@@ -428,6 +436,7 @@
 				{/if}
 				<div class="flex justify-end">
 					<Button type="submit" disabled={isSaving}>
+						<Save aria-hidden="true" />
 						{isSaving ? 'Saving…' : 'Save profile'}
 					</Button>
 				</div>
@@ -449,6 +458,7 @@
 					Update your password and sign out other active sessions.
 				</p>
 				<Button type="button" variant="outline" onclick={() => passwordDialog?.showModal()}>
+					<KeyRound aria-hidden="true" />
 					Change password
 				</Button>
 			</CardContent>
@@ -475,6 +485,7 @@
 					onclick={() => closeDialog(passwordDialog)}
 					disabled={isSaving}
 				>
+					<X aria-hidden="true" />
 					Close
 				</Button>
 			</div>
@@ -525,9 +536,11 @@
 						onclick={() => closeDialog(passwordDialog)}
 						disabled={isSaving}
 					>
+						<X aria-hidden="true" />
 						Cancel
 					</Button>
 					<Button type="submit" disabled={isSaving}>
+						<KeyRound aria-hidden="true" />
 						{isSaving ? 'Changing…' : 'Change password'}
 					</Button>
 				</div>

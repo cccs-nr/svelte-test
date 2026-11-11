@@ -27,6 +27,10 @@
 	/* Red accent for the app icon, navigation and card borders; the dark theme uses a deeper red. */
 	--control-border: oklch(0.5 0.03 150);
 	--accent-red: #c2334b;
+	--convo-open-bg: #f6faf7;
+	--convo-private-bg: #fdf6f7;
+	--convo-open-bubble: #e3f1e8;
+	--convo-private-bubble: #f8e1e5;
 	--accent-red-strong: #a8263d;
 	--border: oklch(0.922 0 0);
 	--input: oklch(0.922 0 0);
@@ -91,6 +95,10 @@
 	--destructive: oklch(0.704 0.191 22.216);
 	--control-border: oklch(0.72 0 0);
 	--accent-red: #a8263d;
+	--convo-open-bg: #1b231e;
+	--convo-private-bg: #251b1e;
+	--convo-open-bubble: #24402f;
+	--convo-private-bubble: #432129;
 	--accent-red-strong: #871d31;
 	--border: oklch(1 0 0 / 10%);
 	--input: oklch(1 0 0 / 15%);
@@ -304,14 +312,6 @@
 	color: var(--primary);
 }
 
-.app-guide {
-	border: 2px solid color-mix(in oklab, var(--primary) 35%, var(--border));
-	border-radius: 1rem;
-	background-color: color-mix(in oklab, var(--primary) 7%, var(--card));
-	padding: 1rem 1.25rem;
-	color: var(--card-foreground);
-}
-
 .app-guide__header {
 	display: flex;
 	align-items: center;
@@ -338,7 +338,6 @@
 }
 
 .app-guide__body {
-	margin-top: 0.75rem;
 	font-size: 1.125rem;
 	line-height: 1.75rem;
 }
@@ -481,12 +480,12 @@
 
 /*
  * Page guidance levels, set on <html> by the Accessibility menu:
- *  detailed - instruction cards, helper text and card descriptions
+ *  detailed - page descriptions, helper text and card descriptions
  *  simple   - one short sentence under each page title (.app-page-simple)
  *  off      - none of the above
+ * The "How this page works" tutorial dialog and its Help button do not depend on this setting.
  */
-.app-page-simple {
-	display: none;
+.app-page-text {
 	margin-top: 0.75rem;
 	max-width: 42rem;
 	color: var(--muted-foreground);
@@ -494,14 +493,29 @@
 	line-height: 1.75rem;
 }
 
+.app-page-simple {
+	display: none;
+}
+
+.app-page-titlebar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem 1rem;
+	margin-top: 0.75rem;
+}
+
+.app-page-titlebar .app-page-title {
+	margin-top: 0;
+}
+
 html[data-guidance='simple'] .app-page-simple {
 	display: block;
 }
 
-html[data-guidance='simple'] .app-guide,
 html[data-guidance='simple'] .app-hint,
 html[data-guidance='simple'] .app-description,
-html[data-guidance='off'] .app-guide,
 html[data-guidance='off'] .app-hint,
 html[data-guidance='off'] .app-description {
 	display: none;
@@ -663,4 +677,23 @@ html[data-visibility='high'] {
 	button[data-slot='button'] {
 		min-height: 2.75rem;
 	}
+}
+
+/* Conversation text grows with High Visibility Mode. */
+.app-convo-text {
+	font-size: 1.05rem;
+	line-height: 1.5;
+}
+
+.app-convo-meta {
+	font-size: 0.9rem;
+}
+
+:root[data-visibility='high'] .app-convo-text {
+	font-size: 1.4rem;
+	line-height: 1.55;
+}
+
+:root[data-visibility='high'] .app-convo-meta {
+	font-size: 1.15rem;
 }

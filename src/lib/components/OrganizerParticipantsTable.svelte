@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { KeyRound, Pencil, Save, Trash2, UserPlus, X } from '@lucide/svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { TRPCClientError } from '@trpc/client';
 	import type { UserRole } from '#lib/auth.js';
@@ -232,6 +233,7 @@
 			</CardDescription>
 		</div>
 		<Button type="button" onclick={openCreateDialog} disabled={assignmentsExist}>
+			<UserPlus aria-hidden="true" />
 			Create account
 		</Button>
 	</CardHeader>
@@ -279,6 +281,7 @@
 								aria-label={`Edit ${participant.displayName}`}
 								onclick={() => openEditDialog(participant)}
 							>
+								<Pencil aria-hidden="true" />
 								Edit
 							</Button>
 						</div>
@@ -430,6 +433,7 @@
 										aria-label={`Edit ${participant.displayName}`}
 										onclick={() => openEditDialog(participant)}
 									>
+										<Pencil aria-hidden="true" />
 										Edit
 									</Button>
 								</td>
@@ -462,6 +466,7 @@
 				onclick={() => createDialog?.close()}
 				disabled={isSaving}
 			>
+				<X aria-hidden="true" />
 				Close
 			</Button>
 		</div>
@@ -527,9 +532,11 @@
 					onclick={() => createDialog?.close()}
 					disabled={isSaving}
 				>
+					<X aria-hidden="true" />
 					Cancel
 				</Button>
 				<Button type="submit" disabled={isSaving}>
+					<UserPlus aria-hidden="true" />
 					{isSaving ? 'Creating…' : 'Create account'}
 				</Button>
 			</div>
@@ -556,6 +563,7 @@
 				onclick={() => editDialog?.close()}
 				disabled={isSaving}
 			>
+				<X aria-hidden="true" />
 				Close
 			</Button>
 		</div>
@@ -631,9 +639,11 @@
 					onclick={() => editDialog?.close()}
 					disabled={isSaving}
 				>
+					<X aria-hidden="true" />
 					Cancel
 				</Button>
 				<Button type="submit" disabled={isSaving}>
+					<Save aria-hidden="true" />
 					{isSaving ? 'Saving…' : 'Save account'}
 				</Button>
 			</div>
@@ -660,7 +670,9 @@
 						disabled={isSaving}
 						class="min-w-[14rem] flex-1"
 					/>
-					<Button type="submit" variant="outline" disabled={isSaving}>Set password</Button>
+					<Button type="submit" variant="outline" disabled={isSaving}>
+						<KeyRound aria-hidden="true" />Set password</Button
+					>
 				</div>
 			</form>
 		{/if}
@@ -684,6 +696,7 @@
 					disabled={isSaving}
 					onclick={deleteAccount}
 				>
+					<Trash2 aria-hidden="true" />
 					Delete this account
 				</Button>
 			</div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { CircleCheck, Save, Settings, X } from '@lucide/svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { TRPCClientError } from '@trpc/client';
 	import { formatBudgetInput, formatEventBudget, type EventStatus } from '#lib/models/event.js';
@@ -144,6 +145,7 @@
 					onclick={() => void completeEvent()}
 					disabled={!canComplete || isCompleting || event.status === 'completed'}
 				>
+					<CircleCheck aria-hidden="true" />
 					{event.status === 'completed'
 						? 'Event completed'
 						: isCompleting
@@ -154,6 +156,7 @@
 				</Button>
 			{/if}
 			<Button type="button" onclick={openDialog}>
+				<Settings aria-hidden="true" />
 				{event ? 'Edit event' : 'Set up event'}
 			</Button>
 		</div>
@@ -241,6 +244,7 @@
 				</p>
 			</div>
 			<Button type="button" variant="outline" onclick={closeDialog} disabled={isSaving}>
+				<X aria-hidden="true" />
 				Close
 			</Button>
 		</div>
@@ -301,9 +305,11 @@
 			</div>
 			<CardFooter class="flex justify-end gap-3 p-0 md:col-span-2">
 				<Button type="button" variant="outline" onclick={closeDialog} disabled={isSaving}>
+					<X aria-hidden="true" />
 					Cancel
 				</Button>
 				<Button type="submit" disabled={isSaving}>
+					<Save aria-hidden="true" />
 					{isSaving ? 'Saving…' : event ? 'Save changes' : 'Create event'}
 				</Button>
 			</CardFooter>

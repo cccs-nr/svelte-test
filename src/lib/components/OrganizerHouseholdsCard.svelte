@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Pencil, Plus, Save, Trash2, X } from '@lucide/svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { TRPCClientError } from '@trpc/client';
 	import type { UserRole } from '#lib/auth.js';
@@ -162,7 +163,9 @@
 				Use households to prevent participants from drawing someone who lives with them.
 			</CardDescription>
 		</div>
-		<Button type="button" onclick={openCreateDialog}>Create household</Button>
+		<Button type="button" onclick={openCreateDialog}>
+			<Plus aria-hidden="true" />Create household</Button
+		>
 	</CardHeader>
 	<CardContent class="space-y-4">
 		{#if notice}
@@ -188,6 +191,7 @@
 								variant="outline"
 								onclick={() => openEditDialog(household)}
 							>
+								<Pencil aria-hidden="true" />
 								Edit
 							</Button>
 						</div>
@@ -226,6 +230,7 @@
 										variant="outline"
 										onclick={() => openEditDialog(household)}
 									>
+										<Pencil aria-hidden="true" />
 										Edit
 									</Button>
 								</td>
@@ -258,6 +263,7 @@
 				onclick={() => closeDialog(createDialog)}
 				disabled={isSaving}
 			>
+				<X aria-hidden="true" />
 				Close
 			</Button>
 		</div>
@@ -313,9 +319,11 @@
 					onclick={() => closeDialog(createDialog)}
 					disabled={isSaving}
 				>
+					<X aria-hidden="true" />
 					Cancel
 				</Button>
 				<Button type="submit" disabled={isSaving}>
+					<Plus aria-hidden="true" />
 					{isSaving ? 'Creating…' : 'Create household'}
 				</Button>
 			</div>
@@ -344,6 +352,7 @@
 				onclick={() => closeDialog(editDialog)}
 				disabled={isSaving}
 			>
+				<X aria-hidden="true" />
 				Close
 			</Button>
 		</div>
@@ -394,6 +403,7 @@
 			</fieldset>
 			<div class="flex flex-wrap justify-between gap-3">
 				<Button type="button" variant="destructive" onclick={removeHousehold} disabled={isSaving}>
+					<Trash2 aria-hidden="true" />
 					Delete household
 				</Button>
 				<div class="flex gap-3">
@@ -403,9 +413,11 @@
 						onclick={() => closeDialog(editDialog)}
 						disabled={isSaving}
 					>
+						<X aria-hidden="true" />
 						Cancel
 					</Button>
 					<Button type="submit" disabled={isSaving}>
+						<Save aria-hidden="true" />
 						{isSaving ? 'Saving…' : 'Save household'}
 					</Button>
 				</div>

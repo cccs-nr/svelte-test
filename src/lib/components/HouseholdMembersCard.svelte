@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { TRPCClientError } from '@trpc/client';
-	import { Check, Plus, Trash2, UsersRound } from '@lucide/svelte';
+	import { Check, Plus, Trash2, UserPlus, UsersRound, X } from '@lucide/svelte';
 	import PageSummary from '#lib/components/PageSummary.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
@@ -96,7 +96,7 @@
 			</Button>
 		{/if}
 	</div>
-	<PageSummary>Manage the people in your household.</PageSummary>
+	<PageSummary simple="Manage the people in your household." />
 	<p class="app-hint mt-2 text-base text-muted-foreground">
 		Optional. Add someone who shares this account, such as a spouse, to manage their wishlist from
 		here. If that feels complicated, they can simply create their own account instead.
@@ -176,9 +176,12 @@
 			/>
 			<div class="flex flex-wrap gap-3">
 				<Button type="submit" disabled={isAdding || !newName.trim()}>
+					<UserPlus aria-hidden="true" />
 					{isAdding ? 'Adding…' : 'Add Person'}
 				</Button>
-				<Button type="button" variant="outline" onclick={() => (isFormOpen = false)}>Cancel</Button>
+				<Button type="button" variant="outline" onclick={() => (isFormOpen = false)}>
+					<X aria-hidden="true" />Cancel</Button
+				>
 			</div>
 		</form>
 	{/if}

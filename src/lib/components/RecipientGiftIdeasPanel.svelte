@@ -1,8 +1,9 @@
 <script lang="ts">
+	import ExternalLink from '#lib/components/ExternalLink.svelte';
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
-	import { X } from '@lucide/svelte';
+	import { PackageCheck, RefreshCw, X } from '@lucide/svelte';
 	import { formatEventBudget } from '#lib/models/event.js';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
@@ -162,6 +163,7 @@
 				onclick={() => void loadGiftIdeas(true)}
 				disabled={isLoading || isUpdatingStatus}
 			>
+				<RefreshCw aria-hidden="true" />
 				Refresh gift ideas
 			</Button>
 		</div>
@@ -201,6 +203,7 @@
 					onclick={() => void toggleGiftPurchased()}
 					disabled={isLoading || isUpdatingStatus}
 				>
+					<PackageCheck aria-hidden="true" />
 					{isUpdatingStatus
 						? 'Updating…'
 						: giftStatus.purchased
@@ -235,14 +238,7 @@
 							<div class="min-w-0 flex-1">
 								<h3 class="font-semibold">
 									{#if suggestion.url}
-										<a
-											class="text-emerald-800 underline underline-offset-4"
-											href={suggestion.url}
-											target="_blank"
-											rel="noopener noreferrer external"
-										>
-											{suggestion.title}
-										</a>
+										<ExternalLink href={suggestion.url}>{suggestion.title}</ExternalLink>
 									{:else}
 										<span class="text-stone-950">{suggestion.title}</span>
 									{/if}

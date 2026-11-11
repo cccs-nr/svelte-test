@@ -100,7 +100,7 @@ describe('participant notification counts', () => {
 				eventId: SINGLE_EVENT_ID,
 				wishlistOwnerId: 'alice',
 				type: 'wishlist_discussion',
-				title: 'Alice — Talk to Alice'
+				title: 'Alice - messages'
 			})
 			.run();
 		db.insert(wishlistConversationParticipants)
@@ -146,7 +146,7 @@ describe('participant notification counts', () => {
 				eventId: SINGLE_EVENT_ID,
 				wishlistOwnerId: 'alice',
 				type: 'wishlist_discussion',
-				title: 'Alice — Talk to Alice'
+				title: 'Alice - messages'
 			})
 			.run();
 		db.insert(wishlistConversationParticipants)

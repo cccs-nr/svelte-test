@@ -24,12 +24,12 @@ import { isActiveExchangeParticipant } from '#lib/server/wishlist-access.js';
 type ConversationExecutor = Pick<AppDatabase, 'select' | 'insert' | 'update'>;
 type ConversationOperation = 'discussion' | 'coordination';
 
-function getTypeLabel(ownerDisplayName: string, type: WishlistConversationType): string {
-	return type === 'wishlist_discussion' ? `Talk to ${ownerDisplayName}` : 'Private gift planning';
+function getTypeLabel(type: WishlistConversationType): string {
+	return type === 'wishlist_discussion' ? 'messages' : 'private conversation';
 }
 
 function getTitle(ownerDisplayName: string, type: WishlistConversationType): string {
-	return `${ownerDisplayName} — ${getTypeLabel(ownerDisplayName, type)}`;
+	return `${ownerDisplayName} - ${getTypeLabel(type)}`;
 }
 
 function requireActiveParticipant(database: AppDatabase, userId: string): void {

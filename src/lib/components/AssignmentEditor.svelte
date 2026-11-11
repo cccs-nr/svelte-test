@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Eye, EyeOff } from '@lucide/svelte';
 	import { TRPCClientError } from '@trpc/client';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import {
@@ -74,6 +75,7 @@
 	<CardContent class="space-y-4">
 		{#if !listing}
 			<Button type="button" variant="outline" size="lg" disabled={isLoading} onclick={load}>
+				<Eye aria-hidden="true" />
 				{isLoading ? 'Loading…' : 'Show assignments'}
 			</Button>
 		{:else}
@@ -117,6 +119,7 @@
 				{/each}
 			</ul>
 			<Button type="button" variant="outline" onclick={() => (listing = null)}>
+				<EyeOff aria-hidden="true" />
 				Hide assignments
 			</Button>
 		{/if}

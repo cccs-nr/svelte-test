@@ -114,6 +114,7 @@
 				{/if}
 
 				<Button size="cta" class="w-full" type="submit" disabled={isSubmitting}>
+					<LogIn aria-hidden="true" />
 					{isSubmitting ? 'Signing in…' : 'Sign In'}
 				</Button>
 			</form>
