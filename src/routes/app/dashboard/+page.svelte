@@ -187,6 +187,7 @@
 		households={data.households.map(({ id, name }) => ({ id, name }))}
 		currentUserId={data.currentUserId}
 		assignmentsExist={data.assignmentsExist}
+		maxImageBytes={data.maxImageBytes}
 	/>
 
 	<OrganizerHouseholdsCard

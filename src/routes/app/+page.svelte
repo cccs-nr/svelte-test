@@ -133,7 +133,7 @@
 
 	<Card>
 		<CardHeader>
-			<CardTitle>{data.event?.name ?? 'Your exchange'}</CardTitle>
+			<CardTitle class="app-home-event-title">{data.event?.name ?? 'Your exchange'}</CardTitle>
 		</CardHeader>
 		<CardContent>
 			<dl class="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-4 gap-y-2 text-lg">
@@ -146,7 +146,6 @@
 					<dt class="font-semibold">Gift price</dt>
 					<dd class="min-w-0">
 						{formatEventBudget(data.event.giftBudgetCents, data.event.currency)}
-						<span class="text-muted-foreground">(a suggestion, not a limit)</span>
 					</dd>
 				{/if}
 				{#if data.participant}

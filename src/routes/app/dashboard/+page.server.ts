@@ -1,5 +1,6 @@
 import { and, count, eq, or, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
+import { MAX_IMAGE_BYTES } from '$app/env/private';
 import { SINGLE_EVENT_ID, type EventStatus } from '#lib/models/event.js';
 import { db } from '#lib/server/db/index.js';
 import { requireOrganizerPage } from '#lib/server/page-guards.js';
@@ -200,6 +201,7 @@ export const load: PageServerLoad = ({ locals }) => {
 		currentStageIndex,
 		conversationMigrationReviews: getConversationMigrationReviews(db),
 		currentUserId: organizer.id,
+		maxImageBytes: MAX_IMAGE_BYTES,
 		households: householdsForDashboard,
 		assignmentsExist: assignmentRows.length > 0,
 		assignmentsFinalized,

@@ -69,13 +69,12 @@
 			class="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-5 text-base dark:bg-emerald-950/40"
 			aria-label="Event details"
 		>
-			<h2 class="mb-2 text-2xl font-bold text-emerald-900">{event.name}</h2>
+			<h2 class="mb-2 text-2xl font-bold text-primary">{event.name}</h2>
 			<ul class="space-y-1">
 				<li><strong>When:</strong> {formatDate(event.exchangeDate)}</li>
 				<li>
 					<strong>Suggested gift price:</strong>
 					{formatEventBudget(event.giftBudgetCents, event.currency)}
-					(a suggestion, not a limit)
 				</li>
 			</ul>
 		</section>

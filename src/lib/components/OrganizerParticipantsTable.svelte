@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { KeyRound, Pencil, Save, Trash2, UserPlus, X } from '@lucide/svelte';
 	import { invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
 	import type { UserRole } from '#lib/auth.js';
 	import { Button } from '#lib/components/ui/button/index.js';
@@ -39,9 +40,11 @@
 		households: HouseholdOption[];
 		currentUserId: string;
 		assignmentsExist: boolean;
+		maxImageBytes: number;
 	};
 
-	let { participants, households, currentUserId, assignmentsExist }: Props = $props();
+	let { participants, households, currentUserId, assignmentsExist, maxImageBytes }: Props =
+		$props();
 	let createDialog = $state<HTMLDialogElement>();
 	let editDialog = $state<HTMLDialogElement>();
 	let selectedParticipantId = $state<string | null>(null);
@@ -54,6 +57,7 @@
 	let editRole = $state<UserRole>('participant');
 	let editHouseholdId = $state('');
 	let editIsActive = $state(true);
+	let editAvatarFiles = $state<FileList>();
 	let resetPassword = $state('');
 	let isSaving = $state(false);
 	let errorMessage = $state<string | null>(null);
@@ -103,6 +107,7 @@
 		editRole = participant.role;
 		editHouseholdId = participant.householdId ?? '';
 		editIsActive = participant.isActive;
+		editAvatarFiles = undefined;
 		resetPassword = '';
 		errorMessage = null;
 		editDialog?.showModal();
@@ -137,9 +142,53 @@
 		}
 	}
 
+	async function uploadParticipantAvatar(participantId: string, image: File): Promise<void> {
+		const formData = new FormData();
+		formData.set('image', image, image.name);
+		formData.set('targetUserId', participantId);
+		const response = await fetch(resolve('/api/profile-image'), {
+			method: 'POST',
+			body: formData
+		});
+		if (response.ok) return;
+
+		let message = `Unable to update the profile picture (HTTP ${response.status}).`;
+		const responseBody = await response.text();
+		if (responseBody) {
+			try {
+				const payload: unknown = JSON.parse(responseBody);
+				if (
+					typeof payload === 'object' &&
+					payload !== null &&
+					'error' in payload &&
+					typeof payload.error === 'string'
+				) {
+					message = payload.error;
+				}
+			} catch (error) {
+				if (!(error instanceof SyntaxError)) throw error;
+			}
+		}
+
+		throw new Error(message);
+	}
+
+	function formatFileSize(bytes: number): string {
+		const mebibyte = 1024 * 1024;
+		return bytes >= mebibyte
+			? `${(bytes / mebibyte).toFixed(bytes % mebibyte === 0 ? 0 : 1)} MiB`
+			: `${Math.ceil(bytes / 1024)} KiB`;
+	}
+
 	async function updateAccount(event: SubmitEvent): Promise<void> {
 		event.preventDefault();
 		if (!selectedParticipantId || isSaving) return;
+
+		const image = editAvatarFiles?.[0];
+		if (image && image.size > maxImageBytes) {
+			errorMessage = `Choose an image no larger than ${Math.ceil(maxImageBytes / (1024 * 1024))} MiB.`;
+			return;
+		}
 
 		const current = participants.find((participant) => participant.id === selectedParticipantId);
 		if (current?.isActive && !editIsActive && !globalThis.confirm('Deactivate this account?'))
@@ -147,6 +196,7 @@
 
 		isSaving = true;
 		errorMessage = null;
+		notice = null;
 		try {
 			await trpc.participants.update.mutate({
 				id: selectedParticipantId,
@@ -156,9 +206,33 @@
 				isActive: editIsActive,
 				householdId: editHouseholdId || null
 			});
-			await invalidateAll();
+
+			let pictureError: string | null = null;
+			if (image) {
+				try {
+					await uploadParticipantAvatar(selectedParticipantId, image);
+					editAvatarFiles = undefined;
+				} catch (error) {
+					pictureError =
+						error instanceof Error ? error.message : 'Unable to update the profile picture.';
+				}
+			}
+
+			try {
+				await invalidateAll();
+			} catch {
+				errorMessage = pictureError
+					? `Account details were saved, but the profile picture was not updated. ${pictureError} The page could not refresh; reload to see saved changes.`
+					: 'Account details were saved, but the page could not refresh. Reload to see your changes.';
+				return;
+			}
+			if (pictureError) {
+				errorMessage = `Account details were saved, but the profile picture was not updated. ${pictureError}`;
+				return;
+			}
+
 			editDialog?.close();
-			notice = 'Account updated.';
+			notice = image ? 'Account and profile picture updated.' : 'Account updated.';
 		} catch (error) {
 			errorMessage =
 				error instanceof TRPCClientError ? error.message : 'Unable to update the account.';
@@ -596,6 +670,20 @@
 				/>
 				<p class="app-hint text-sm text-stone-600">
 					The short internal name (letters, numbers, dots, dashes). It can also be used to sign in.
+				</p>
+			</div>
+			<div class="space-y-2 sm:col-span-2">
+				<label class="text-base font-semibold" for="edit-account-picture">Profile picture</label>
+				<Input
+					id="edit-account-picture"
+					type="file"
+					accept="image/jpeg,image/png,image/webp"
+					bind:files={editAvatarFiles}
+					disabled={isSaving}
+				/>
+				<p class="app-hint text-sm text-stone-600">
+					JPEG, PNG, or WebP up to {formatFileSize(maxImageBytes)}. Leave empty to keep the current
+					picture.
 				</p>
 			</div>
 			<div class="space-y-2">

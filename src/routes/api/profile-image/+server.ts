@@ -71,6 +71,22 @@ export const POST: RequestHandler = async ({ request, url, locals }) => {
 		return failure(400, 'The image upload form could not be read.');
 	}
 
+	const targetUserIdValues = formData.getAll('targetUserId');
+	const requestedTargetUserId = targetUserIdValues[0];
+	if (
+		targetUserIdValues.length > 1 ||
+		(requestedTargetUserId !== undefined && typeof requestedTargetUserId !== 'string')
+	) {
+		return failure(400, 'The target account is invalid.');
+	}
+	const targetUserId = requestedTargetUserId?.trim() ?? locals.user.id;
+	if (!targetUserId || targetUserId.length > 128) {
+		return failure(400, 'The target account is invalid.');
+	}
+	if (targetUserId !== locals.user.id && locals.accountUser?.role !== 'organizer') {
+		return failure(403, 'Only organizers can update another account’s picture.');
+	}
+
 	const files = formData.getAll('image');
 	const file = files[0];
 	if (files.length !== 1 || !(file instanceof File)) {
@@ -84,7 +100,7 @@ export const POST: RequestHandler = async ({ request, url, locals }) => {
 	const currentAvatar = db
 		.select({ key: users.avatarKey, mimeType: users.avatarMimeType })
 		.from(users)
-		.where(eq(users.id, locals.user.id))
+		.where(eq(users.id, targetUserId))
 		.get();
 	if (!currentAvatar) return failure(404, 'Account not found.');
 
@@ -100,7 +116,7 @@ export const POST: RequestHandler = async ({ request, url, locals }) => {
 			.set({ avatarKey, avatarMimeType: mimeType, updatedAt: new Date() })
 			.where(
 				and(
-					eq(users.id, locals.user.id),
+					eq(users.id, targetUserId),
 					currentAvatar.key ? eq(users.avatarKey, currentAvatar.key) : isNull(users.avatarKey)
 				)
 			)
