@@ -63,7 +63,7 @@
 
 	{#if event}
 		<section
-			class="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-5 text-xl leading-9 dark:bg-emerald-950/40"
+			class="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-5 text-base dark:bg-emerald-950/40"
 			aria-label="Event details"
 		>
 			<h2 class="mb-2 text-2xl font-bold text-emerald-900">{event.name}</h2>
@@ -78,18 +78,18 @@
 		</section>
 	{/if}
 
-	<div class="space-y-4 text-xl leading-9">
+	<div class="space-y-4 text-base">
 		{@render blocks(guide.intro)}
 	</div>
 
 	{#each guide.sections as section (section.title)}
-		<section class="space-y-4 border-t-2 border-accent-red/30 pt-6 text-xl leading-9">
+		<section class="space-y-4 border-t-2 border-accent-red/30 pt-6 text-base">
 			<h2 class="text-2xl leading-snug font-bold text-emerald-900">{section.title}</h2>
 			{@render blocks(section.blocks)}
 		</section>
 	{/each}
 
-	<div class="space-y-4 border-t-2 border-accent-red/30 pt-6 text-xl leading-9 font-semibold">
+	<div class="space-y-4 border-t-2 border-accent-red/30 pt-6 text-base font-semibold">
 		{@render blocks(guide.outro)}
 	</div>
 </article>

@@ -79,7 +79,7 @@
 		bind:this={panel}
 		id="accessibility-menu"
 		hidden={!isOpen}
-		class="app-surface absolute top-full right-0 z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] space-y-4 rounded-xl border-2 border-border p-4 text-foreground shadow-2xl"
+		class="app-dropdown app-surface absolute top-full right-0 z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] space-y-4 rounded-xl border-2 border-border p-4 text-foreground shadow-2xl"
 		role="group"
 		aria-label="Accessibility settings"
 	>

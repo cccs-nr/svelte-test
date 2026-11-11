@@ -17,7 +17,7 @@
 <p
 	bind:this={ref}
 	data-slot="card-description"
-	class={cn(!essential && 'app-description', 'text-base text-muted-foreground', className)}
+	class={cn(!essential && 'app-description', 'text-sm text-muted-foreground', className)}
 	{...restProps}
 >
 	{@render children?.()}

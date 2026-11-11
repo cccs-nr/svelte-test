@@ -40,9 +40,16 @@
 		}
 	}
 
+	function openDialog(): void {
+		if (!dialog || dialog.open) return;
+		dialog.showModal();
+		dialog.querySelector<HTMLElement>('.app-guide__title')?.focus({ preventScroll: true });
+		dialog.scrollTop = 0;
+	}
+
 	// The first visit to a page opens its tutorial; the Help button opens it again later.
 	onMount(() => {
-		if (!readSeen().includes(pageId)) dialog?.showModal();
+		if (!readSeen().includes(pageId)) openDialog();
 	});
 
 	function closeOnBackdrop(event: MouseEvent): void {
@@ -50,12 +57,7 @@
 	}
 </script>
 
-<Button
-	type="button"
-	variant="outline"
-	aria-label={`Help: ${title}`}
-	onclick={() => dialog?.showModal()}
->
+<Button type="button" variant="outline" aria-label={`Help: ${title}`} onclick={openDialog}>
 	<CircleHelp aria-hidden="true" />
 	{#if !iconOnly}Help{/if}
 </Button>
@@ -72,7 +74,7 @@
 			<span class="app-guide__icon" aria-hidden="true">
 				<Lightbulb size={26} />
 			</span>
-			<h2 id={`guide-title-${pageId}`} class="app-guide__title">{title}</h2>
+			<h2 id={`guide-title-${pageId}`} class="app-guide__title" tabindex="-1">{title}</h2>
 		</div>
 		<div class="app-guide__body space-y-3">
 			{@render children()}

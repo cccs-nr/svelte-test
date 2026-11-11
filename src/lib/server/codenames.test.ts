@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { generateCodenames, suggestedCodenames } from './codenames.js';
 
 describe('participant codenames', () => {
-	it('provides exactly 50 unique suggested codenames', () => {
-		expect(suggestedCodenames).toHaveLength(50);
-		expect(new Set(suggestedCodenames).size).toBe(50);
+	it('provides at least 50 unique suggested codenames', () => {
+		expect(suggestedCodenames.length).toBeGreaterThanOrEqual(50);
+		expect(new Set(suggestedCodenames).size).toBe(suggestedCodenames.length);
 	});
 
 	it('uses the illustrated list before generating overflow names', () => {

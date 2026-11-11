@@ -10,6 +10,7 @@
 	import { Button } from '#lib/components/ui/button/index.js';
 	import {
 		Card,
+		CardAction,
 		CardContent,
 		CardDescription,
 		CardHeader,
@@ -145,17 +146,7 @@
 <Card>
 	<CardHeader>
 		<CardTitle>Gift ideas</CardTitle>
-		<CardDescription essential>
-			{#if giftBudgetCents !== null}
-				The suggested gift price is {formatEventBudget(giftBudgetCents, currency)}. It is a
-				suggestion, not a limit.
-			{:else}
-				The organizer has not set the event budget yet.
-			{/if}
-		</CardDescription>
-	</CardHeader>
-	<CardContent class="space-y-5">
-		<div class="flex flex-wrap justify-end">
+		<CardAction>
 			<Button
 				type="button"
 				size="sm"
@@ -164,9 +155,14 @@
 				disabled={isLoading || isUpdatingStatus}
 			>
 				<RefreshCw aria-hidden="true" />
-				Refresh gift ideas
+				Refresh
 			</Button>
-		</div>
+		</CardAction>
+		{#if giftBudgetCents === null}
+			<CardDescription essential>The organizer has not set the event budget yet.</CardDescription>
+		{/if}
+	</CardHeader>
+	<CardContent class="space-y-5">
 		{#if errorMessage}
 			<p class="app-alert app-alert--error" role="alert">
 				{errorMessage}

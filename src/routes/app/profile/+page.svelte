@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Camera, KeyRound, Save, Shuffle, Trash2, X } from '@lucide/svelte';
+	import { KeyRound, Save, Shuffle, Trash2, X } from '@lucide/svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
@@ -72,46 +72,14 @@
 		throw new Error(message);
 	}
 
-	async function uploadAvatar(event: SubmitEvent): Promise<void> {
-		event.preventDefault();
-		if (isSavingAvatar) return;
-
-		const image = avatarFiles?.[0];
-		if (!image) {
-			avatarErrorMessage = 'Choose a picture to upload.';
-			return;
-		}
-		if (image.size > data.maxImageBytes) {
-			avatarErrorMessage = `Choose an image no larger than ${Math.ceil(
-				data.maxImageBytes / (1024 * 1024)
-			)} MiB.`;
-			return;
-		}
-
-		isSavingAvatar = true;
-		avatarErrorMessage = null;
-		avatarSuccessMessage = null;
-		try {
-			const formData = new FormData();
-			formData.set('image', image, image.name);
-			const response = await fetch(resolve('/api/profile-image'), {
-				method: 'POST',
-				body: formData
-			});
-			await checkAvatarResponse(response, 'Unable to update your profile picture.');
-			avatarFiles = undefined;
-			await invalidateAll();
-			avatarSuccessMessage = 'Profile picture updated.';
-		} catch (error) {
-			avatarErrorMessage =
-				error instanceof TRPCClientError
-					? error.message
-					: error instanceof Error
-						? error.message
-						: 'Unable to update your profile picture.';
-		} finally {
-			isSavingAvatar = false;
-		}
+	async function uploadAvatar(image: File): Promise<void> {
+		const formData = new FormData();
+		formData.set('image', image, image.name);
+		const response = await fetch(resolve('/api/profile-image'), {
+			method: 'POST',
+			body: formData
+		});
+		await checkAvatarResponse(response, 'Unable to update your profile picture.');
 	}
 
 	async function removeAvatar(): Promise<void> {
@@ -143,26 +111,62 @@
 
 	async function saveProfile(event: SubmitEvent): Promise<void> {
 		event.preventDefault();
-		if (isSaving) return;
+		if (isSaving || isSavingAvatar) return;
+
+		const image = avatarFiles?.[0];
+		if (image && image.size > data.maxImageBytes) {
+			avatarErrorMessage = `Choose an image no larger than ${Math.ceil(
+				data.maxImageBytes / (1024 * 1024)
+			)} MiB.`;
+			return;
+		}
 
 		isSaving = true;
+		isSavingAvatar = true;
 		errorMessage = null;
 		successMessage = null;
+		avatarErrorMessage = null;
+		avatarSuccessMessage = null;
 
 		try {
 			await trpc.auth.updateProfile.mutate({
 				displayName,
 				...(data.profile.role === 'organizer' ? { isParticipating } : {})
 			});
-			await invalidateAll();
+
+			let pictureError: string | null = null;
+			if (image) {
+				try {
+					await uploadAvatar(image);
+					avatarFiles = undefined;
+				} catch (error) {
+					pictureError =
+						error instanceof Error ? error.message : 'Unable to update your profile picture.';
+				}
+			}
+
+			try {
+				await invalidateAll();
+			} catch {
+				errorMessage =
+					'Your profile was saved, but could not be refreshed. Reload the page to see your changes.';
+				return;
+			}
+
 			displayNameOverride = null;
 			participationOverride = null;
-			successMessage = 'Profile updated.';
+			if (pictureError) {
+				avatarErrorMessage = pictureError;
+				successMessage = 'Your profile details were saved.';
+			} else {
+				successMessage = 'Profile updated.';
+			}
 		} catch (error) {
 			errorMessage =
 				error instanceof TRPCClientError ? error.message : 'Unable to update your profile.';
 		} finally {
 			isSaving = false;
+			isSavingAvatar = false;
 		}
 	}
 
@@ -227,21 +231,20 @@
 			<h1 class="app-page-title">Your profile</h1>
 			<PageGuide pageId="profile">
 				<p>
-					This page is about you and your account. Press the button in each section to change that
-					part.
+					This page is about your name, picture, codename, and password. Save your name, selected
+					picture, and organizer participation setting together using <strong>Save Profile</strong>.
 				</p>
 				<ul>
 					<li>
-						<strong>Profile picture:</strong> choose a photo to show beside your name. In messages, your
-						codename picture is used instead, so you stay anonymous.
+						<strong>Profile:</strong> choose a photo and update the name other people see. If you
+						are an organizer, you can also choose whether to participate. Press
+						<strong>Save Profile</strong> to apply these changes. Use
+						<strong>Remove picture</strong>
+						to delete your current photo.
 					</li>
 					<li>
 						<strong>Your codename:</strong> after the draw you receive a Christmas codename. You can pick
 						a different one until the event is complete.
-					</li>
-					<li>
-						<strong>Profile details:</strong> change the name other people see. It is also what you use
-						to sign in.
 					</li>
 					<li>
 						<strong>Change password:</strong> choose a new password. Other devices will be signed out.
@@ -265,61 +268,110 @@
 
 	<Card>
 		<CardHeader>
-			<CardTitle>Profile picture</CardTitle>
+			<CardTitle>Profile details</CardTitle>
 			<CardDescription>
-				Your picture appears in your account menu and in conversations when your identity is
-				visible. Anonymous participants use codename avatars.
+				Update the name other participants see and your profile picture. Organizers can also choose
+				whether to participate in the exchange.
 			</CardDescription>
 		</CardHeader>
 		<CardContent class="space-y-5">
-			<div class="flex flex-col gap-5 sm:flex-row sm:items-center">
-				<ProfileAvatar
-					displayName={data.profile.displayName}
-					hasAvatar={data.profile.hasAvatar}
-					imageVersion={data.profile.avatarVersion}
-					size="lg"
-				/>
-				<form class="flex min-w-0 flex-1 flex-wrap items-end gap-3" onsubmit={uploadAvatar}>
-					<div class="min-w-0 flex-1 space-y-2">
-						<label class="text-base font-semibold" for="profile-picture"> Choose a picture </label>
-						<Input
-							id="profile-picture"
-							type="file"
-							accept="image/jpeg,image/png,image/webp"
-							bind:files={avatarFiles}
-							disabled={isSavingAvatar}
-						/>
-						<p class="app-hint text-sm text-stone-600">
-							JPEG, PNG, or WebP up to {formatFileSize(data.maxImageBytes)}.
-						</p>
+			<p class="text-sm text-stone-600 capitalize">
+				{data.profile.role}
+				{#if data.profile.role === 'organizer' && data.profile.isParticipating}
+					· Participant
+				{/if}
+				{#if data.profile.householdName}
+					· {data.profile.householdName}
+				{/if}
+			</p>
+			<form class="space-y-5" onsubmit={saveProfile}>
+				<div class="flex flex-col gap-4 min-[480px]:flex-row min-[480px]:items-start">
+					<ProfileAvatar
+						displayName={data.profile.displayName}
+						hasAvatar={data.profile.hasAvatar}
+						imageVersion={data.profile.avatarVersion}
+						size="lg"
+					/>
+					<div class="min-w-0 flex-1 space-y-3">
+						<div class="space-y-2">
+							<label class="text-base font-semibold" for="profile-picture">Choose a picture</label>
+							<Input
+								id="profile-picture"
+								type="file"
+								accept="image/jpeg,image/png,image/webp"
+								bind:files={avatarFiles}
+								disabled={isSaving || isSavingAvatar}
+							/>
+							<p class="app-hint text-sm text-stone-600">
+								JPEG, PNG, or WebP up to {formatFileSize(data.maxImageBytes)}.
+							</p>
+						</div>
+						{#if data.profile.hasAvatar}
+							<Button
+								type="button"
+								variant="outline"
+								onclick={removeAvatar}
+								disabled={isSaving || isSavingAvatar}
+							>
+								<Trash2 aria-hidden="true" />
+								Remove picture
+							</Button>
+						{/if}
 					</div>
-					<Button type="submit" disabled={isSavingAvatar}>
-						<Camera aria-hidden="true" />
-						{isSavingAvatar
-							? 'Uploading…'
-							: data.profile.hasAvatar
-								? 'Change picture'
-								: 'Add picture'}
+				</div>
+				<div class="space-y-2">
+					<label class="text-base font-semibold" for="profile-display-name">Your name</label>
+					<Input
+						id="profile-display-name"
+						value={displayName}
+						oninput={(event) => {
+							displayNameOverride = event.currentTarget.value;
+						}}
+						maxlength={64}
+						required
+						disabled={isSaving || isSavingAvatar}
+					/>
+				</div>
+				{#if data.profile.role === 'organizer'}
+					<div class="space-y-2 rounded-xl border border-stone-200 bg-stone-50 p-4">
+						<label class="flex items-start gap-3 text-sm text-stone-700">
+							<input
+								class="mt-1"
+								type="checkbox"
+								checked={isParticipating}
+								onchange={(event) => {
+									participationOverride = event.currentTarget.checked;
+								}}
+								disabled={isSaving || isSavingAvatar || !data.canChangeParticipation}
+							/>
+							<span>
+								<span class="font-medium text-stone-900">Also participate in the exchange</span>
+								<span class="mt-1 block text-stone-600">
+									You’ll be included in the draw and can see only your own recipient and their
+									wishlist. You’ll keep all organizer tools.
+								</span>
+							</span>
+						</label>
+						{#if !data.canChangeParticipation}
+							<p class="text-sm text-stone-600">
+								Reset assignments before changing your participation setting.
+							</p>
+						{/if}
+					</div>
+				{/if}
+				{#if avatarErrorMessage}
+					<p class="text-sm text-rose-700" role="alert">{avatarErrorMessage}</p>
+				{/if}
+				{#if avatarSuccessMessage}
+					<p class="app-notice" role="status">{avatarSuccessMessage}</p>
+				{/if}
+				<div class="flex justify-end">
+					<Button type="submit" disabled={isSaving || isSavingAvatar}>
+						<Save aria-hidden="true" />
+						{isSaving ? 'Saving…' : 'Save profile'}
 					</Button>
-					{#if data.profile.hasAvatar}
-						<Button
-							type="button"
-							variant="outline"
-							onclick={removeAvatar}
-							disabled={isSavingAvatar}
-						>
-							<Trash2 aria-hidden="true" />
-							Remove
-						</Button>
-					{/if}
-				</form>
-			</div>
-			{#if avatarErrorMessage}
-				<p class="text-sm text-rose-700" role="alert">{avatarErrorMessage}</p>
-			{/if}
-			{#if avatarSuccessMessage}
-				<p class="app-notice" role="status">{avatarSuccessMessage}</p>
-			{/if}
+				</div>
+			</form>
 		</CardContent>
 	</Card>
 
@@ -375,74 +427,6 @@
 			</CardContent>
 		</Card>
 	{/if}
-
-	<Card>
-		<CardHeader>
-			<CardTitle>Profile details</CardTitle>
-			<CardDescription>
-				Your name is how other participants recognize you and what you can use to sign in.
-			</CardDescription>
-		</CardHeader>
-		<CardContent class="space-y-5">
-			<p class="text-sm text-stone-600 capitalize">
-				{data.profile.role}
-				{#if data.profile.role === 'organizer' && data.profile.isParticipating}
-					· Participant
-				{/if}
-				{#if data.profile.householdName}
-					· {data.profile.householdName}
-				{/if}
-			</p>
-			<form class="space-y-5" onsubmit={saveProfile}>
-				<div class="space-y-2">
-					<label class="text-base font-semibold" for="profile-display-name">Your name</label>
-					<Input
-						id="profile-display-name"
-						value={displayName}
-						oninput={(event) => {
-							displayNameOverride = event.currentTarget.value;
-						}}
-						maxlength={64}
-						required
-						disabled={isSaving}
-					/>
-				</div>
-				{#if data.profile.role === 'organizer'}
-					<div class="space-y-2 rounded-xl border border-stone-200 bg-stone-50 p-4">
-						<label class="flex items-start gap-3 text-sm text-stone-700">
-							<input
-								class="mt-1"
-								type="checkbox"
-								checked={isParticipating}
-								onchange={(event) => {
-									participationOverride = event.currentTarget.checked;
-								}}
-								disabled={isSaving || !data.canChangeParticipation}
-							/>
-							<span>
-								<span class="font-medium text-stone-900">Also participate in the exchange</span>
-								<span class="mt-1 block text-stone-600">
-									You’ll be included in the draw and can see only your own recipient and their
-									wishlist. You’ll keep all organizer tools.
-								</span>
-							</span>
-						</label>
-						{#if !data.canChangeParticipation}
-							<p class="text-sm text-stone-600">
-								Reset assignments before changing your participation setting.
-							</p>
-						{/if}
-					</div>
-				{/if}
-				<div class="flex justify-end">
-					<Button type="submit" disabled={isSaving}>
-						<Save aria-hidden="true" />
-						{isSaving ? 'Saving…' : 'Save profile'}
-					</Button>
-				</div>
-			</form>
-		</CardContent>
-	</Card>
 
 	{#if !data.isManagingOther}
 		<Card>

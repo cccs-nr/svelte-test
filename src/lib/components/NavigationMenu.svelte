@@ -65,7 +65,7 @@
 		onclick={() => (isOpen = !isOpen)}
 	>
 		<Menu size={22} aria-hidden="true" />
-		<span>Menu</span>
+		<span class="max-[600px]:hidden">Menu</span>
 		{#if totalBadges > 0}
 			<span
 				class="holiday-topnav__badge grid min-w-5 place-items-center rounded-md px-1.5 py-0.5 text-sm font-semibold"
@@ -80,7 +80,7 @@
 		bind:this={panel}
 		id="main-navigation"
 		hidden={!isOpen}
-		class="app-surface absolute top-full right-0 z-50 mt-3 w-72 max-w-[calc(100vw-2rem)] rounded-xl border-2 border-border p-2 text-foreground shadow-2xl"
+		class="app-dropdown app-surface absolute top-full right-0 z-50 mt-3 w-72 max-w-[calc(100vw-2rem)] rounded-xl border-2 border-border p-2 text-foreground shadow-2xl"
 		aria-label="Main navigation"
 	>
 		<p class="px-3 pt-1 pb-2 text-sm font-semibold tracking-[0.14em] text-primary uppercase">

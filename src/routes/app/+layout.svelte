@@ -269,7 +269,7 @@
 		: 'min-h-screen bg-transparent'}
 >
 	<header
-		class={`holiday-topnav sticky top-0 z-40 border-b-4 border-accent-red shadow-sm ${isConversationPage ? 'shrink-0 max-sm:hidden' : ''}`}
+		class={`holiday-topnav sticky top-0 z-40 border-b-4 border-accent-red shadow-sm ${isConversationPage ? 'shrink-0' : ''}`}
 	>
 		<div
 			class="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-2 px-3 py-2 sm:gap-4 sm:px-8"
@@ -282,7 +282,7 @@
 				<span class="holiday-topnav__brand-mark grid size-9 place-items-center rounded-lg">
 					<Gift size={18} aria-hidden="true" />
 				</span>
-				<span class="whitespace-nowrap">Secret Santa</span>
+				<span class="whitespace-nowrap max-[600px]:hidden">Secret Santa</span>
 			</a>
 			<div class="flex items-center gap-2 sm:gap-4">
 				<NavigationMenu items={navigationItems} />
@@ -321,7 +321,7 @@
 						bind:this={accountMenu}
 						id="account-menu"
 						hidden={!isAccountMenuOpen}
-						class="app-surface absolute top-full right-0 z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] rounded-xl border-2 border-border p-2 shadow-2xl"
+						class="app-dropdown app-surface absolute top-full right-0 z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] rounded-xl border-2 border-border p-2 shadow-2xl"
 						role="menu"
 						aria-labelledby="account-menu-title"
 						aria-orientation="vertical"

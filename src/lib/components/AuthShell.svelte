@@ -47,7 +47,7 @@
 				<p class="app-page-simple mx-auto">{simple}</p>
 			{/if}
 			{#if intro}
-				<p class="app-description hidden text-xl leading-8 text-stone-700 sm:block">{intro}</p>
+				<p class="app-description hidden text-base text-stone-700 sm:block">{intro}</p>
 			{/if}
 		</div>
 

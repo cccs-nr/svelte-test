@@ -109,7 +109,7 @@
 				<li class="flex flex-wrap items-center gap-3">
 					<button
 						type="button"
-						class={`flex min-h-14 min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-lg border-2 bg-card px-4 py-2 text-left text-lg font-semibold hover:bg-secondary disabled:cursor-not-allowed ${
+						class={`flex min-h-(--button-h) min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-lg border-2 bg-card px-2 py-1 text-left text-base font-semibold hover:bg-secondary disabled:cursor-not-allowed ${
 							member.id === activeId ? 'border-primary' : 'border-border'
 						}`}
 						aria-current={member.id === activeId ? 'true' : undefined}

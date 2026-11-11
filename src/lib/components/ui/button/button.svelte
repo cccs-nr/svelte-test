@@ -5,10 +5,10 @@
 
 	// Buttons use solid colours only: no transparency, so text always stays legible.
 	const baseButton =
-		"focus-visible:ring-ring aria-invalid:border-destructive rounded-lg border-2 border-transparent text-base font-semibold focus-visible:ring-3 active:not-aria-[haspopup]:translate-y-px [&_svg:not([class*='size-'])]:size-5 group/button inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap no-underline transition-colors outline-none select-none disabled:pointer-events-none disabled:border-border disabled:bg-muted disabled:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0";
+		"focus-visible:ring-ring aria-invalid:border-destructive rounded-lg border-2 border-transparent text-sm font-semibold focus-visible:ring-3 active:not-aria-[haspopup]:translate-y-px [&_svg:not([class*='size-'])]:size-5 group/button inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap no-underline transition-colors outline-none select-none disabled:pointer-events-none disabled:border-border disabled:bg-muted disabled:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0";
 
 	// Every size shares one height, radius and type scale so buttons look the same everywhere.
-	const standardSize = 'h-(--button-h) min-w-(--button-h) px-4';
+	const standardSize = 'h-(--button-h) min-w-(--button-h) px-2';
 
 	export const buttonVariants = tv({
 		base: baseButton,
@@ -35,7 +35,7 @@
 				'icon-sm': 'size-(--button-h)',
 				'icon-lg': 'size-(--button-h)',
 				// The one prominent action of a page, such as Create My Account.
-				cta: 'h-(--cta-h) px-6 text-lg sm:text-xl'
+				cta: 'h-(--cta-h) px-3 text-lg sm:text-xl'
 			}
 		},
 		defaultVariants: {
