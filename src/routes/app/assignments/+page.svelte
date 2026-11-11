@@ -10,6 +10,7 @@
 		CardHeader,
 		CardTitle
 	} from '#lib/components/ui/card/index.js';
+	import AssignmentEditor from '#lib/components/AssignmentEditor.svelte';
 	import PageGuide from '#lib/components/PageGuide.svelte';
 	import { trpc } from '#lib/trpc/client.js';
 
@@ -28,7 +29,6 @@
 	async function refreshStatus(): Promise<void> {
 		isLoading = true;
 		errorMessage = null;
-		status = null;
 
 		try {
 			status = await trpc.assignments.status.query();
@@ -134,7 +134,7 @@
 		<h1 class="app-page-title">Gift assignments</h1>
 		<p class="app-page-description">
 			Check household constraints, generate a randomized draw, and finalize it when you’re ready.
-			The complete mapping is never shown here.
+			The full list of who buys for whom stays hidden unless you open the editor below.
 		</p>
 	</div>
 
@@ -142,7 +142,8 @@
 		<p>
 			This is where you draw names. First check that everyone has joined, then press the button to
 			generate the draw. When you are happy with it, finalize it so people can see who they are
-			buying for.
+			buying for. If something looks wrong afterwards, open <strong>Edit who buys for whom</strong> at
+			the bottom to fix a match.
 		</p>
 	</PageGuide>
 
@@ -268,4 +269,8 @@
 			</div>
 		</CardContent>
 	</Card>
+
+	{#if status?.assignmentCount}
+		<AssignmentEditor onChanged={refreshStatus} />
+	{/if}
 </section>

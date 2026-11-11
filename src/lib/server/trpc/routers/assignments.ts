@@ -282,6 +282,104 @@ export const assignmentRouter = router({
 
 		return { success: true, removedCount: rows.length, wasFinalized: finalized };
 	}),
+	adminList: organizerProcedure.query(({ ctx }) => {
+		const rows = ctx.db
+			.select({
+				giverId: assignments.giverId,
+				receiverId: assignments.receiverId,
+				finalizedAt: assignments.finalizedAt,
+				giftPurchasedAt: assignments.giftPurchasedAt
+			})
+			.from(assignments)
+			.where(eq(assignments.eventId, SINGLE_EVENT_ID))
+			.all();
+		const names = new Map(
+			ctx.db
+				.select({ id: users.id, displayName: users.displayName })
+				.from(users)
+				.all()
+				.map((user) => [user.id, user.displayName])
+		);
+		const entries = rows
+			.map((row) => ({
+				giverId: row.giverId,
+				giverName: names.get(row.giverId) ?? 'Unknown',
+				receiverId: row.receiverId,
+				receiverName: names.get(row.receiverId) ?? 'Unknown',
+				finalized: row.finalizedAt !== null,
+				giftPurchased: row.giftPurchasedAt !== null
+			}))
+			.sort((left, right) => left.giverName.localeCompare(right.giverName));
+		return {
+			entries,
+			receivers: entries
+				.map((entry) => ({ id: entry.receiverId, displayName: entry.receiverName }))
+				.sort((left, right) => left.displayName.localeCompare(right.displayName))
+		};
+	}),
+	adminSet: organizerProcedure
+		.input(z.object({ giverId: z.string().min(1), receiverId: z.string().min(1) }))
+		.mutation(({ ctx, input }) => {
+			const event = getEvent(ctx.db);
+			if (!event || event.status === 'completed') {
+				throw new TRPCError({
+					code: 'CONFLICT',
+					message: 'Assignments cannot be changed for a missing or completed event.'
+				});
+			}
+
+			const participants = getActiveParticipants(ctx.db);
+			const rows = ctx.db
+				.select()
+				.from(assignments)
+				.where(eq(assignments.eventId, SINGLE_EVENT_ID))
+				.all();
+			const giverRow = rows.find((row) => row.giverId === input.giverId);
+			const holderRow = rows.find((row) => row.receiverId === input.receiverId);
+			if (!giverRow || !holderRow) {
+				throw new TRPCError({ code: 'NOT_FOUND', message: 'That assignment was not found.' });
+			}
+			if (giverRow.id === holderRow.id) return { changed: false };
+
+			// The other giver who had this receiver takes over the previous receiver (a swap).
+			const proposed = rows.map((row) => {
+				if (row.id === giverRow.id) return { giverId: row.giverId, receiverId: input.receiverId };
+				if (row.id === holderRow.id) {
+					return { giverId: row.giverId, receiverId: giverRow.receiverId };
+				}
+				return { giverId: row.giverId, receiverId: row.receiverId };
+			});
+			const validation = validateSecretSantaAssignments(participants, proposed);
+			if (!validation.valid) {
+				throw new TRPCError({ code: 'BAD_REQUEST', message: validation.reason });
+			}
+
+			ctx.db.transaction((transaction) => {
+				transaction
+					.delete(assignments)
+					.where(or(eq(assignments.id, giverRow.id), eq(assignments.id, holderRow.id)))
+					.run();
+				const replacements = [
+					{ ...giverRow, id: randomUUID(), receiverId: input.receiverId },
+					{ ...holderRow, id: randomUUID(), receiverId: giverRow.receiverId }
+				].map((row) => ({
+					...row,
+					giftPurchasedAt: null,
+					giverWishlistViewedAt: null,
+					receiverGiftStatusSeenAt: null
+				}));
+				transaction.insert(assignments).values(replacements).run();
+				if (giverRow.finalizedAt) createAssignedWishlistDiscussions(transaction, replacements);
+			});
+			notifyAssignmentParticipants([
+				giverRow.giverId,
+				giverRow.receiverId,
+				holderRow.giverId,
+				holderRow.receiverId
+			]);
+			notifyOrganizerDashboard();
+			return { changed: true };
+		}),
 	myRecipient: protectedProcedure.query(({ ctx }) => {
 		if (ctx.user.role !== 'participant' && !ctx.user.isParticipating) {
 			throw new TRPCError({

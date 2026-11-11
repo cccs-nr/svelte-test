@@ -49,6 +49,7 @@
 	let createRole = $state<UserRole>('participant');
 	let createHouseholdId = $state('');
 	let editName = $state('');
+	let editUsername = $state('');
 	let editRole = $state<UserRole>('participant');
 	let editHouseholdId = $state('');
 	let editIsActive = $state(true);
@@ -97,6 +98,7 @@
 	function openEditDialog(participant: Participant): void {
 		selectedParticipantId = participant.id;
 		editName = participant.displayName;
+		editUsername = participant.username;
 		editRole = participant.role;
 		editHouseholdId = participant.householdId ?? '';
 		editIsActive = participant.isActive;
@@ -148,6 +150,7 @@
 			await trpc.participants.update.mutate({
 				id: selectedParticipantId,
 				displayName: editName,
+				username: editUsername.trim() || undefined,
 				role: editRole,
 				isActive: editIsActive,
 				householdId: editHouseholdId || null
@@ -569,6 +572,21 @@
 					disabled={isSaving}
 				/>
 			</div>
+			<div class="space-y-2 sm:col-span-2">
+				<label class="text-base font-semibold" for="edit-account-username">Account name</label>
+				<Input
+					id="edit-account-username"
+					bind:value={editUsername}
+					minlength={3}
+					maxlength={32}
+					pattern="[A-Za-z0-9._\-]+"
+					required
+					disabled={isSaving}
+				/>
+				<p class="text-sm text-stone-600">
+					The short internal name (letters, numbers, dots, dashes). It can also be used to sign in.
+				</p>
+			</div>
 			<div class="space-y-2">
 				<label class="text-base font-semibold" for="edit-account-role">Role</label>
 				<select
@@ -621,8 +639,11 @@
 		{#if selectedParticipantId !== currentUserId && !participants.find((participant) => participant.id === selectedParticipantId)?.managedByName}
 			<form class="mt-6 space-y-3 border-t border-stone-100 pt-5" onsubmit={updatePassword}>
 				<div>
-					<h3 class="font-medium">Reset password</h3>
-					<p class="mt-1 text-sm text-stone-600">Existing sessions will be signed out.</p>
+					<h3 class="font-medium">Set a new password</h3>
+					<p class="mt-1 text-sm text-stone-600">
+						Type a new password for this person and give it to them. Their current sessions will be
+						signed out.
+					</p>
 				</div>
 				<div class="flex flex-wrap gap-3">
 					<label class="sr-only" for="reset-account-password">New password</label>
@@ -636,7 +657,7 @@
 						disabled={isSaving}
 						class="min-w-[14rem] flex-1"
 					/>
-					<Button type="submit" variant="outline" disabled={isSaving}>Reset password</Button>
+					<Button type="submit" variant="outline" disabled={isSaving}>Set password</Button>
 				</div>
 			</form>
 		{/if}

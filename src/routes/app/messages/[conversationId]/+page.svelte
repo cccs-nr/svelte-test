@@ -21,8 +21,9 @@
 		>
 			Back to Messages
 		</a>
-		<p class="hidden text-base text-stone-600 sm:block">
-			Type your message in the box at the bottom, then press Send.
+		<p class="w-full text-base text-stone-700">
+			Type your message in the box at the bottom, then press <strong>Send</strong>. Your name stays
+			secret.
 		</p>
 		{#if associatedWishlistOwnerId}
 			<a

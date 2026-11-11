@@ -132,7 +132,7 @@
 					and run the draw.
 				</li>
 			{/if}
-			<li>Need a reminder? Press <strong>Help</strong> at the top any time.</li>
+			<li>Need a reminder? Press <strong>Welcome</strong> at the top any time.</li>
 		</ol>
 		<p>The gift price is only a suggestion, not a limit.</p>
 	</PageGuide>

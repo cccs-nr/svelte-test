@@ -8,7 +8,7 @@ import { disconnectUserRealtime } from '#lib/server/realtime.js';
 export const SESSION_COOKIE_NAME = 'secret_santa_session';
 export const ACTING_AS_COOKIE_NAME = 'secret_santa_acting_as';
 
-const SESSION_TTL_SECONDS = 14 * 24 * 60 * 60;
+const SESSION_TTL_SECONDS = 60 * 24 * 60 * 60;
 const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
 
 export interface SessionCookieOptions {
@@ -23,6 +23,16 @@ export interface SessionCookieStore {
 	get(name: string): string | undefined;
 	set(name: string, value: string, options: SessionCookieOptions): void;
 	delete(name: string, options: { path: string }): void;
+}
+
+function sessionCookieOptions(): SessionCookieOptions {
+	return {
+		path: '/',
+		httpOnly: true,
+		secure: process.env.NODE_ENV === 'production',
+		sameSite: 'lax',
+		maxAge: SESSION_TTL_SECONDS
+	};
 }
 
 function hashSessionToken(token: string): string {
@@ -52,13 +62,7 @@ export function createUserSession(
 		})
 		.run();
 
-	cookies.set(SESSION_COOKIE_NAME, token, {
-		path: '/',
-		httpOnly: true,
-		secure: process.env.NODE_ENV === 'production',
-		sameSite: 'lax',
-		maxAge: SESSION_TTL_SECONDS
-	});
+	cookies.set(SESSION_COOKIE_NAME, token, sessionCookieOptions());
 }
 
 export function deleteUserSession(database: AppDatabase, cookies: SessionCookieStore): void {
@@ -97,6 +101,16 @@ export function resolveSessionUser(
 		}
 		clearSessionCookie(cookies);
 		return null;
+	}
+
+	// Active users stay signed in: renew the session once half of its lifetime has passed.
+	if (session.expiresAt.getTime() - Date.now() < SESSION_TTL_MS / 2) {
+		database
+			.update(sessions)
+			.set({ expiresAt: new Date(Date.now() + SESSION_TTL_MS) })
+			.where(eq(sessions.id, session.id))
+			.run();
+		cookies.set(SESSION_COOKIE_NAME, token, sessionCookieOptions());
 	}
 
 	const user = database

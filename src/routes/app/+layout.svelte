@@ -4,7 +4,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { TRPCClientError } from '@trpc/client';
-	import { ArrowLeftRight, Gift, LifeBuoy, LogOut, Menu, UserRound, X } from '@lucide/svelte';
+	import { ArrowLeftRight, Gift, BookOpen, LogOut, Menu, UserRound, X } from '@lucide/svelte';
 	import type { LayoutProps } from './$types';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import CodenameAvatar from '#lib/components/CodenameAvatar.svelte';
@@ -30,7 +30,7 @@
 	let isGiftGivingActive = $derived(page.url.pathname.startsWith(resolve('/app/gift-giving')));
 	let isMessagesActive = $derived(page.url.pathname.startsWith(resolve('/app/messages')));
 	let isConversationPage = $derived(page.url.pathname.startsWith(`${resolve('/app/messages')}/`));
-	let isHelpActive = $derived(page.url.pathname === resolve('/app/help'));
+	let isWelcomeActive = $derived(page.url.pathname === resolve('/app/welcome'));
 	let isWishlistActive = $derived(page.url.pathname === resolve('/app/wishlist'));
 
 	onMount(() => {
@@ -305,13 +305,13 @@
 						</a>
 					{/if}
 					<a
-						href={resolve('/app/help')}
+						href={resolve('/app/welcome')}
 						onclick={closeMobileNavigation}
-						class={`${navigationClass(isHelpActive)} inline-flex items-center gap-2`}
-						aria-current={isHelpActive ? 'page' : undefined}
+						class={`${navigationClass(isWelcomeActive)} inline-flex items-center gap-2`}
+						aria-current={isWelcomeActive ? 'page' : undefined}
 					>
-						<LifeBuoy size={18} aria-hidden="true" />
-						Help
+						<BookOpen size={18} aria-hidden="true" />
+						Welcome
 					</a>
 				{/if}
 			</nav>

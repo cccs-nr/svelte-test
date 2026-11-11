@@ -36,19 +36,33 @@
 </svelte:head>
 
 <section class="space-y-8">
-	<WelcomeLetter displayName={data.user.displayName} event={data.event} />
-	<div class="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
-		<p class="text-xl">When you have finished reading, press the button below to begin.</p>
-		{#if errorMessage}
-			<p class="app-alert app-alert--error w-full" role="alert">{errorMessage}</p>
-		{/if}
-		<Button
-			size="lg"
-			class="h-16 w-full max-w-md rounded-2xl bg-emerald-800 text-2xl font-bold hover:bg-emerald-900"
-			disabled={isSubmitting}
-			onclick={handleAcknowledge}
-		>
-			{isSubmitting ? 'One moment…' : 'I understand — let’s begin!'}
-		</Button>
-	</div>
+	<WelcomeLetter event={data.event} />
+	{#if data.hasAcknowledgedWelcome}
+		<div class="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
+			<p class="text-xl">
+				You can come back to this page at any time using <strong>Welcome</strong> at the top.
+			</p>
+			<a
+				class="inline-flex h-16 w-full max-w-md items-center justify-center rounded-2xl bg-emerald-800 text-2xl font-bold text-white hover:bg-emerald-900"
+				href={resolve('/app')}
+			>
+				Go to Home
+			</a>
+		</div>
+	{:else}
+		<div class="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
+			<p class="text-xl">When you have finished reading, press the button below to begin.</p>
+			{#if errorMessage}
+				<p class="app-alert app-alert--error w-full" role="alert">{errorMessage}</p>
+			{/if}
+			<Button
+				size="lg"
+				class="h-16 w-full max-w-md rounded-2xl bg-emerald-800 text-2xl font-bold hover:bg-emerald-900"
+				disabled={isSubmitting}
+				onclick={handleAcknowledge}
+			>
+				{isSubmitting ? 'One moment…' : 'I understand — let’s begin!'}
+			</Button>
+		</div>
+	{/if}
 </section>

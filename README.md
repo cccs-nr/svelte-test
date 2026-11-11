@@ -26,7 +26,7 @@ The app is designed for participants who are not tech savvy, including people wi
 - **Per-page guides.** Every page has a "How this page works" box (`PageGuide`). It is open on desktop and folded on phones so the page content stays on screen.
 - **Mobile first.** Login and Create Account are designed to fit a phone screen without scrolling; navigation collapses to a menu.
 - **Show/hide password.** Password fields use `PasswordInput`, which adds an eye button.
-- **Welcome letter.** After a user's first sign-in they read the welcome letter at `/app/welcome` and press "I understand" (stored in `users.welcome_acknowledged_at`, so it follows the user across devices). The same letter is available from **Help** (`/app/help`).
+- **Welcome guide.** Visitors who are not signed in land on the create-account page (`/` and `/secret-santa` both lead there; signed-in users go to Home). It has a large **Sign in!** button for people who already have an account. Right after creating an account, the welcome guide at `/app/welcome` explains the event step by step, and the user presses "I understand" (stored in `users.welcome_acknowledged_at`, so it follows them across devices). The guide stays available from **Welcome** in the top bar, with a short version and a full version; its text lives in `src/lib/content/welcome.ts`. Old `/app/help` links redirect to it.
 
 ### Households: one account, several participants
 
@@ -35,6 +35,14 @@ An account can manage more than one participant, for example a parent who keeps 
 ### Last sign-in and read receipts
 
 Home shows the account's previous sign-in time and how many messages are waiting. In conversations, the newest message you sent shows **Seen by …** (or **Sent · not seen yet**), and small avatar bubbles mark the last message each person has read. Receipts follow the conversation's anonymity rules, so gift givers still appear by codename.
+
+### Sessions
+
+Sign-in lasts 60 days and is renewed whenever someone uses the app after half of that time has passed, so regular users stay signed in. Signing out or an organizer resetting a password ends the session.
+
+### Organizer account tools
+
+From **Dashboard → Edit** on an account an organizer can change the display name and account name, set a new password (current sessions are signed out), deactivate or delete the account. From **Assignments → Edit who buys for whom** (hidden until opened) an organizer can change any giver's recipient while debugging; the person who held that recipient automatically takes the giver's previous one, household and self-draw rules still apply, and gift-purchase status resets for both. These changes are not recorded in an audit log.
 
 ### Removing accounts
 

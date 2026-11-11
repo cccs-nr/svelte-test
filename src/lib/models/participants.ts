@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { displayNameSchema, passwordSchema, userRoleSchema } from '#lib/auth.js';
+import { displayNameSchema, passwordSchema, userRoleSchema, usernameSchema } from '#lib/auth.js';
 
 export const householdNameSchema = z.string().trim().min(1).max(80);
 
@@ -16,6 +16,7 @@ export const createAccountInputSchema = z.object({
 export const updateAccountInputSchema = z.object({
 	id: accountIdSchema,
 	displayName: displayNameSchema,
+	username: usernameSchema.optional(),
 	role: userRoleSchema,
 	isActive: z.boolean(),
 	householdId: householdIdSchema

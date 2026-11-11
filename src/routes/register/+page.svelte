@@ -38,7 +38,7 @@
 
 		try {
 			await trpc.auth.register.mutate({ displayName, password });
-			await goto(resolve('/app'));
+			await goto(resolve('/app/welcome'));
 		} catch (error) {
 			if (error instanceof TRPCClientError && error.data?.code === 'TOO_MANY_REQUESTS') {
 				errorMessage = 'Too many registration attempts from this network. Try again later.';
@@ -54,7 +54,7 @@
 </script>
 
 <svelte:head>
-	<title>Create account | Secret Santa</title>
+	<title>Welcome | Secret Santa</title>
 	<meta name="description" content="Create a participant account for the Secret Santa exchange." />
 </svelte:head>
 
@@ -79,18 +79,31 @@
 			</div>
 		</div>
 
-		<Card class="border-white/80 bg-white/95 shadow-xl shadow-stone-900/10">
-			<CardHeader>
-				<p class="text-base font-semibold tracking-[0.12em] text-emerald-800 uppercase">
-					Step 1 of 2
-				</p>
-				<CardTitle class="text-2xl tracking-tight sm:text-3xl">Create your account</CardTitle>
+		<div class="mb-3 space-y-2 text-center sm:mb-6 sm:space-y-3">
+			<h1
+				class="text-2xl leading-tight font-bold tracking-tight text-stone-950 min-[400px]:text-3xl sm:text-4xl"
+			>
+				Welcome to our Secret Santa gift exchange!
+			</h1>
+			<p class="hidden text-xl leading-8 text-stone-700 sm:block">
+				Everyone gives one gift and receives one gift, and it is a secret until the party. Create
+				your account to get started.
+			</p>
+		</div>
+
+		<Card
+			class="gap-3 border-4 border-rose-800 bg-white/95 py-4 shadow-xl shadow-stone-900/10 sm:gap-4 sm:py-6"
+		>
+			<CardHeader class="space-y-1 px-4 sm:px-6">
+				<CardTitle class="text-xl tracking-tight sm:text-3xl">
+					Create an account to get started
+				</CardTitle>
 				<CardDescription class="hidden text-xl leading-8 text-stone-700 sm:block">
-					Fill in the three boxes below, then press the big Create My Account button. Afterwards,
-					you will see a short welcome letter that explains how everything works.
+					Fill in the three boxes below and press <strong>Create My Account</strong>. You will then
+					see a short guide that explains how everything works.
 				</CardDescription>
 			</CardHeader>
-			<CardContent>
+			<CardContent class="px-4 sm:px-6">
 				<form class="space-y-3 sm:space-y-5" onsubmit={handleSubmit}>
 					<div class="space-y-1 sm:space-y-2">
 						<label class="text-lg font-semibold sm:text-xl" for="register-display-name"
@@ -152,18 +165,14 @@
 					</Button>
 				</form>
 			</CardContent>
-			<CardFooter
-				class="justify-center border-t border-stone-100 py-3 text-lg text-stone-700 sm:py-5 sm:text-xl"
-			>
-				<span>
-					Already registered?
-					<a
-						class="font-medium text-emerald-800 underline underline-offset-4"
-						href={resolve('/login')}
-					>
-						Sign in
-					</a>
-				</span>
+			<CardFooter class="flex-col gap-2 border-t border-stone-200 px-4 pt-3 sm:px-6 sm:pt-5">
+				<p class="text-lg font-semibold text-stone-800 sm:text-xl">Already have an account?</p>
+				<a
+					class="inline-flex h-12 w-full items-center justify-center rounded-2xl border-4 border-emerald-800 text-xl font-bold text-emerald-900 transition-colors hover:bg-emerald-50 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-emerald-800 sm:h-14 sm:text-2xl"
+					href={resolve('/login')}
+				>
+					Sign in!
+				</a>
 			</CardFooter>
 		</Card>
 	</div>

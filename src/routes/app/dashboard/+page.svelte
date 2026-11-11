@@ -44,7 +44,9 @@
 	<PageGuide>
 		<p>
 			This is the organizer’s control center. Work from top to bottom: set the event date and price
-			suggestion, wait for everyone to join, then go to <strong>Assignments</strong> to run the draw.
+			suggestion, wait for everyone to join, then go to <strong>Assignments</strong> to run the
+			draw. To change someone’s name, account name or password, or to remove them, press
+			<strong>Edit</strong> beside their name in the list of accounts.
 		</p>
 	</PageGuide>
 

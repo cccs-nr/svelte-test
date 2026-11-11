@@ -111,61 +111,7 @@
 			</p>
 		</div>
 
-		<ol
-			class="mx-auto hidden w-full max-w-4xl gap-4 text-xl leading-8 text-stone-800 md:grid md:grid-cols-2"
-			aria-label="How to get started"
-		>
-			<li class="flex items-start gap-4 rounded-2xl bg-white/80 p-5 shadow-sm">
-				<span
-					class="grid size-10 shrink-0 place-items-center rounded-full bg-rose-800 font-bold text-white"
-					aria-hidden="true">1</span
-				>
-				<span
-					><strong>First time here?</strong> Press <strong>Create My Account</strong> on the left.</span
-				>
-			</li>
-			<li class="flex items-start gap-4 rounded-2xl bg-white/80 p-5 shadow-sm">
-				<span
-					class="grid size-10 shrink-0 place-items-center rounded-full bg-emerald-800 font-bold text-white"
-					aria-hidden="true">2</span
-				>
-				<span
-					><strong>Already have an account?</strong> Type your name and password on the right, then
-					press <strong>Sign In</strong>.</span
-				>
-			</li>
-		</ol>
-
-		<div class="grid items-stretch gap-4 sm:gap-6 lg:grid-cols-2">
-			<Card
-				class="relative w-full gap-3 border-4 border-rose-800 bg-white/95 py-4 shadow-2xl shadow-rose-900/15 sm:gap-4 sm:py-6"
-			>
-				<CardHeader class="space-y-2 px-4 sm:px-8">
-					<CardTitle class="flex items-center gap-3 text-2xl tracking-tight sm:text-3xl">
-						<span
-							class="grid size-10 shrink-0 place-items-center rounded-xl bg-rose-800 text-white sm:size-12"
-							aria-hidden="true"
-						>
-							<UserPlus size={24} />
-						</span>
-						New here?
-					</CardTitle>
-					<CardDescription class="hidden text-xl leading-8 text-stone-700 sm:block">
-						Create your account in less than a minute. You only need your name and a password you
-						will remember.
-					</CardDescription>
-				</CardHeader>
-				<CardContent class="mt-auto px-4 sm:px-8">
-					<a
-						class="inline-flex h-16 w-full items-center justify-center gap-3 rounded-2xl bg-rose-800 px-4 text-xl font-bold text-white shadow-lg transition-colors hover:bg-rose-900 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-rose-800 min-[400px]:text-2xl sm:h-20 sm:px-6 sm:text-3xl"
-						href={resolve('/register')}
-					>
-						<UserPlus size={30} class="shrink-0 max-sm:hidden" aria-hidden="true" />
-						Create My Account
-					</a>
-				</CardContent>
-			</Card>
-
+		<div class="mx-auto w-full max-w-xl space-y-3 sm:space-y-5">
 			<Card
 				class="relative w-full gap-3 border-4 border-emerald-800 bg-white/95 py-4 shadow-2xl shadow-emerald-900/15 sm:gap-4 sm:py-6"
 			>
@@ -238,6 +184,14 @@
 					</form>
 				</CardContent>
 			</Card>
+
+			<a
+				class="inline-flex h-16 w-full items-center justify-center gap-3 rounded-2xl bg-rose-800 px-4 text-xl font-bold text-white shadow-lg transition-colors hover:bg-rose-900 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-rose-800 sm:h-20 sm:text-2xl"
+				href={resolve('/register')}
+			>
+				<UserPlus size={28} class="shrink-0 max-sm:hidden" aria-hidden="true" />
+				New here? Create an account
+			</a>
 		</div>
 	</section>
 </main>

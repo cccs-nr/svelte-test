@@ -192,9 +192,25 @@ export const participantsRouter = router({
 				}
 			}
 
+			const username = input.username ?? current.username;
+			if (username !== current.username) {
+				const taken = transaction
+					.select({ id: users.id })
+					.from(users)
+					.where(eq(users.username, username))
+					.get();
+				if (taken) {
+					throw new TRPCError({
+						code: 'CONFLICT',
+						message: 'That account name is already used by someone else.'
+					});
+				}
+			}
+
 			transaction
 				.update(users)
 				.set({
+					username,
 					displayName: input.displayName,
 					role: input.role,
 					isParticipating,

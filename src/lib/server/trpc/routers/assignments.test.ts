@@ -473,4 +473,78 @@ describe('assignment router', () => {
 		await expect(caller.assignments.status()).rejects.toMatchObject({ code: 'FORBIDDEN' });
 		await expect(caller.assignments.generate()).rejects.toMatchObject({ code: 'FORBIDDEN' });
 	});
+
+	it('lets an organizer swap who a giver shops for, keeping the draw valid', async () => {
+		seedEventAndParticipants(['', '', '', '']);
+		db.insert(users)
+			.values({
+				id: organizer.id,
+				username: organizer.username,
+				displayName: organizer.displayName,
+				passwordHash: 'not-used-by-assignment-test',
+				role: 'organizer',
+				isParticipating: false
+			})
+			.run();
+		const caller = appRouter.createCaller(createContext(organizer));
+		await caller.assignments.generate();
+		const ids = participants.map((participant) => participant.id);
+		db.delete(assignments).run();
+		db.insert(assignments)
+			.values(
+				ids.map((giverId, index) => ({
+					id: `a-${giverId}`,
+					eventId: SINGLE_EVENT_ID,
+					giverId,
+					receiverId: ids[(index + 1) % ids.length]!
+				}))
+			)
+			.run();
+		await caller.assignments.finalize();
+
+		await caller.assignments.adminSet({ giverId: 'alice', receiverId: 'dave' });
+		const pairs = Object.fromEntries(
+			db
+				.select()
+				.from(assignments)
+				.all()
+				.map((row) => [row.giverId, row.receiverId])
+		);
+		expect(pairs).toEqual({ alice: 'dave', bob: 'carol', carol: 'bob', dave: 'alice' });
+
+		// Alice cannot shop for herself.
+		await expect(
+			caller.assignments.adminSet({ giverId: 'alice', receiverId: 'alice' })
+		).rejects.toThrow(/themselves/);
+		const listed = await caller.assignments.adminList();
+		expect(listed.entries).toHaveLength(4);
+	});
+
+	it('refuses an admin change that breaks household rules', async () => {
+		seedEventAndParticipants(['home-a', '', '', 'home-a']);
+		db.insert(users)
+			.values({
+				id: organizer.id,
+				username: organizer.username,
+				displayName: organizer.displayName,
+				passwordHash: 'not-used-by-assignment-test',
+				role: 'organizer',
+				isParticipating: false
+			})
+			.run();
+		const caller = appRouter.createCaller(createContext(organizer));
+		await caller.assignments.generate();
+		const rows = db.select().from(assignments).all();
+		const alice = rows.find((row) => row.giverId === 'alice')!;
+		await expect(
+			caller.assignments.adminSet({ giverId: 'alice', receiverId: 'dave' })
+		).rejects.toThrow(/household/);
+		expect(
+			db
+				.select()
+				.from(assignments)
+				.all()
+				.find((row) => row.giverId === 'alice')?.receiverId
+		).toBe(alice.receiverId);
+	});
 });

@@ -68,7 +68,7 @@ describe('session management', () => {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'lax',
-			maxAge: 14 * 24 * 60 * 60
+			maxAge: 60 * 24 * 60 * 60
 		});
 		expect(resolveSessionUser(db, cookies)).toEqual({
 			id: 'participant-id',
@@ -77,6 +77,18 @@ describe('session management', () => {
 			role: 'participant',
 			isParticipating: true
 		});
+	});
+
+	it('renews a session that is past half of its lifetime', () => {
+		createUserSession(db, 'participant-id', cookies);
+		const storedSession = db.select().from(sessions).get();
+		if (!storedSession) throw new Error('Expected a session record to be created.');
+		const soon = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
+		db.update(sessions).set({ expiresAt: soon }).where(eq(sessions.id, storedSession.id)).run();
+
+		expect(resolveSessionUser(db, cookies)).not.toBeNull();
+		const renewed = db.select().from(sessions).get();
+		expect(renewed?.expiresAt.getTime()).toBeGreaterThan(Date.now() + 59 * 24 * 60 * 60 * 1000);
 	});
 
 	it('revokes the server session and clears the cookie on logout', () => {
