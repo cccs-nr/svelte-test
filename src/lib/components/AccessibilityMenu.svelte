@@ -57,6 +57,16 @@
 	});
 </script>
 
+{#if isOpen}
+	<button
+		type="button"
+		class="app-menu-backdrop"
+		aria-label="Close accessibility settings"
+		tabindex="-1"
+		onclick={() => (isOpen = false)}
+	></button>
+{/if}
+
 <div class="relative">
 	<button
 		bind:this={trigger}

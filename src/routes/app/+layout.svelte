@@ -287,6 +287,15 @@
 			<div class="flex items-center gap-2 sm:gap-4">
 				<NavigationMenu items={navigationItems} />
 				<AccessibilityMenu variant="dark" />
+				{#if isAccountMenuOpen}
+					<button
+						type="button"
+						class="app-menu-backdrop"
+						aria-label="Close profile menu"
+						tabindex="-1"
+						onclick={closeAccountMenu}
+					></button>
+				{/if}
 				<div class="relative">
 					<button
 						bind:this={accountButton}

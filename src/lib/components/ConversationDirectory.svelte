@@ -255,8 +255,7 @@
 														hasAvatar={participant.avatar.hasAvatar}
 														imageVersion={participant.avatar.avatarVersion}
 														imageSrc={profileImageUrl(conversation, participant.avatar.userId)}
-														size="sm"
-														class="size-6 text-[0.625rem]"
+														size="xs"
 													/>
 												{:else if participant.avatar.type === 'codename'}
 													<CodenameAvatar codename={participant.avatar.codename} size="xs" />

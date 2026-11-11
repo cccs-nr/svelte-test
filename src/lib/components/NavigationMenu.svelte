@@ -54,6 +54,16 @@
 	});
 </script>
 
+{#if isOpen}
+	<button
+		type="button"
+		class="app-menu-backdrop"
+		aria-label="Close navigation menu"
+		tabindex="-1"
+		onclick={() => (isOpen = false)}
+	></button>
+{/if}
+
 <div class="relative">
 	<button
 		bind:this={trigger}
@@ -65,7 +75,7 @@
 		onclick={() => (isOpen = !isOpen)}
 	>
 		<Menu size={22} aria-hidden="true" />
-		<span class="max-[600px]:hidden">Menu</span>
+		<span class="max-[400px]:hidden">Menu</span>
 		{#if totalBadges > 0}
 			<span
 				class="holiday-topnav__badge grid min-w-5 place-items-center rounded-md px-1.5 py-0.5 text-sm font-semibold"

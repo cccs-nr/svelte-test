@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 
-	type AvatarSize = 'sm' | 'md' | 'lg';
+	type AvatarSize = 'xs' | 'sm' | 'md' | 'lg';
 	type Props = {
 		displayName: string;
 		hasAvatar: boolean;
@@ -25,7 +25,13 @@
 		`${imageSrc}${imageSrc.includes('?') ? '&' : '?'}v=${encodeURIComponent(String(imageVersion))}`
 	);
 	let avatarSize = $derived(
-		size === 'sm' ? 'size-9 text-sm' : size === 'lg' ? 'size-16 text-2xl' : 'size-11 text-lg'
+		size === 'xs'
+			? 'size-6 text-[0.625rem]'
+			: size === 'sm'
+				? 'size-9 text-sm'
+				: size === 'lg'
+					? 'size-16 text-2xl'
+					: 'size-11 text-lg'
 	);
 	let initial = $derived(displayName.trim().slice(0, 1).toLocaleUpperCase() || '?');
 

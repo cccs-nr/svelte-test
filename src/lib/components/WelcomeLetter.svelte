@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { House } from '@lucide/svelte';
+	import { resolve } from '$app/paths';
 	import { formatEventBudget } from '#lib/models/event.js';
 	import { welcomeGuide as guide, type WelcomeBlock } from '#lib/content/welcome.js';
+	import { Button } from '#lib/components/ui/button/index.js';
 
 	type EventSummary = {
 		name: string;
@@ -92,4 +95,11 @@
 	<div class="space-y-4 border-t-2 border-accent-red/30 pt-6 text-base font-semibold">
 		{@render blocks(guide.outro)}
 	</div>
+
+	<footer class="flex justify-center border-t-2 border-accent-red/30 pt-6">
+		<Button href={resolve('/app')} size="lg">
+			<House aria-hidden="true" />
+			Go to Home
+		</Button>
+	</footer>
 </article>
