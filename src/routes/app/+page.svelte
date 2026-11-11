@@ -261,7 +261,7 @@
 		</Card>
 	{/if}
 
-	{#if data.user.isParticipating && !data.isManagingOther && data.members.length > 0}
+	{#if data.user.isParticipating && data.members.length > 0}
 		<HouseholdMembersCard
 			members={data.members}
 			activeId={data.user.id}
