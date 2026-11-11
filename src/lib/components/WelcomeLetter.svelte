@@ -122,6 +122,11 @@
 				the page.
 			</li>
 			<li>
+				Looking after a gift list for someone else too, like your husband or wife? On the Home page,
+				choose <strong>Add a person to my household</strong>. You will keep their wishlist separate
+				from yours, and you can switch between you at any time.
+			</li>
+			<li>
 				If you feel stuck, ask your organizer. Nobody minds a question, and we are happy to help.
 			</li>
 		</ul>

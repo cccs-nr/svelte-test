@@ -21,6 +21,19 @@
 				}
 			})();
 		</script>
+		<script>
+			(() => {
+				try {
+					const root = document.documentElement;
+					root.dataset.text =
+						localStorage.getItem('secret-santa-text') === 'standard' ? 'standard' : 'large';
+					root.dataset.contrast =
+						localStorage.getItem('secret-santa-contrast') === 'high' ? 'high' : 'normal';
+				} catch {
+					// Defaults apply when storage is unavailable.
+				}
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

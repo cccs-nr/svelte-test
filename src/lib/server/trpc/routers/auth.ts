@@ -6,12 +6,21 @@ import { passwordSchema, registrationSchema } from '#lib/auth.js';
 import { changePasswordInputSchema, updateProfileInputSchema } from '#lib/models/participants.js';
 import { SINGLE_EVENT_ID } from '#lib/models/event.js';
 import { loginRateLimiter, registrationRateLimiter } from '#lib/server/auth/login-rate-limiter.js';
-import { createUserSession, deleteUserSession } from '#lib/server/auth/session.js';
+import {
+	clearActingAsCookie,
+	createUserSession,
+	deleteUserSession
+} from '#lib/server/auth/session.js';
 import { hashPassword, verifyPassword } from '#lib/server/auth/password.js';
 import { createUniqueUsername } from '#lib/server/auth/username.js';
 import { assignments, sessions, users } from '#lib/server/db/schema.js';
 import { disconnectUserRealtime, notifyOrganizerDashboard } from '#lib/server/realtime.js';
-import { protectedProcedure, publicProcedure, router } from '#lib/server/trpc/init.js';
+import {
+	getAccountUser,
+	protectedProcedure,
+	publicProcedure,
+	router
+} from '#lib/server/trpc/init.js';
 
 const loginIdentifierSchema = z.string().trim().min(1).max(64);
 const loginInput = z.object({
@@ -64,6 +73,13 @@ export const authRouter = router({
 		}
 
 		loginRateLimiter.reset(rateLimitKey);
+		const signedInAt = new Date();
+		ctx.db
+			.update(users)
+			.set({ previousLoginAt: user.lastLoginAt, lastLoginAt: signedInAt })
+			.where(eq(users.id, user.id))
+			.run();
+		clearActingAsCookie(ctx.event.cookies);
 		createUserSession(ctx.db, user.id, ctx.event.cookies);
 
 		return {
@@ -128,6 +144,8 @@ export const authRouter = router({
 		}
 
 		notifyOrganizerDashboard();
+		ctx.db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, id)).run();
+		clearActingAsCookie(ctx.event.cookies);
 		createUserSession(ctx.db, id, ctx.event.cookies);
 
 		return {
@@ -140,6 +158,7 @@ export const authRouter = router({
 		};
 	}),
 	logout: publicProcedure.mutation(({ ctx }) => {
+		clearActingAsCookie(ctx.event.cookies);
 		deleteUserSession(ctx.db, ctx.event.cookies);
 		return { success: true };
 	}),
@@ -153,7 +172,7 @@ export const authRouter = router({
 		ctx.db
 			.update(users)
 			.set({ welcomeAcknowledgedAt: new Date() })
-			.where(and(eq(users.id, ctx.user.id), isNull(users.welcomeAcknowledgedAt)))
+			.where(and(eq(users.id, getAccountUser(ctx).id), isNull(users.welcomeAcknowledgedAt)))
 			.run();
 		return { success: true };
 	}),
@@ -214,10 +233,11 @@ export const authRouter = router({
 	changePassword: protectedProcedure
 		.input(changePasswordInputSchema)
 		.mutation(async ({ ctx, input }) => {
+			const account = getAccountUser(ctx);
 			const user = ctx.db
 				.select({ passwordHash: users.passwordHash })
 				.from(users)
-				.where(and(eq(users.id, ctx.user.id), eq(users.isActive, true)))
+				.where(and(eq(users.id, account.id), eq(users.isActive, true)))
 				.get();
 
 			if (!user || !(await verifyPassword(input.currentPassword, user.passwordHash))) {
@@ -232,13 +252,13 @@ export const authRouter = router({
 				transaction
 					.update(users)
 					.set({ passwordHash, updatedAt: new Date() })
-					.where(eq(users.id, ctx.user.id))
+					.where(eq(users.id, account.id))
 					.run();
-				transaction.delete(sessions).where(eq(sessions.userId, ctx.user.id)).run();
+				transaction.delete(sessions).where(eq(sessions.userId, account.id)).run();
 			});
 
-			disconnectUserRealtime(ctx.user.id);
-			createUserSession(ctx.db, ctx.user.id, ctx.event.cookies);
+			disconnectUserRealtime(account.id);
+			createUserSession(ctx.db, account.id, ctx.event.cookies);
 			return { success: true };
 		})
 });

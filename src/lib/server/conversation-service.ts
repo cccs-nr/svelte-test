@@ -266,15 +266,50 @@ function getConversationMessages(
 		.where(eq(wishlistMessages.conversationId, conversation.id))
 		.orderBy(asc(wishlistMessages.createdAt), asc(wishlistMessages.id))
 		.all();
+	const readers = database
+		.select({
+			userId: wishlistConversationParticipants.userId,
+			lastReadAt: wishlistConversationParticipants.lastReadAt
+		})
+		.from(wishlistConversationParticipants)
+		.where(eq(wishlistConversationParticipants.conversationId, conversation.id))
+		.all()
+		.filter((reader) => reader.userId !== viewerId)
+		.map((reader) => ({
+			...reader,
+			identity: presentIdentity(identityFor(database, conversation, viewerId, reader.userId))
+		}));
+	// A reader's bubble sits on the last message they have read.
+	const lastReadMessageIdByReader = new Map<string, string>();
+	for (const reader of readers) {
+		const lastRead = rows.filter((message) => message.createdAt <= reader.lastReadAt).at(-1);
+		if (lastRead) lastReadMessageIdByReader.set(reader.userId, lastRead.id);
+	}
+	const lastOwnMessageId = rows.findLast((message) => message.senderId === viewerId)?.id ?? null;
+
 	return rows.map((message) => {
 		const sender = presentIdentity(identityFor(database, conversation, viewerId, message.senderId));
+		const seenReaders = readers.filter(
+			(reader) => reader.userId !== message.senderId && reader.lastReadAt >= message.createdAt
+		);
+		const isOwnMessage = message.senderId === viewerId;
 		return {
 			id: message.id,
 			content: message.content,
 			sentAt: message.createdAt.toISOString(),
-			isOwnMessage: message.senderId === viewerId,
+			isOwnMessage,
 			senderLabel: sender.label,
-			senderAvatar: sender.avatar
+			senderAvatar: sender.avatar,
+			seenBy: readers
+				.filter((reader) => lastReadMessageIdByReader.get(reader.userId) === message.id)
+				.map((reader) => reader.identity),
+			receipt:
+				isOwnMessage && message.id === lastOwnMessageId
+					? {
+							seenLabels: seenReaders.map((reader) => reader.identity.label),
+							recipientCount: readers.length
+						}
+					: null
 		};
 	});
 }
@@ -618,6 +653,9 @@ export function sendConversationMessage(
 			.orderBy(desc(wishlistMessages.createdAt), desc(wishlistMessages.id))
 			.get();
 		const createdAt = new Date(Math.max(Date.now(), (latestMessage?.createdAt.getTime() ?? 0) + 1));
+		const membership = assertMembership(transaction, conversationId, viewerId);
+		const hadUnread =
+			getUnreadCount(transaction, conversationId, viewerId, membership.lastReadAt) > 0;
 		transaction
 			.insert(wishlistMessages)
 			.values({
@@ -628,6 +666,19 @@ export function sendConversationMessage(
 				createdAt
 			})
 			.run();
+		// Replying shows the sender has read everything before their message.
+		if (!hadUnread) {
+			transaction
+				.update(wishlistConversationParticipants)
+				.set({ lastReadAt: createdAt })
+				.where(
+					and(
+						eq(wishlistConversationParticipants.conversationId, conversationId),
+						eq(wishlistConversationParticipants.userId, viewerId)
+					)
+				)
+				.run();
+		}
 		transaction
 			.update(wishlistConversations)
 			.set({ updatedAt: createdAt, lastMessageAt: createdAt })
@@ -667,7 +718,7 @@ export function markConversationRead(
 			)
 		)
 		.run();
-	notifyUser(viewerId, 'badges:changed');
+	notifyConversationParticipants(database, conversationId);
 	return { updated: true };
 }
 

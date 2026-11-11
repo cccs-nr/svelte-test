@@ -174,7 +174,7 @@
 			<p class="app-notice" role="status">{notice}</p>
 		{/if}
 		{#if isLoading}
-			<p class="text-sm text-stone-500">Loading Your Assigned Recipient’s gift ideas…</p>
+			<p class="text-sm text-stone-600">Loading Your Assigned Recipient’s gift ideas…</p>
 		{:else if !wishlist.recipient}
 			<p class="text-sm text-stone-600">
 				Your Assigned Recipient’s wishlist will be available after the organizer finalizes the draw.
@@ -236,7 +236,7 @@
 								<h3 class="font-semibold">
 									{#if suggestion.url}
 										<a
-											class="text-emerald-800 underline-offset-4 hover:underline"
+											class="text-emerald-800 underline underline-offset-4"
 											href={suggestion.url}
 											target="_blank"
 											rel="noopener noreferrer external"
@@ -262,7 +262,7 @@
 										Notes: {suggestion.notes}
 									</p>
 								{/if}
-								<p class="mt-2 text-xs text-stone-500">
+								<p class="mt-2 text-sm text-stone-600">
 									Updated {formatTimestamp(suggestion.updatedAt)}
 								</p>
 							</div>

@@ -19,7 +19,26 @@ A participant can have several of these roles in different gift exchanges. The [
 
 ## Accessibility and onboarding
 
-The app is designed for participants who are not tech savvy: the base text size is larger, buttons and inputs are bigger, and every page has a "How this page works" guide (`PageGuide`). Password fields use `PasswordInput`, which adds a show/hide eye button. After a user's first sign-in, they must read the welcome letter at `/app/welcome` and press "I understand" (stored in `users.welcome_acknowledged_at`, so it follows the user across devices). The same letter is available at any time from **Help** (`/app/help`). Existing accounts see the letter once on their next sign-in after upgrading.
+The app is designed for participants who are not tech savvy, including people with low vision or colour-blindness:
+
+- **Large text by default.** The base text size is larger and buttons and inputs are bigger. The account menu (and the login/register pages) has **Large text** and **High contrast** switches; the choices are remembered in the browser. Standard text suits experienced users; high contrast uses stronger text, borders and focus outlines.
+- **Never colour alone.** Status is always written out (and alerts/notices start with a ⚠ or ✔ symbol); links are underlined; instructions never refer to a colour; muted text meets WCAG AAA (7:1) contrast.
+- **Per-page guides.** Every page has a "How this page works" box (`PageGuide`). It is open on desktop and folded on phones so the page content stays on screen.
+- **Mobile first.** Login and Create Account are designed to fit a phone screen without scrolling; navigation collapses to a menu.
+- **Show/hide password.** Password fields use `PasswordInput`, which adds an eye button.
+- **Welcome letter.** After a user's first sign-in they read the welcome letter at `/app/welcome` and press "I understand" (stored in `users.welcome_acknowledged_at`, so it follows the user across devices). The same letter is available from **Help** (`/app/help`).
+
+### Households: one account, several participants
+
+An account can manage more than one participant, for example a parent who keeps the wishlist for a spouse. On **Home**, **Your household** lets the account owner add people (up to 5). Each added person is a separate participant with their own wishlist, codename, conversations, draw and Secret Santa, but has no password of their own. The owner switches between people from Home or the account menu (**Switch to …**); a banner shows who the app is currently acting as, with a one-click **Switch back**. Members share a household, so the draw never pairs them with each other. Household changes are blocked while a draw exists, like other participant changes. Organizers see managed participants in the Dashboard ("Managed by …"); they have no password to reset.
+
+### Last sign-in and read receipts
+
+Home shows the account's previous sign-in time and how many messages are waiting. In conversations, the newest message you sent shows **Seen by …** (or **Sent · not seen yet**), and small avatar bubbles mark the last message each person has read. Receipts follow the conversation's anonymity rules, so gift givers still appear by codename.
+
+### Removing accounts
+
+Organizers can deactivate an account (blocks sign-in but keeps data) or **Delete this account** from the Dashboard edit dialog. Deleting permanently erases the person, anyone they manage, their wishlist, reservations, messages and uploaded images. It is blocked while a draw exists for participants, and you cannot delete yourself or the last active organizer.
 
 ## Requirements
 
@@ -67,6 +86,30 @@ pnpm db:migrate
 Do not use schema push for deployed databases; migrations are versioned in `drizzle/`.
 Before upgrading an existing event database, stop the app and back up the SQLite database. `pnpm db:migrate` applies pending migrations without resetting participants, assignments, messages, or wishlists.
 
+### Wiping the database and starting over
+
+This erases every account, wishlist, message, reservation, codename and the draw, plus uploaded images. Migrations are kept, and the running app does not need to be stopped (everyone is simply signed out).
+
+```sh
+pnpm db:reset                      # asks you to type RESET
+pnpm db:reset --yes                # no prompt
+pnpm db:reset --yes --create-organizer   # also recreate the organizer from INITIAL_ORGANIZER_* in .env
+pnpm db:reset --keep-uploads       # keep uploaded images
+```
+
+With Docker Compose, run it inside the running container (back up the volumes first if you might need the data):
+
+```sh
+docker compose exec app node --experimental-strip-types scripts/reset-database.mjs --yes
+```
+
+Then create the first organizer again (see the organizer command in [Docker deployment](#docker-deployment)), or add `--create-organizer` and pass the credentials:
+
+```sh
+docker compose exec -e INITIAL_ORGANIZER_DISPLAY_NAME=Admin -e INITIAL_ORGANIZER_PASSWORD='choose-a-password' app \
+  node --experimental-strip-types scripts/reset-database.mjs --yes --create-organizer
+```
+
 ### Assignment lifecycle
 
 Organizers can manage the draw from **Assignments** after opening the event. The app checks whether a complete draw is possible, assigns each active participant one person to buy for, labeled **Your Assigned Recipient**, and prevents self-assignments and matches within the same household. Each participant also has a **Your Secret Santa** assigned to buy for them. The organizer sees readiness and validation status, never the full assignment mapping.
@@ -108,6 +151,45 @@ Wishlist and profile images are validated as JPEG, PNG, or WebP from their file 
 ## Docker deployment
 
 The production Compose stack runs the SvelteKit/Node application on an internal Docker network and publishes only the Nginx reverse proxy on ports 80 and 443. The application is served below `/secret-santa`; plain HTTP requests are redirected to HTTPS, and Socket.IO/WebSocket upgrades are proxied on the same origin. The application container has no published host port. Local `pnpm dev` remains available at `http://localhost:5173`.
+
+### Production setup with your own domain (no browser warnings)
+
+A certificate warning appears whenever the browser cannot verify the site. That happens with the temporary self-signed certificate, with an IP-address or `nip.io` name that points at a private address, and with a certificate for a different name. Links opened inside Facebook Messenger's built-in browser are even stricter and may block the page entirely. To never show a warning, the site needs a real domain name, a public server and a trusted certificate (free from Let's Encrypt).
+
+1. **Buy a domain** from any registrar (for example `santa-family.com`). Optionally use a subdomain such as `santa.example.com`.
+2. **Get a server with a public IP address.** A small cloud VM works. A home server needs a static public IP (or dynamic DNS) and router port-forwarding of TCP 80 and 443 to the VM. Let's Encrypt cannot validate private addresses such as `10.x.x.x`/`192.168.x.x`.
+3. **Create DNS records** at the registrar: an `A` record for the hostname (and `www` if you want it) pointing to the server's public IPv4 address. Add an `AAAA` record only if the server really accepts IPv6. Wait for it to propagate and check it:
+
+   ```sh
+   dig +short santa.example.com
+   ```
+
+4. **Open the firewall** for TCP 80 and 443 (cloud security group and `ufw`/`firewalld`). Port 80 must stay open: Let's Encrypt uses it to validate and renew.
+5. **Set `.env`** to the real name (see below), then follow [Deploy on a Linux VM](#deploy-on-a-linux-vm) to start the stack and request the certificate.
+6. **Verify** from a phone on mobile data (not your home Wi-Fi):
+
+   ```sh
+   curl -I https://santa.example.com/            # 302 to /secret-santa/, no certificate error
+   curl -I http://santa.example.com/             # 301 to https
+   echo | openssl s_client -connect santa.example.com:443 -servername santa.example.com 2>/dev/null | openssl x509 -noout -issuer -dates
+   ```
+
+   The issuer should be Let's Encrypt and the dates current. You can also run a free scan at <https://www.ssllabs.com/ssltest/>.
+
+7. **Share the link** `https://santa.example.com/` (the root redirects to the app, and the login page includes a link preview title and description for Messenger). Always share the `https://` form.
+
+Things that cause warnings, and fixes:
+
+| Symptom                                   | Cause and fix                                                                                                      |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| "Not private" / self-signed               | Certbot has not run yet or failed. Run the certificate command again and `docker compose restart proxy`.           |
+| Name mismatch                             | `DOMAIN` differs from the address people open. Use exactly one hostname, and add `www` as a second `-d` if needed. |
+| Works on Wi-Fi, fails on mobile data      | DNS or firewall: the record points to a private IP, or port 443 is closed to the internet.                         |
+| Certificate expired                       | Renewal is not running. Install the systemd timer below and check `systemctl list-timers`.                         |
+| Messenger shows a warning page            | Same causes as above; Messenger does not allow bypassing them. Re-test with the SSL Labs scan.                     |
+| Loops or blank page after changing domain | `PUBLIC_ORIGIN`/`APP_BASE_PATH` were changed without `docker compose up --build -d`. Rebuild the app image.        |
+
+The proxy sends a `Strict-Transport-Security` header once a trusted certificate is installed, so browsers keep using HTTPS afterwards. Before relying on it, confirm that renewals work with `docker compose run --rm certbot renew --dry-run`.
 
 ### Deploy on a Linux VM
 

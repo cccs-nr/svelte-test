@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { TRPCClientError } from '@trpc/client';
-	import { Gift } from '@lucide/svelte';
+	import { Check, CheckCheck, Gift } from '@lucide/svelte';
 	import { getRealtimeSocket } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
 	import { Button } from '#lib/components/ui/button/index.js';
@@ -144,7 +144,7 @@
 					<CardTitle
 						>{thread?.title ?? (isLoading ? 'Loading conversation…' : 'Conversation')}</CardTitle
 					>
-					<CardDescription class="text-xs leading-snug sm:text-sm sm:leading-normal">
+					<CardDescription class="text-sm leading-snug sm:text-sm sm:leading-normal">
 						{#if thread}
 							{#if thread.type === 'wishlist_discussion'}
 								The wishlist owner and invited gift givers can read and reply.
@@ -184,14 +184,14 @@
 
 		{#if thread}
 			<div class="app-table-scroll shrink-0 border-b border-border pb-2 sm:pb-3">
-				<p class="mb-2 hidden text-xs font-medium text-muted-foreground sm:block">Participants</p>
+				<p class="mb-2 hidden text-sm font-medium text-muted-foreground sm:block">Participants</p>
 				<ul
 					class="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0"
 					aria-label="Conversation participants"
 				>
 					{#each thread.participants as participant, index (`${participant.label}-${index}`)}
 						<li
-							class="inline-flex shrink-0 items-center gap-2 rounded-full bg-secondary py-1 pr-3 pl-1 text-xs text-secondary-foreground sm:text-sm"
+							class="inline-flex shrink-0 items-center gap-2 rounded-full bg-secondary py-1 pr-3 pl-1 text-sm text-secondary-foreground sm:text-sm"
 						>
 							{#if participant.avatar.type === 'profile'}
 								<ProfileAvatar
@@ -200,7 +200,7 @@
 									imageVersion={participant.avatar.avatarVersion}
 									imageSrc={profileImageUrl(participant.avatar.userId)}
 									size="sm"
-									class="size-7 text-xs"
+									class="size-7 text-sm"
 								/>
 							{:else if participant.avatar.type === 'codename'}
 								<CodenameAvatar codename={participant.avatar.codename} size="sm" />
@@ -255,13 +255,55 @@
 							>
 								<div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
 									<p class="font-medium text-stone-900">{message.senderLabel}</p>
-									<time class="text-xs text-stone-500" datetime={message.sentAt}>
+									<time class="text-sm text-stone-600" datetime={message.sentAt}>
 										{formatTimestamp(message.sentAt)}
 									</time>
 								</div>
 								<p class="mt-2 text-sm whitespace-pre-wrap text-stone-700">
 									{message.content}
 								</p>
+								{#if message.receipt}
+									<p
+										class="mt-2 flex items-center justify-end gap-1.5 text-sm font-medium text-stone-700"
+									>
+										{#if message.receipt.seenLabels.length > 0}
+											<CheckCheck size={18} aria-hidden="true" />
+											Seen by {message.receipt.seenLabels.join(', ')}
+										{:else}
+											<Check size={18} aria-hidden="true" />
+											Sent · not seen yet
+										{/if}
+									</p>
+								{/if}
+								{#if message.seenBy.length > 0}
+									<ul
+										class="mt-2 flex flex-wrap items-center justify-end gap-1"
+										aria-label={`Read up to here by ${message.seenBy.map((reader) => reader.label).join(', ')}`}
+									>
+										{#each message.seenBy as reader (reader.label)}
+											<li title={`Seen by ${reader.label}`}>
+												{#if reader.avatar.type === 'profile'}
+													<ProfileAvatar
+														displayName={reader.label}
+														hasAvatar={reader.avatar.hasAvatar}
+														imageVersion={reader.avatar.avatarVersion}
+														imageSrc={profileImageUrl(reader.avatar.userId)}
+														size="sm"
+														class="size-6 text-sm"
+													/>
+												{:else if reader.avatar.type === 'codename'}
+													<CodenameAvatar codename={reader.avatar.codename} size="sm" />
+												{:else}
+													<span
+														class="grid size-6 place-items-center rounded-full bg-emerald-100 text-emerald-800"
+													>
+														<Gift size={12} aria-hidden="true" />
+													</span>
+												{/if}
+											</li>
+										{/each}
+									</ul>
+								{/if}
 							</div>
 						</li>
 					{/each}
@@ -283,7 +325,7 @@
 						disabled={isSending}
 						onkeydown={handleComposerKeydown}></textarea>
 					<div class="flex items-center justify-between gap-3">
-						<p class="text-xs text-stone-500">Enter to send · Shift+Enter for a new line</p>
+						<p class="text-sm text-stone-600">Enter to send · Shift+Enter for a new line</p>
 						<Button type="submit" disabled={isSending || !draft.trim()}>
 							{isSending ? 'Sending…' : 'Send'}
 						</Button>

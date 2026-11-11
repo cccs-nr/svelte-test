@@ -4,6 +4,7 @@ import { conversationsRouter } from './routers/conversations.js';
 import { codenamesRouter } from './routers/codenames.js';
 import { eventRouter } from './routers/event.js';
 import { householdRouter } from './routers/households.js';
+import { membersRouter } from './routers/members.js';
 import { notificationsRouter } from './routers/notifications.js';
 import { participantsRouter } from './routers/participants.js';
 import { reservationsRouter } from './routers/reservations.js';
@@ -17,6 +18,7 @@ export const appRouter = router({
 	conversations: conversationsRouter,
 	codenames: codenamesRouter,
 	households: householdRouter,
+	members: membersRouter,
 	notifications: notificationsRouter,
 	participants: participantsRouter,
 	reservations: reservationsRouter,

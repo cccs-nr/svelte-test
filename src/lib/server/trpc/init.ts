@@ -47,6 +47,14 @@ const sameOriginMiddleware = t.middleware(({ ctx, next, type }) => {
 	return next();
 });
 
+/** The signed-in account itself, even while it is managing another household member. */
+export function getAccountUser(ctx: {
+	user: AuthenticatedUser;
+	accountUser?: AuthenticatedUser | null;
+}) {
+	return ctx.accountUser ?? ctx.user;
+}
+
 export const router = t.router;
 export const publicProcedure = t.procedure.use(sameOriginMiddleware);
 export const protectedProcedure = publicProcedure.use(({ ctx, next }) =>

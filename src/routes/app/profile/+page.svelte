@@ -269,7 +269,7 @@
 							bind:files={avatarFiles}
 							disabled={isSavingAvatar}
 						/>
-						<p class="text-xs text-stone-500">
+						<p class="text-sm text-stone-600">
 							JPEG, PNG, or WebP up to {formatFileSize(data.maxImageBytes)}.
 						</p>
 					</div>
@@ -405,7 +405,7 @@
 							</span>
 						</label>
 						{#if !data.canChangeParticipation}
-							<p class="text-xs text-stone-500">
+							<p class="text-sm text-stone-600">
 								Reset assignments before changing your participation setting.
 							</p>
 						{/if}
@@ -420,21 +420,25 @@
 		</CardContent>
 	</Card>
 
-	<Card>
-		<CardHeader>
-			<CardTitle>Change password</CardTitle>
-			<CardDescription>
-				Use at least 3 characters; any characters are allowed. Changing your password signs out your
-				other active sessions.
-			</CardDescription>
-		</CardHeader>
-		<CardContent class="flex flex-wrap items-center justify-between gap-4">
-			<p class="text-sm text-stone-600">Update your password and sign out other active sessions.</p>
-			<Button type="button" variant="outline" onclick={() => passwordDialog?.showModal()}>
-				Change password
-			</Button>
-		</CardContent>
-	</Card>
+	{#if !data.isManagingOther}
+		<Card>
+			<CardHeader>
+				<CardTitle>Change password</CardTitle>
+				<CardDescription>
+					Use at least 3 characters; any characters are allowed. Changing your password signs out
+					your other active sessions.
+				</CardDescription>
+			</CardHeader>
+			<CardContent class="flex flex-wrap items-center justify-between gap-4">
+				<p class="text-sm text-stone-600">
+					Update your password and sign out other active sessions.
+				</p>
+				<Button type="button" variant="outline" onclick={() => passwordDialog?.showModal()}>
+					Change password
+				</Button>
+			</CardContent>
+		</Card>
+	{/if}
 
 	<dialog
 		bind:this={passwordDialog}

@@ -14,6 +14,7 @@ export interface TRPCRequestContext {
 export interface TRPCContext {
 	event: TRPCRequestContext;
 	user: AuthenticatedUser | null;
+	accountUser?: AuthenticatedUser | null;
 	db: AppDatabase;
 }
 
@@ -30,6 +31,7 @@ export function createTRPCContext(event: RequestEvent): TRPCContext {
 			}
 		},
 		user: event.locals.user,
+		accountUser: event.locals.accountUser,
 		db
 	};
 }

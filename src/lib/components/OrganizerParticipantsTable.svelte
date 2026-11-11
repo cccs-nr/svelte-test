@@ -23,6 +23,8 @@
 		isActive: boolean;
 		householdId: string | null;
 		householdName: string | null;
+		managedByName: string | null;
+		lastLoginAt: string | null;
 		wishlistCount: number;
 		messageCount: number;
 		eventStatus: string;
@@ -161,6 +163,37 @@
 		}
 	}
 
+	async function deleteAccount(): Promise<void> {
+		if (!selectedParticipantId || isSaving) return;
+		const target = participants.find((participant) => participant.id === selectedParticipantId);
+		if (!target) return;
+		const warning = target.managedByName
+			? `Permanently delete ${target.displayName}? Their wishlist and messages will be erased. This cannot be undone.`
+			: `Permanently delete ${target.displayName}? Their wishlist, messages, and any people they manage will be erased. This cannot be undone. To keep their data, deactivate the account instead.`;
+		if (!globalThis.confirm(warning)) return;
+
+		isSaving = true;
+		errorMessage = null;
+		try {
+			await trpc.participants.delete.mutate({ id: selectedParticipantId });
+			await invalidateAll();
+			editDialog?.close();
+			notice = `${target.displayName} was deleted.`;
+		} catch (error) {
+			errorMessage =
+				error instanceof TRPCClientError ? error.message : 'Unable to delete the account.';
+		} finally {
+			isSaving = false;
+		}
+	}
+
+	function formatLastLogin(value: string | null): string {
+		if (!value) return 'Never signed in';
+		return new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium', timeStyle: 'short' }).format(
+			new Date(value)
+		);
+	}
+
 	async function updatePassword(event: SubmitEvent): Promise<void> {
 		event.preventDefault();
 		if (!selectedParticipantId || isSaving) return;
@@ -224,7 +257,14 @@
 						<div class="flex items-start justify-between gap-3">
 							<div class="min-w-0">
 								<p class="truncate font-semibold text-foreground">{participant.displayName}</p>
-								<p class="truncate text-xs text-muted-foreground">@{participant.username}</p>
+								<p class="truncate text-sm text-muted-foreground">
+									{participant.managedByName
+										? `Managed by ${participant.managedByName}`
+										: `@${participant.username}`}
+								</p>
+								<p class="truncate text-sm text-muted-foreground">
+									Last sign-in: {formatLastLogin(participant.lastLoginAt)}
+								</p>
 							</div>
 							<Button
 								type="button"
@@ -238,7 +278,7 @@
 						</div>
 						<div class="mt-3 flex flex-wrap items-center gap-2">
 							<span
-								class={`rounded-full px-2 py-1 text-xs font-medium ${
+								class={`rounded-full px-2 py-1 text-sm font-medium ${
 									participant.isActive
 										? 'bg-emerald-100 text-emerald-900'
 										: 'bg-secondary text-secondary-foreground'
@@ -246,30 +286,30 @@
 							>
 								{participant.isActive ? 'Active' : 'Inactive'}
 							</span>
-							<span class="text-xs text-muted-foreground capitalize">
+							<span class="text-sm text-muted-foreground capitalize">
 								{participant.role}{participant.isParticipating ? ' · Participating' : ''}
 							</span>
 							{#if participant.eventStatus}
-								<span class="text-xs text-muted-foreground">· {participant.eventStatus}</span>
+								<span class="text-sm text-muted-foreground">· {participant.eventStatus}</span>
 							{/if}
 						</div>
 						<dl class="mt-3 grid grid-cols-2 gap-3 border-t border-border pt-3 text-sm">
 							<div>
-								<dt class="text-xs text-muted-foreground">Household</dt>
+								<dt class="text-sm text-muted-foreground">Household</dt>
 								<dd class="mt-0.5 truncate text-foreground">
 									{participant.householdName ?? 'None'}
 								</dd>
 							</div>
 							<div>
-								<dt class="text-xs text-muted-foreground">Gift ideas</dt>
+								<dt class="text-sm text-muted-foreground">Gift ideas</dt>
 								<dd class="mt-0.5 text-foreground tabular-nums">{participant.wishlistCount}</dd>
 							</div>
 							<div>
-								<dt class="text-xs text-muted-foreground">Messages</dt>
+								<dt class="text-sm text-muted-foreground">Messages</dt>
 								<dd class="mt-0.5 text-foreground tabular-nums">{participant.messageCount}</dd>
 							</div>
 							<div>
-								<dt class="text-xs text-muted-foreground">Official gift</dt>
+								<dt class="text-sm text-muted-foreground">Official gift</dt>
 								<dd class="mt-0.5 text-foreground">
 									{!participant.isParticipating
 										? '—'
@@ -285,7 +325,7 @@
 			<div class="app-table-scroll -mx-2 hidden overflow-x-auto px-2 xl:block">
 				<table class="w-full min-w-[1050px] border-collapse text-left text-sm">
 					<thead>
-						<tr class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase">
+						<tr class="border-b border-stone-200 text-sm tracking-wide text-stone-600 uppercase">
 							<th
 								scope="col"
 								aria-sort={sortKey === 'name'
@@ -336,8 +376,13 @@
 							<tr class="border-b border-stone-100 last:border-0">
 								<th scope="row" class="px-3 py-3 font-medium text-stone-950">
 									<span class="block">{participant.displayName}</span>
-									<span class="mt-0.5 block text-xs font-normal text-stone-500">
-										@{participant.username}
+									<span class="mt-0.5 block text-sm font-normal text-stone-600">
+										{participant.managedByName
+											? `Managed by ${participant.managedByName}`
+											: `@${participant.username}`}
+									</span>
+									<span class="mt-0.5 block text-sm font-normal text-stone-600">
+										Last sign-in: {formatLastLogin(participant.lastLoginAt)}
 									</span>
 								</th>
 								<td class="px-3 py-3 text-stone-700">{participant.householdName ?? '—'}</td>
@@ -353,12 +398,12 @@
 									{:else if participant.giftPurchased}
 										<span class="app-status app-status--success"> Purchased </span>
 									{:else}
-										<span class="text-stone-500">Not marked</span>
+										<span class="text-stone-600">Not marked</span>
 									{/if}
 								</td>
 								<td class="px-3 py-3">
 									<span
-										class={`rounded-full px-2 py-1 text-xs ${
+										class={`rounded-full px-2 py-1 text-sm ${
 											participant.isActive
 												? 'bg-emerald-100 text-emerald-900'
 												: 'bg-stone-100 text-stone-600'
@@ -366,10 +411,10 @@
 									>
 										{participant.isActive ? 'Active' : 'Inactive'}
 									</span>
-									<span class="ml-1 text-xs text-stone-600 capitalize">
+									<span class="ml-1 text-sm text-stone-600 capitalize">
 										{participant.role}
 									</span>
-									<p class="mt-1 text-xs text-stone-500">{participant.eventStatus}</p>
+									<p class="mt-1 text-sm text-stone-600">{participant.eventStatus}</p>
 								</td>
 								<td class="px-3 py-3">
 									<Button
@@ -573,11 +618,11 @@
 			</div>
 		</form>
 
-		{#if selectedParticipantId !== currentUserId}
+		{#if selectedParticipantId !== currentUserId && !participants.find((participant) => participant.id === selectedParticipantId)?.managedByName}
 			<form class="mt-6 space-y-3 border-t border-stone-100 pt-5" onsubmit={updatePassword}>
 				<div>
 					<h3 class="font-medium">Reset password</h3>
-					<p class="mt-1 text-sm text-stone-500">Existing sessions will be signed out.</p>
+					<p class="mt-1 text-sm text-stone-600">Existing sessions will be signed out.</p>
 				</div>
 				<div class="flex flex-wrap gap-3">
 					<label class="sr-only" for="reset-account-password">New password</label>
@@ -594,6 +639,30 @@
 					<Button type="submit" variant="outline" disabled={isSaving}>Reset password</Button>
 				</div>
 			</form>
+		{/if}
+
+		{#if selectedParticipantId !== currentUserId}
+			<div class="mt-6 space-y-3 border-t border-stone-100 pt-5">
+				<div>
+					<h3 class="font-medium">Delete account</h3>
+					<p class="mt-1 text-sm text-stone-600">
+						Permanently removes this person, their wishlist and their messages. Use “Account is
+						active” above if you only want to block sign-in.
+						{#if assignmentsExist}
+							Reset the draw first to delete a participant.
+						{/if}
+					</p>
+				</div>
+				<Button
+					type="button"
+					variant="destructive"
+					size="lg"
+					disabled={isSaving}
+					onclick={deleteAccount}
+				>
+					Delete this account
+				</Button>
+			</div>
 		{/if}
 	</div>
 </dialog>

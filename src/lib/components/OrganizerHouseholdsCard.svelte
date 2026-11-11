@@ -200,7 +200,7 @@
 			<div class="app-table-scroll -mx-2 hidden overflow-x-auto px-2 md:block">
 				<table class="w-full min-w-[620px] border-collapse text-left text-sm">
 					<thead>
-						<tr class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase">
+						<tr class="border-b border-stone-200 text-sm tracking-wide text-stone-600 uppercase">
 							<th scope="col" class="px-3 py-2 font-medium">Household</th>
 							<th scope="col" class="px-3 py-2 font-medium">Members</th>
 							<th scope="col" class="px-3 py-2 text-right font-medium">Count</th>
@@ -280,7 +280,7 @@
 			<fieldset class="space-y-3">
 				<legend class="text-sm font-medium">Select participants</legend>
 				{#if assignmentsExist}
-					<p class="text-xs text-stone-500">
+					<p class="text-sm text-stone-600">
 						Reset assignments before changing household membership.
 					</p>
 				{/if}
@@ -295,12 +295,12 @@
 							/>
 							<span class="min-w-0 flex-1 truncate">{participant.displayName}</span>
 							{#if participant.householdId}
-								<span class="text-xs text-stone-500">Currently assigned</span>
+								<span class="text-sm text-stone-600">Currently assigned</span>
 							{/if}
 						</label>
 					{/each}
 				</div>
-				<p class="text-xs text-stone-500">
+				<p class="text-sm text-stone-600">
 					{createMemberIds.length} selected{createMemberIds.length
 						? `: ${selectedNames(createMemberIds)}`
 						: ''}
@@ -364,7 +364,7 @@
 			<fieldset class="space-y-3">
 				<legend class="text-sm font-medium">Household members</legend>
 				{#if assignmentsExist}
-					<p class="text-xs text-stone-500">
+					<p class="text-sm text-stone-600">
 						Reset assignments before changing household membership.
 					</p>
 				{/if}
@@ -379,12 +379,12 @@
 							/>
 							<span class="min-w-0 flex-1 truncate">{participant.displayName}</span>
 							{#if participant.householdId && participant.householdId !== selectedHouseholdId}
-								<span class="text-xs text-stone-500">Currently assigned elsewhere</span>
+								<span class="text-sm text-stone-600">Currently assigned elsewhere</span>
 							{/if}
 						</label>
 					{/each}
 				</div>
-				<p class="text-xs text-stone-500">
+				<p class="text-sm text-stone-600">
 					{editMemberIds.length} selected{editMemberIds.length
 						? `: ${selectedNames(editMemberIds)}`
 						: ''}

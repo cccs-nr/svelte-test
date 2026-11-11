@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { and, asc, count, eq } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 import {
 	createAccountInputSchema,
 	resetPasswordInputSchema,
@@ -12,6 +13,7 @@ import { hashPassword } from '#lib/server/auth/password.js';
 import { createUniqueUsername } from '#lib/server/auth/username.js';
 import { assignments, households, sessions, users } from '#lib/server/db/schema.js';
 import { disconnectUserRealtime, notifyOrganizerDashboard } from '#lib/server/realtime.js';
+import { collectManagedAccountIds, deleteUserAccounts } from '#lib/server/user-deletion.js';
 import { organizerProcedure, router } from '#lib/server/trpc/init.js';
 
 function getAccount(database: AppDatabase, id: string) {
@@ -24,7 +26,9 @@ function getAccount(database: AppDatabase, id: string) {
 			isParticipating: users.isParticipating,
 			isActive: users.isActive,
 			householdId: users.householdId,
-			householdName: households.name
+			householdName: households.name,
+			managedByUserId: users.managedByUserId,
+			lastLoginAt: users.lastLoginAt
 		})
 		.from(users)
 		.leftJoin(households, eq(users.householdId, households.id))
@@ -57,7 +61,9 @@ export const participantsRouter = router({
 				isParticipating: users.isParticipating,
 				isActive: users.isActive,
 				householdId: users.householdId,
-				householdName: households.name
+				householdName: households.name,
+				managedByUserId: users.managedByUserId,
+				lastLoginAt: users.lastLoginAt
 			})
 			.from(users)
 			.leftJoin(households, eq(users.householdId, households.id))
@@ -216,6 +222,52 @@ export const participantsRouter = router({
 		notifyOrganizerDashboard();
 		return account;
 	}),
+	delete: organizerProcedure
+		.input(z.object({ id: z.string().min(1) }))
+		.mutation(async ({ ctx, input }) => {
+			if (input.id === ctx.user.id) {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: 'You cannot delete your own account.'
+				});
+			}
+
+			const target = ctx.db.select().from(users).where(eq(users.id, input.id)).get();
+			if (!target) throw new TRPCError({ code: 'NOT_FOUND', message: 'Account not found.' });
+
+			const assignmentSetExists = ctx.db
+				.select({ id: assignments.id })
+				.from(assignments)
+				.where(eq(assignments.eventId, SINGLE_EVENT_ID))
+				.get();
+			if (assignmentSetExists && target.isParticipating) {
+				throw new TRPCError({
+					code: 'CONFLICT',
+					message: 'Reset assignments before deleting a participant.'
+				});
+			}
+
+			if (target.role === 'organizer' && target.isActive) {
+				const activeOrganizerCount =
+					ctx.db
+						.select({ value: count() })
+						.from(users)
+						.where(and(eq(users.role, 'organizer'), eq(users.isActive, true)))
+						.get()?.value ?? 0;
+				if (activeOrganizerCount <= 1) {
+					throw new TRPCError({
+						code: 'CONFLICT',
+						message: 'The event must have at least one active organizer.'
+					});
+				}
+			}
+
+			const accountIds = collectManagedAccountIds(ctx.db, input.id);
+			await deleteUserAccounts(ctx.db, accountIds);
+			for (const id of accountIds) disconnectUserRealtime(id);
+			notifyOrganizerDashboard();
+			return { deleted: accountIds.length };
+		}),
 	resetPassword: organizerProcedure
 		.input(resetPasswordInputSchema)
 		.mutation(async ({ ctx, input }) => {
@@ -223,6 +275,18 @@ export const participantsRouter = router({
 				throw new TRPCError({
 					code: 'BAD_REQUEST',
 					message: 'Use your profile to change your own password.'
+				});
+			}
+
+			const target = ctx.db
+				.select({ managedByUserId: users.managedByUserId })
+				.from(users)
+				.where(eq(users.id, input.id))
+				.get();
+			if (target?.managedByUserId) {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: 'This person has no password. They are managed from another account.'
 				});
 			}
 

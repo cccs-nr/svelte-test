@@ -371,7 +371,7 @@
 			</CardHeader>
 			<CardContent>
 				{#if isLoading}
-					<p class="text-sm text-stone-500">Loading your wishlist…</p>
+					<p class="text-sm text-stone-600">Loading your wishlist…</p>
 				{:else if isLoadFailed}
 					<p class="text-sm text-stone-600">Your wishlist could not be loaded. Try refreshing.</p>
 				{:else if suggestions.length === 0}
@@ -402,7 +402,7 @@
 										<p class="font-semibold text-foreground">
 											{#if suggestion.url}
 												<a
-													class="text-primary underline-offset-4 hover:underline"
+													class="text-primary underline underline-offset-4"
 													href={suggestion.url}
 													target="_blank"
 													rel="noopener noreferrer external"
@@ -473,7 +473,7 @@
 						<table class="w-full min-w-[760px] border-collapse text-left text-sm">
 							<thead>
 								<tr
-									class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase"
+									class="border-b border-stone-200 text-sm tracking-wide text-stone-600 uppercase"
 								>
 									<th scope="col" class="px-3 py-3 font-medium">Gift idea</th>
 									<th scope="col" class="px-3 py-3 font-medium">Estimated price</th>
@@ -506,7 +506,7 @@
 													<p class="font-semibold">
 														{#if suggestion.url}
 															<a
-																class="text-emerald-800 underline-offset-4 hover:underline"
+																class="text-emerald-800 underline underline-offset-4"
 																href={suggestion.url}
 																target="_blank"
 																rel="noopener noreferrer external"
@@ -650,7 +650,7 @@
 						placeholder="25.00"
 						disabled={isFormDisabled}
 					/>
-					<p class="text-xs text-stone-500">Enter dollars with up to two decimal places.</p>
+					<p class="text-sm text-stone-600">Enter dollars with up to two decimal places.</p>
 				</div>
 				<div class="space-y-2 md:col-span-2">
 					<label class="text-base font-semibold" for="wishlist-notes">Notes</label>
@@ -672,7 +672,7 @@
 						bind:files={selectedFiles}
 						disabled={isFormDisabled}
 					/>
-					<p class="text-xs text-stone-500">
+					<p class="text-sm text-stone-600">
 						JPEG, PNG, or WebP up to {formatFileSize(data.maxImageBytes)}.
 					</p>
 					{#if editingId && suggestions.find((suggestion) => suggestion.id === editingId)?.imageKey}

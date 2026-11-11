@@ -224,7 +224,7 @@
 				</p>
 			</div>
 			{#if isLoading}
-				<p class="text-sm text-stone-500">Loading reservations…</p>
+				<p class="text-sm text-stone-600">Loading reservations…</p>
 			{:else if reservations.length === 0}
 				<p class="rounded-lg border border-dashed border-stone-300 p-4 text-sm text-stone-600">
 					No active reservations or purchases to review.
@@ -241,7 +241,7 @@
 									</p>
 								</div>
 								<span
-									class="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground capitalize"
+									class="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-sm font-medium text-secondary-foreground capitalize"
 								>
 									{reservation.status}
 								</span>
@@ -280,7 +280,7 @@
 				<div class="app-table-scroll -mx-2 hidden overflow-x-auto px-2 lg:block">
 					<table class="w-full min-w-[680px] border-collapse text-left text-sm">
 						<thead>
-							<tr class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase">
+							<tr class="border-b border-stone-200 text-sm tracking-wide text-stone-600 uppercase">
 								<th scope="col" class="px-3 py-3 font-medium">Gift idea</th>
 								<th scope="col" class="px-3 py-3 font-medium">Recipient</th>
 								<th scope="col" class="px-3 py-3 font-medium">Buyer</th>
@@ -381,7 +381,7 @@
 		<div class="app-table-scroll -mx-2 hidden overflow-x-auto px-2 md:block">
 			<table class="w-full min-w-[520px] border-collapse text-left text-sm">
 				<thead>
-					<tr class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase">
+					<tr class="border-b border-stone-200 text-sm tracking-wide text-stone-600 uppercase">
 						<th scope="col" class="px-3 py-3 font-medium">Participant</th>
 						<th scope="col" class="px-3 py-3 font-medium">Codename</th>
 						<th scope="col" class="px-3 py-3 font-medium">Action</th>

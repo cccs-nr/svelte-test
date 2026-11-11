@@ -19,6 +19,7 @@
 		"test:unit": "vitest run",
 		"test": "vitest run",
 		"db:create-organizer": "node --experimental-strip-types scripts/create-organizer.mjs",
+		"db:reset": "node --experimental-strip-types scripts/reset-database.mjs",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio"

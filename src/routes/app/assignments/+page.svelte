@@ -165,25 +165,25 @@
 		</CardHeader>
 		<CardContent>
 			{#if isLoading}
-				<p class="text-sm text-stone-500">Checking event and participant readiness…</p>
+				<p class="text-sm text-stone-600">Checking event and participant readiness…</p>
 			{:else if status}
 				<dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 					<div class="rounded-xl bg-stone-50 p-4">
-						<dt class="text-sm text-stone-500">Event</dt>
+						<dt class="text-sm text-stone-600">Event</dt>
 						<dd class="mt-1 font-medium text-stone-950">
 							{status.eventStatus ? status.eventStatus.replaceAll('_', ' ') : 'Not configured'}
 						</dd>
 					</div>
 					<div class="rounded-xl bg-stone-50 p-4">
-						<dt class="text-sm text-stone-500">Active participants</dt>
+						<dt class="text-sm text-stone-600">Active participants</dt>
 						<dd class="mt-1 font-medium text-stone-950">{status.participantCount}</dd>
 					</div>
 					<div class="rounded-xl bg-stone-50 p-4">
-						<dt class="text-sm text-stone-500">Assignments</dt>
+						<dt class="text-sm text-stone-600">Assignments</dt>
 						<dd class="mt-1 font-medium text-stone-950">{status.assignmentCount}</dd>
 					</div>
 					<div class="rounded-xl bg-stone-50 p-4">
-						<dt class="text-sm text-stone-500">Draw check</dt>
+						<dt class="text-sm text-stone-600">Draw check</dt>
 						<dd class="mt-1 font-medium text-stone-950">
 							{#if status.finalized}
 								Finalized
@@ -204,7 +204,7 @@
 					<p class="mt-5 text-sm text-stone-600">
 						Configure the event before generating assignments.
 						<a
-							class="font-medium text-emerald-800 underline-offset-4 hover:underline"
+							class="font-medium text-emerald-800 underline underline-offset-4"
 							href={resolve('/app/event')}
 						>
 							Event settings

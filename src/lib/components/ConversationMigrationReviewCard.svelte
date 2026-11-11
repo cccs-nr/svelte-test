@@ -67,7 +67,7 @@
 								{/if}
 							</p>
 							<p class="mt-1 text-sm text-stone-700">{item.reason}</p>
-							<p class="mt-1 truncate text-xs text-stone-500">
+							<p class="mt-1 truncate text-sm text-stone-600">
 								Legacy conversation: {item.conversationId}
 							</p>
 						</div>

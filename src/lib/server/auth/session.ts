@@ -6,6 +6,7 @@ import type { AppDatabase } from '#lib/server/db/connection.js';
 import { disconnectUserRealtime } from '#lib/server/realtime.js';
 
 export const SESSION_COOKIE_NAME = 'secret_santa_session';
+export const ACTING_AS_COOKIE_NAME = 'secret_santa_acting_as';
 
 const SESSION_TTL_SECONDS = 14 * 24 * 60 * 60;
 const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
@@ -121,4 +122,52 @@ export function resolveSessionUser(
 		...user,
 		isParticipating: user.role === 'participant' || user.isParticipating
 	};
+}
+
+export function setActingAsCookie(cookies: SessionCookieStore, userId: string): void {
+	cookies.set(ACTING_AS_COOKIE_NAME, userId, {
+		path: '/',
+		httpOnly: true,
+		secure: process.env.NODE_ENV === 'production',
+		sameSite: 'lax',
+		maxAge: SESSION_TTL_SECONDS
+	});
+}
+
+export function clearActingAsCookie(cookies: SessionCookieStore): void {
+	cookies.delete(ACTING_AS_COOKIE_NAME, { path: '/' });
+}
+
+/**
+ * Resolves the participant the signed-in account is currently managing, if any.
+ * Falls back to the account itself when the selection is missing or invalid.
+ */
+export function resolveActingUser(
+	database: AppDatabase,
+	account: AuthenticatedUser | null,
+	cookies: SessionCookieStore
+): AuthenticatedUser | null {
+	if (!account) return null;
+	const actingAsId = cookies.get(ACTING_AS_COOKIE_NAME);
+	if (!actingAsId) return account;
+
+	const managed = database
+		.select({
+			id: users.id,
+			username: users.username,
+			displayName: users.displayName,
+			role: users.role
+		})
+		.from(users)
+		.where(
+			and(eq(users.id, actingAsId), eq(users.managedByUserId, account.id), eq(users.isActive, true))
+		)
+		.get();
+
+	if (!managed) {
+		clearActingAsCookie(cookies);
+		return account;
+	}
+
+	return { ...managed, isParticipating: true };
 }

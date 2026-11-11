@@ -126,7 +126,7 @@
 <Card id="event">
 	<CardHeader class="flex flex-row flex-wrap items-start justify-between gap-4">
 		<div class="min-w-0">
-			<p class="text-xs font-medium tracking-[0.16em] text-emerald-800 uppercase">Event overview</p>
+			<p class="text-sm font-medium tracking-[0.16em] text-emerald-800 uppercase">Event overview</p>
 			<CardTitle class="mt-2">{event?.name ?? 'Your exchange is not set up yet'}</CardTitle>
 			<CardDescription class="mt-1">
 				{#if event}
@@ -169,17 +169,17 @@
 		{#if event}
 			<dl class="grid gap-4 sm:grid-cols-3">
 				<div>
-					<dt class="text-xs font-medium text-stone-500">Status</dt>
+					<dt class="text-sm font-medium text-stone-600">Status</dt>
 					<dd class="mt-1 font-medium text-stone-950">
 						{stages[currentStageIndex]?.label ?? 'Setup'}
 					</dd>
 				</div>
 				<div>
-					<dt class="text-xs font-medium text-stone-500">Exchange date</dt>
+					<dt class="text-sm font-medium text-stone-600">Exchange date</dt>
 					<dd class="mt-1 font-medium text-stone-950">{formatDate(event.exchangeDate)}</dd>
 				</div>
 				<div>
-					<dt class="text-xs font-medium text-stone-500">Suggested gift price</dt>
+					<dt class="text-sm font-medium text-stone-600">Suggested gift price</dt>
 					<dd class="mt-1 font-medium text-stone-950">
 						{formatEventBudget(event.giftBudgetCents, event.currency)}
 					</dd>
@@ -207,12 +207,12 @@
 		<ol class="grid grid-cols-2 gap-2 sm:grid-cols-4">
 			{#each stages as stage, index (stage.value)}
 				<li
-					class={`rounded-lg px-2.5 py-2 text-xs ${
+					class={`rounded-lg px-2.5 py-2 text-sm ${
 						index === currentStageIndex
 							? 'bg-emerald-100 font-semibold text-emerald-950'
 							: index < currentStageIndex
 								? 'bg-emerald-50 text-emerald-800'
-								: 'bg-stone-50 text-stone-500'
+								: 'bg-stone-50 text-stone-600'
 					}`}
 					aria-current={index === currentStageIndex ? 'step' : undefined}
 				>

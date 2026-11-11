@@ -335,4 +335,26 @@ describe('wishlist-centric conversations', () => {
 		).resolves.toEqual({ updated: true });
 		await expect(organizerCaller.conversations.migrationReview()).resolves.toEqual([]);
 	});
+
+	it('shows who has seen each message', async () => {
+		const alice = createCaller(participants[0]!);
+		const bob = createCaller(participants[1]!);
+		const opened = await alice.conversations.openDiscussion({ wishlistOwnerId: 'bob' });
+		await alice.conversations.send({ conversationId: opened.id, content: 'Hello Bob' });
+
+		const beforeRead = await alice.conversations.thread({ conversationId: opened.id });
+		expect(beforeRead.messages.at(-1)?.receipt).toEqual({ seenLabels: [], recipientCount: 1 });
+		expect(beforeRead.messages.at(-1)?.seenBy).toEqual([]);
+
+		await bob.conversations.markRead({ conversationId: opened.id });
+		const afterRead = await alice.conversations.thread({ conversationId: opened.id });
+		const last = afterRead.messages.at(-1);
+		expect(last?.receipt?.seenLabels).toEqual(['Bob']);
+		expect(last?.seenBy.map((reader) => reader.label)).toEqual(['Bob']);
+
+		await bob.conversations.send({ conversationId: opened.id, content: 'Hi Alice' });
+		const bobsReply = await alice.conversations.thread({ conversationId: opened.id });
+		expect(bobsReply.messages[0]?.seenBy).toEqual([]);
+		expect(bobsReply.messages.at(-1)?.seenBy.map((reader) => reader.label)).toEqual(['Bob']);
+	});
 });

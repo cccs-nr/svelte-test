@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+	type AnySQLiteColumn,
 	check,
 	index,
 	integer,
@@ -90,6 +91,11 @@ export const users = sqliteTable(
 		householdId: text('household_id').references(() => households.id, { onDelete: 'set null' }),
 		isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
 		welcomeAcknowledgedAt: integer('welcome_acknowledged_at', { mode: 'timestamp_ms' }),
+		lastLoginAt: integer('last_login_at', { mode: 'timestamp_ms' }),
+		previousLoginAt: integer('previous_login_at', { mode: 'timestamp_ms' }),
+		managedByUserId: text('managed_by_user_id').references((): AnySQLiteColumn => users.id, {
+			onDelete: 'cascade'
+		}),
 		createdAt: integer('created_at', { mode: 'timestamp_ms' })
 			.notNull()
 			.default(sql`(unixepoch() * 1000)`),
@@ -101,6 +107,7 @@ export const users = sqliteTable(
 		uniqueIndex('users_username_unique').on(table.username),
 		uniqueIndex('users_avatar_key_unique').on(table.avatarKey),
 		index('users_household_id_idx').on(table.householdId),
+		index('users_managed_by_idx').on(table.managedByUserId),
 		check('users_role_check', sql`${table.role} in ('organizer', 'participant')`)
 	]
 );

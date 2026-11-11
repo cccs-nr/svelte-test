@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { Clock, Mail } from '@lucide/svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import type { PageProps } from './$types';
@@ -14,10 +15,20 @@
 		CardTitle
 	} from '#lib/components/ui/card/index.js';
 	import WishlistDirectory from '#lib/components/WishlistDirectory.svelte';
+	import HouseholdMembersCard from '#lib/components/HouseholdMembersCard.svelte';
 	import PageGuide from '#lib/components/PageGuide.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
 
 	let { data }: PageProps = $props();
+	let lastSignIn = $state<string | null>(null);
+
+	// Formatted after mount so the server's time zone is never shown to the visitor.
+	onMount(() => {
+		if (!data.previousLoginAt) return;
+		lastSignIn = new Intl.DateTimeFormat('en-CA', { dateStyle: 'full', timeStyle: 'short' }).format(
+			new Date(data.previousLoginAt)
+		);
+	});
 
 	onMount(() => {
 		const socket = getRealtimeSocket();
@@ -62,6 +73,43 @@
 		{/if}
 	</header>
 
+	<section
+		class="app-surface grid gap-4 rounded-2xl border-2 p-5 sm:grid-cols-2"
+		aria-label="Your activity"
+	>
+		<div class="flex items-start gap-3">
+			<Clock size={26} class="mt-0.5 shrink-0" aria-hidden="true" />
+			<div>
+				<p class="text-base text-muted-foreground">Your last sign-in</p>
+				<p class="text-lg font-semibold">
+					{data.previousLoginAt ? (lastSignIn ?? '…') : 'This is your first visit. Welcome!'}
+				</p>
+			</div>
+		</div>
+		{#if data.user.isParticipating}
+			<div class="flex items-start gap-3">
+				<Mail size={26} class="mt-0.5 shrink-0" aria-hidden="true" />
+				<div>
+					<p class="text-base text-muted-foreground">Messages waiting for you</p>
+					{#if data.badgeCounts.messages > 0}
+						<p class="text-lg font-semibold">
+							{data.badgeCounts.messages}
+							{data.badgeCounts.messages === 1 ? 'new message' : 'new messages'}
+							<a
+								class="ml-2 text-primary underline underline-offset-4"
+								href={resolve('/app/messages')}
+							>
+								Read now
+							</a>
+						</p>
+					{:else}
+						<p class="text-lg font-semibold">No new messages</p>
+					{/if}
+				</div>
+			</div>
+		{/if}
+	</section>
+
 	<PageGuide title="How Secret Santa works">
 		<p>
 			<strong>The goal:</strong> everyone gives one gift and receives one gift. You will be given one
@@ -100,7 +148,7 @@
 						<p class="text-base text-stone-600">Your draw</p>
 						{#if data.participant?.recipientId && data.participant.recipientDisplayName}
 							<a
-								class="mt-1 inline-flex max-w-full items-center gap-2 font-medium text-emerald-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
+								class="mt-1 inline-flex max-w-full items-center gap-2 font-medium text-emerald-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
 								href={resolve('/app/wishlists/[participantId]', {
 									participantId: data.participant.recipientId
 								})}
@@ -113,7 +161,7 @@
 										participantId: data.participant.recipientId
 									})}
 									size="sm"
-									class="size-8 text-xs"
+									class="size-8 text-sm"
 								/>
 								<span class="truncate">{data.participant.recipientDisplayName}</span>
 							</a>
@@ -153,14 +201,11 @@
 				</CardContent>
 				{#if data.user.role === 'organizer'}
 					<CardFooter class="flex flex-wrap gap-4">
-						<a
-							class="text-sm font-medium text-emerald-800 hover:underline"
-							href={resolve('/app/event')}
-						>
+						<a class="text-sm font-medium text-emerald-800 underline" href={resolve('/app/event')}>
 							Event settings
 						</a>
 						<a
-							class="text-sm font-medium text-emerald-800 hover:underline"
+							class="text-sm font-medium text-emerald-800 underline"
 							href={resolve('/app/dashboard')}
 						>
 							Dashboard
@@ -179,7 +224,7 @@
 					</CardHeader>
 					<CardFooter>
 						<a
-							class="text-sm font-medium text-emerald-800 hover:underline"
+							class="text-sm font-medium text-emerald-800 underline"
 							href={resolve('/app/dashboard')}
 						>
 							Open dashboard
@@ -197,10 +242,7 @@
 				</CardDescription>
 			</CardHeader>
 			<CardFooter>
-				<a
-					class="text-sm font-medium text-emerald-800 hover:underline"
-					href={resolve('/app/event')}
-				>
+				<a class="text-sm font-medium text-emerald-800 underline" href={resolve('/app/event')}>
 					Configure event
 				</a>
 			</CardFooter>
@@ -214,6 +256,14 @@
 				</CardDescription>
 			</CardHeader>
 		</Card>
+	{/if}
+
+	{#if data.user.isParticipating && !data.isManagingOther && data.members.length > 0}
+		<HouseholdMembersCard
+			members={data.members}
+			activeId={data.user.id}
+			accountId={data.account.id}
+		/>
 	{/if}
 
 	{#if data.participant}

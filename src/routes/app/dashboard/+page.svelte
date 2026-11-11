@@ -70,25 +70,25 @@
 				</h3>
 				<dl class="grid grid-cols-2 gap-3">
 					<div class="app-surface-muted rounded-xl p-3">
-						<dt class="text-xs text-muted-foreground">Participants</dt>
+						<dt class="text-sm text-muted-foreground">Participants</dt>
 						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
 							{data.stats.totalParticipants}
 						</dd>
 					</div>
 					<div class="app-surface-muted rounded-xl p-3">
-						<dt class="text-xs text-muted-foreground">Active accounts</dt>
+						<dt class="text-sm text-muted-foreground">Active accounts</dt>
 						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
 							{data.stats.activeAccounts}
 						</dd>
 					</div>
 					<div class="app-surface-muted rounded-xl p-3">
-						<dt class="text-xs text-muted-foreground">Households</dt>
+						<dt class="text-sm text-muted-foreground">Households</dt>
 						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
 							{data.stats.householdCount}
 						</dd>
 					</div>
 					<div class="app-surface-muted rounded-xl p-3">
-						<dt class="text-xs text-muted-foreground">Assignments finalized</dt>
+						<dt class="text-sm text-muted-foreground">Assignments finalized</dt>
 						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
 							{data.stats.finalizedAssignmentCount}/{data.stats.assignmentCount}
 						</dd>
@@ -101,25 +101,25 @@
 				</h3>
 				<dl class="grid grid-cols-2 gap-3">
 					<div class="app-surface-muted rounded-xl p-3">
-						<dt class="text-xs text-muted-foreground">Gift ideas</dt>
+						<dt class="text-sm text-muted-foreground">Gift ideas</dt>
 						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
 							{data.stats.wishlistIdeaCount}
 						</dd>
 					</div>
 					<div class="app-surface-muted rounded-xl p-3">
-						<dt class="text-xs text-muted-foreground">Active reservations</dt>
+						<dt class="text-sm text-muted-foreground">Active reservations</dt>
 						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
 							{data.stats.totalReservations}
 						</dd>
 					</div>
 					<div class="app-surface-muted rounded-xl p-3">
-						<dt class="text-xs text-muted-foreground">Purchased wishlist gifts</dt>
+						<dt class="text-sm text-muted-foreground">Purchased wishlist gifts</dt>
 						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
 							{data.stats.purchasedReservationCount}
 						</dd>
 					</div>
 					<div class="app-surface-muted rounded-xl p-3">
-						<dt class="text-xs text-muted-foreground">Participants with purchases</dt>
+						<dt class="text-sm text-muted-foreground">Participants with purchases</dt>
 						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
 							{data.stats.participantsWithCompletedPurchases}
 						</dd>
@@ -132,20 +132,20 @@
 				</h3>
 				<dl class="grid grid-cols-2 gap-3">
 					<div class="app-surface-muted rounded-xl p-3">
-						<dt class="text-xs text-muted-foreground">Messages</dt>
+						<dt class="text-sm text-muted-foreground">Messages</dt>
 						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
 							{data.stats.messageCount}
 						</dd>
-						<p class="mt-1 text-xs text-muted-foreground">Count only</p>
+						<p class="mt-1 text-sm text-muted-foreground">Count only</p>
 					</div>
 					<div class="app-surface-muted rounded-xl p-3">
-						<dt class="text-xs text-muted-foreground">Private gift-planning conversations</dt>
+						<dt class="text-sm text-muted-foreground">Private gift-planning conversations</dt>
 						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
 							{data.stats.coordinationConversationCount}
 						</dd>
 					</div>
 					<div class="app-surface-muted col-span-2 rounded-xl p-3">
-						<dt class="text-xs text-muted-foreground">Official Secret Santa gifts purchased</dt>
+						<dt class="text-sm text-muted-foreground">Official Secret Santa gifts purchased</dt>
 						<dd class="mt-1 text-2xl font-semibold text-foreground tabular-nums">
 							{data.stats.purchasedGiftCount}
 						</dd>

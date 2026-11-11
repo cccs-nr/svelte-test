@@ -39,6 +39,7 @@ COPY --from=build --chown=node:node /app/src/lib/auth.ts ./src/lib/auth.ts
 COPY --from=build --chown=node:node /app/src/lib/server/db/schema.ts ./src/lib/server/db/schema.ts
 COPY --from=build --chown=node:node /app/src/lib/server/auth/password.ts ./src/lib/server/auth/password.ts
 COPY --from=build --chown=node:node /app/scripts/create-organizer.mjs ./scripts/create-organizer.mjs
+COPY --from=build --chown=node:node /app/scripts/reset-database.mjs ./scripts/reset-database.mjs
 
 USER node
 EXPOSE 3000

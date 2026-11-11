@@ -4,11 +4,12 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { TRPCClientError } from '@trpc/client';
-	import { Gift, LifeBuoy, LogOut, Menu, UserRound, X } from '@lucide/svelte';
+	import { ArrowLeftRight, Gift, LifeBuoy, LogOut, Menu, UserRound, X } from '@lucide/svelte';
 	import type { LayoutProps } from './$types';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import CodenameAvatar from '#lib/components/CodenameAvatar.svelte';
 	import ProfileAvatar from '#lib/components/ProfileAvatar.svelte';
+	import DisplaySettings from '#lib/components/DisplaySettings.svelte';
 	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import { connectRealtime, disconnectRealtime } from '#lib/realtime/client.js';
 	import { trpc } from '#lib/trpc/client.js';
@@ -157,6 +158,16 @@
 		}`;
 	}
 
+	async function switchPerson(userId: string): Promise<void> {
+		closeAccountMenu();
+		try {
+			await trpc.members.switchTo.mutate({ userId });
+			window.location.assign(resolve('/app'));
+		} catch {
+			logoutError = 'Could not switch person. Please try again.';
+		}
+	}
+
 	async function handleLogout(): Promise<void> {
 		if (isSigningOut) return;
 
@@ -247,7 +258,7 @@
 							My Wishlist
 							{#if badgeCounts.wishlist > 0}
 								<span
-									class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
+									class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-sm font-semibold"
 									aria-hidden="true"
 								>
 									{badgeCounts.wishlist}
@@ -266,7 +277,7 @@
 							Your Draw
 							{#if badgeCounts.gift > 0}
 								<span
-									class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
+									class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-sm font-semibold"
 									aria-hidden="true"
 								>
 									{badgeCounts.gift}
@@ -285,7 +296,7 @@
 							Messages
 							{#if badgeCounts.messages > 0}
 								<span
-									class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
+									class="holiday-topnav__badge grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-sm font-semibold"
 									aria-hidden="true"
 								>
 									{badgeCounts.messages}
@@ -386,7 +397,7 @@
 							>
 								<CodenameAvatar codename={data.user.codename} size="md" />
 								<div class="min-w-0">
-									<p class="text-xs font-medium tracking-wide text-emerald-800 uppercase">
+									<p class="text-sm font-medium tracking-wide text-emerald-800 uppercase">
 										Your codename
 									</p>
 									<p class="mt-0.5 truncate font-semibold text-stone-950">
@@ -406,7 +417,26 @@
 							<UserRound size={18} aria-hidden="true" />
 							Profile
 						</a>
+						{#each data.members.filter((member) => member.id !== data.user.id) as member (member.id)}
+							<Button
+								type="button"
+								variant="ghost"
+								size="lg"
+								class="w-full cursor-pointer justify-start gap-3 rounded-xl px-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground"
+								role="menuitem"
+								tabindex={-1}
+								onclick={() => switchPerson(member.id)}
+							>
+								<ArrowLeftRight size={18} aria-hidden="true" />
+								<span class="truncate">
+									Switch to {member.displayName}{member.unreadMessages > 0
+										? ` (${member.unreadMessages} new)`
+										: ''}
+								</span>
+							</Button>
+						{/each}
 						<ThemeToggle menuItem />
+						<DisplaySettings menuItem />
 						<Button
 							type="button"
 							variant="ghost"
@@ -426,6 +456,21 @@
 		</div>
 	</header>
 
+	{#if data.isManagingOther}
+		<div
+			class="mx-auto mt-4 flex w-[calc(100%-2rem)] max-w-6xl flex-wrap items-center justify-between gap-3 rounded-2xl border-4 border-double border-primary bg-card p-4 text-lg"
+			role="status"
+		>
+			<p>
+				<ArrowLeftRight size={22} class="mr-2 inline" aria-hidden="true" />
+				You are using the app as <strong>{data.user.displayName}</strong>
+				(managed from {data.account.displayName}’s account).
+			</p>
+			<Button type="button" size="lg" onclick={() => switchPerson(data.account.id)}>
+				Switch back to {data.account.displayName}
+			</Button>
+		</div>
+	{/if}
 	{#if logoutError}
 		<p class="app-alert app-alert--error mx-auto mt-4 w-[calc(100%-2rem)] max-w-6xl" role="alert">
 			{logoutError}
@@ -434,7 +479,7 @@
 	{#if realtimeError}
 		<p
 			class={`app-alert app-alert--warning mx-auto w-full max-w-6xl ${
-				isConversationPage ? 'mt-1 px-3 py-1 text-xs sm:mt-2 sm:px-4 sm:py-2 sm:text-sm' : 'mt-2'
+				isConversationPage ? 'mt-1 px-3 py-1 text-sm sm:mt-2 sm:px-4 sm:py-2 sm:text-sm' : 'mt-2'
 			}`}
 			role="status"
 			aria-live="polite"

@@ -117,7 +117,7 @@
 		</div>
 		{#if compact}
 			<a
-				class="text-sm font-medium text-emerald-800 underline-offset-4 hover:underline"
+				class="text-sm font-medium text-emerald-800 underline underline-offset-4"
 				href={resolve('/app/messages')}
 			>
 				View all messages
@@ -162,7 +162,7 @@
 	{/if}
 
 	{#if isLoading}
-		<p class="text-sm text-stone-500" role="status">Loading your conversations…</p>
+		<p class="text-sm text-stone-600" role="status">Loading your conversations…</p>
 	{:else if displayedConversations.length === 0}
 		<div class="app-surface rounded-xl border border-dashed border-border p-6 text-center">
 			<p class="font-medium text-stone-900">
@@ -214,7 +214,7 @@
 								<ul class="mt-3 flex flex-wrap gap-1.5" aria-label="Conversation participants">
 									{#each conversation.participants as participant, index (`${participant.label}-${index}`)}
 										<li
-											class="inline-flex items-center gap-1.5 rounded-full bg-stone-100 py-0.5 pr-2 pl-0.5 text-xs text-stone-700"
+											class="inline-flex items-center gap-1.5 rounded-full bg-stone-100 py-0.5 pr-2 pl-0.5 text-sm text-stone-700"
 										>
 											{#if participant.avatar.type === 'profile'}
 												<ProfileAvatar
@@ -241,7 +241,7 @@
 								</ul>
 								{#if conversation.lastMessageAt}
 									<time
-										class="mt-3 block text-xs text-muted-foreground"
+										class="mt-3 block text-sm text-muted-foreground"
 										datetime={conversation.lastMessageAt}
 									>
 										{formatTimestamp(conversation.lastMessageAt)}
@@ -251,7 +251,7 @@
 						</a>
 						<div class="mt-2 flex justify-end">
 							<a
-								class="ml-auto text-sm font-medium text-emerald-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
+								class="ml-auto text-sm font-medium text-emerald-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
 								href={conversation.isWishlistOwner
 									? resolve('/app/wishlist')
 									: resolve('/app/wishlists/[participantId]', {

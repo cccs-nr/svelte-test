@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { Lightbulb } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 
@@ -9,16 +10,24 @@
 		title?: string;
 		children: Snippet;
 	} = $props();
+
+	let isOpen = $state(true);
+
+	// On phones the guide starts folded so the page content is not pushed off screen.
+	onMount(() => {
+		isOpen = window.matchMedia('(min-width: 768px)').matches;
+	});
 </script>
 
-<aside class="app-guide" aria-label={title}>
-	<span class="app-guide__icon" aria-hidden="true">
-		<Lightbulb size={26} />
-	</span>
-	<div class="space-y-1">
-		<p class="app-guide__title">{title}</p>
-		<div class="app-guide__body space-y-2">
-			{@render children()}
-		</div>
+<details class="app-guide" bind:open={isOpen}>
+	<summary class="app-guide__summary">
+		<span class="app-guide__icon" aria-hidden="true">
+			<Lightbulb size={26} />
+		</span>
+		<span class="app-guide__title">{title}</span>
+		<span class="app-guide__hint">{isOpen ? 'Hide' : 'Show'}</span>
+	</summary>
+	<div class="app-guide__body space-y-2">
+		{@render children()}
 	</div>
-</aside>
+</details>

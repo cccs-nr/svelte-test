@@ -412,7 +412,7 @@
 						placeholder="Search names"
 					/>
 					{#if isLoadingMembers}
-						<p class="text-sm text-stone-500">Loading participants…</p>
+						<p class="text-sm text-stone-600">Loading participants…</p>
 					{:else if visibleMembers.length === 0}
 						<p class="text-sm text-stone-600">No matching participants.</p>
 					{:else}
@@ -440,7 +440,7 @@
 
 			<div class="min-w-0 space-y-4">
 				{#if isLoadingWishlist}
-					<p class="text-sm text-stone-500">Loading gift ideas…</p>
+					<p class="text-sm text-stone-600">Loading gift ideas…</p>
 				{:else if !wishlist}
 					<p class="text-sm text-stone-600">
 						{showDirectory
@@ -476,7 +476,7 @@
 											<p class="font-semibold text-foreground">
 												{#if suggestion.url}
 													<a
-														class="text-primary underline-offset-4 hover:underline"
+														class="text-primary underline underline-offset-4"
 														href={suggestion.url}
 														target="_blank"
 														rel="noopener noreferrer external"
@@ -564,7 +564,7 @@
 										</div>
 									{/if}
 									<time
-										class="mt-2 block text-xs text-muted-foreground"
+										class="mt-2 block text-sm text-muted-foreground"
 										datetime={suggestion.updatedAt}
 									>
 										Updated {formatTimestamp(suggestion.updatedAt)}
@@ -576,7 +576,7 @@
 							<table class="w-full min-w-[900px] border-collapse text-left text-sm">
 								<thead>
 									<tr
-										class="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase"
+										class="border-b border-stone-200 text-sm tracking-wide text-stone-600 uppercase"
 									>
 										<th scope="col" class="px-3 py-3 font-medium">Gift idea</th>
 										<th scope="col" class="px-3 py-3 font-medium">Price</th>
@@ -609,7 +609,7 @@
 														<p class="font-semibold">
 															{#if suggestion.url}
 																<a
-																	class="text-emerald-800 underline-offset-4 hover:underline"
+																	class="text-emerald-800 underline underline-offset-4"
 																	href={suggestion.url}
 																	target="_blank"
 																	rel="noopener noreferrer external"
@@ -653,7 +653,7 @@
 																: `Reserved by ${suggestion.reservedBy}`}
 													</span>
 												{:else}
-													<span class="text-stone-500">—</span>
+													<span class="text-stone-600">—</span>
 												{/if}
 											</td>
 											<td class="px-3 py-4 align-top text-stone-700">
@@ -702,7 +702,7 @@
 														</Button>
 													</div>
 												{:else}
-													<span class="text-stone-500">—</span>
+													<span class="text-stone-600">—</span>
 												{/if}
 											</td>
 										</tr>

@@ -72,6 +72,20 @@ afterEach(() => {
 });
 
 describe('auth router', () => {
+	it('remembers the previous sign-in time', async () => {
+		const caller = appRouter.createCaller(createContext(createCookieStore()));
+		const credentials = { identifier: 'Organizer', password: 'correct-horse-battery-staple' };
+		const row = () => db.select().from(users).where(eq(users.id, 'organizer-id')).get();
+
+		await caller.auth.login(credentials);
+		const firstLogin = row()?.lastLoginAt;
+		expect(firstLogin).toBeInstanceOf(Date);
+		expect(row()?.previousLoginAt).toBeNull();
+
+		await caller.auth.login(credentials);
+		expect(row()?.previousLoginAt).toEqual(firstLogin);
+	});
+
 	it('records the welcome letter acknowledgement once', async () => {
 		const cookies = createCookieStore();
 		const user = await appRouter.createCaller(createContext(cookies)).auth.register({

@@ -51,7 +51,9 @@ export const load: PageServerLoad = ({ locals }) => {
 			role: users.role,
 			isActive: users.isActive,
 			isParticipating: users.isParticipating,
-			householdName: households.name
+			householdName: households.name,
+			managedByUserId: users.managedByUserId,
+			lastLoginAt: users.lastLoginAt
 		})
 		.from(users)
 		.leftJoin(households, eq(households.id, users.householdId))
@@ -115,6 +117,7 @@ export const load: PageServerLoad = ({ locals }) => {
 	const assignmentByGiver = new Map(
 		assignmentRows.map((assignment) => [assignment.giverId, assignment])
 	);
+	const accountNames = new Map(accountRows.map((account) => [account.id, account.displayName]));
 	const participants = accountRows.map((account) => {
 		const assignment = assignmentByGiver.get(account.id);
 		const isParticipating = account.role === 'participant' || account.isParticipating;
@@ -139,6 +142,10 @@ export const load: PageServerLoad = ({ locals }) => {
 			householdId: account.householdId,
 			role: account.role,
 			householdName: account.householdName,
+			managedByName: account.managedByUserId
+				? (accountNames.get(account.managedByUserId) ?? null)
+				: null,
+			lastLoginAt: account.lastLoginAt?.toISOString() ?? null,
 			isActive: account.isActive,
 			isParticipating,
 			eventStatus,

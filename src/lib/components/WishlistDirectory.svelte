@@ -81,7 +81,7 @@
 	{/if}
 
 	{#if isLoading}
-		<p class="text-sm text-stone-500" role="status">Loading participants…</p>
+		<p class="text-sm text-stone-600" role="status">Loading participants…</p>
 	{:else if members.length === 0}
 		<p class="rounded-xl border border-dashed border-stone-300 p-5 text-sm text-stone-600">
 			No participants are available yet.
@@ -110,7 +110,7 @@
 							</p>
 						</div>
 						<a
-							class="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+							class="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
 							href={member.id === currentUserId
 								? resolve('/app/wishlist')
 								: resolve('/app/wishlists/[participantId]', {
@@ -149,7 +149,7 @@
 							{/each}
 						</ul>
 					{:else}
-						<p class="mt-3 border-t border-border pt-3 text-xs text-muted-foreground">
+						<p class="mt-3 border-t border-border pt-3 text-sm text-muted-foreground">
 							No conversations yet
 						</p>
 					{/if}
@@ -166,7 +166,7 @@
 		>
 			<table class="w-full min-w-[820px] border-collapse text-left text-sm">
 				<thead>
-					<tr class="border-b border-stone-200 bg-stone-50 text-xs text-stone-600">
+					<tr class="border-b border-stone-200 bg-stone-50 text-sm text-stone-600">
 						<th scope="col" class="px-4 py-3 font-medium">Participant</th>
 						<th scope="col" class="px-4 py-3 font-medium">Gift ideas</th>
 						<th scope="col" class="px-4 py-3 font-medium">Wishlist updated</th>
@@ -185,7 +185,7 @@
 										imageVersion={member.avatarVersion}
 										imageSrc={profileImageUrl(member.id)}
 										size="sm"
-										class="size-8 text-xs"
+										class="size-8 text-sm"
 									/>
 									<p class="font-medium text-stone-950">
 										{member.displayName}{member.id === currentUserId ? ' (you)' : ''}
@@ -201,13 +201,13 @@
 							</td>
 							<td class="px-4 py-3">
 								{#if member.conversations.length === 0}
-									<span class="text-stone-500">No conversations yet</span>
+									<span class="text-stone-600">No conversations yet</span>
 								{:else}
 									<ul class="space-y-1">
 										{#each member.conversations as conversation (conversation.id)}
 											<li class="flex items-center gap-2">
 												<a
-													class="font-medium text-emerald-800 underline-offset-4 hover:underline"
+													class="font-medium text-emerald-800 underline underline-offset-4"
 													href={resolve('/app/messages/[conversationId]', {
 														conversationId: conversation.id
 													})}
@@ -231,7 +231,7 @@
 							</td>
 							<td class="px-4 py-3">
 								<a
-									class="font-medium text-emerald-800 underline-offset-4 hover:underline"
+									class="font-medium text-emerald-800 underline underline-offset-4"
 									href={member.id === currentUserId
 										? resolve('/app/wishlist')
 										: resolve('/app/wishlists/[participantId]', {
