@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Funny holiday mascot for Pinecone</title>
+  <circle cx="128" cy="128" r="124" fill="#e8f4eb"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#17603a" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 52l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#f4c95d"/>
+  <path d="M204 60l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <path d="M128 43l-40 50h22l-38 44h31l-42 51h134l-42-51h31l-38-44h22z" fill="#17603a" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M118 186h20v31h-20z" fill="#c92d4b" stroke="#563622" stroke-width="5"/>
+<path d="M78 84l18-29 18 29zM144 82l20-33 20 33z" fill="#f4c95d" stroke="#563622" stroke-width="4" stroke-linejoin="round"/>
+<circle cx="108" cy="127" r="6" fill="#563622"/><circle cx="148" cy="127" r="6" fill="#563622"/><circle cx="106" cy="125" r="2" fill="#fff8e9"/><circle cx="146" cy="125" r="2" fill="#fff8e9"/><circle cx="91" cy="144" r="7" fill="#e88778"/><circle cx="165" cy="144" r="7" fill="#e88778"/><ellipse cx="128" cy="153" rx="7" ry="9" fill="#563622"/>
+</svg>

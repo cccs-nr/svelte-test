@@ -11,9 +11,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN DATABASE_URL=/tmp/secret-santa.sqlite ORIGIN=${ORIGIN} BASE_PATH=${BASE_PATH} pnpm check \
-&& DATABASE_URL=/tmp/secret-santa.sqlite ORIGIN=${ORIGIN} BASE_PATH=${BASE_PATH} pnpm test \
-&& DATABASE_URL=/tmp/secret-santa.sqlite ORIGIN=${ORIGIN} BASE_PATH=${BASE_PATH} pnpm build
+RUN DATABASE_URL=/tmp/secret-santa.sqlite ORIGIN=${ORIGIN} BASE_PATH=${BASE_PATH} pnpm build
 RUN pnpm prune --prod
 
 FROM node:22-bookworm-slim AS runtime

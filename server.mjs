@@ -1,6 +1,8 @@
 import { createServer } from 'node:http';
-import { handler } from './build/handler.js';
 import { attachRealtimeServer } from './scripts/realtime-server.mjs';
+
+process.env.BODY_SIZE_LIMIT ??= String(11 * 1024 * 1024);
+const { handler } = await import('./build/handler.js');
 
 const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? '0.0.0.0';

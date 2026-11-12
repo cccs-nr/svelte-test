@@ -7,6 +7,7 @@ import hashlib
 import html
 import math
 import re
+import argparse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -77,6 +78,43 @@ AVATARS: dict[str, tuple[str, str]] = {
     "Snoopy": ("puppy", "floppy_ears"),
     "Rudolph": ("reindeer", "red_nose"),
     "Charlie Brown": ("kid", "zigzag"),
+    "Frostbite": ("snowman", "ice_crown"),
+    "Icicle": ("snow", "snowflake"),
+    "Pinecone": ("tree", "pine_trees"),
+    "Winterberry": ("bowl", "berries"),
+    "Marshmallow": ("mug", "steam"),
+    "Nutmeg": ("mug", "nutmeg"),
+    "Gravy Boat": ("bowl", "berries"),
+    "Sir Jingles": ("bell", "music_notes"),
+    "Captain Tinsel": ("round", "tinsel"),
+    "Merry Mayhem": ("bell", "double_bell"),
+    "The Gift Goblin": ("mischief", "tuft"),
+    "Jolly Belly": ("snowman", "scarf"),
+    "Snow Problem": ("snowman", "snowflakes"),
+    "Chilly Willy": ("snowman", "snow_cap"),
+    "Jingle Pants": ("gingerbread", "zigzag"),
+    "Wrapping Paper Bandit": ("candy", "wrapper"),
+    "Pudding Bandit": ("pudding", "holly"),
+    "Cocoa Commando": ("mug", "steam"),
+    "Elf Esteem": ("kid", "sparkles"),
+    "Sleigh What?": ("sleigh", "scarf"),
+    "Frosty Mittens": ("snowman", "snow_cap"),
+    "The Silent Snack": ("cookie", "crumbs"),
+    "Tinsel Tornado": ("round", "garland"),
+    "Dasher": ("reindeer", "antlers"),
+    "Dancer": ("reindeer", "scarf"),
+    "Prancer": ("reindeer", "holly"),
+    "Vixen": ("reindeer", "sparkles"),
+    "Comet": ("star", "sparkles"),
+    "Cupid": ("star", "halo"),
+    "Donner": ("reindeer", "red_nose"),
+    "Blitzen": ("reindeer", "stars"),
+    "Elf Wrangler": ("kid", "top_hat"),
+    "Toy Tinkerer": ("train", "conductor_hat"),
+    "North Pole Ninja": ("kid", "snow_cap"),
+    "Sleigh Mechanic": ("train", "scarf"),
+    "Gift Inspector": ("nutcracker", "soldier_hat"),
+    "Midnight Delivery": ("sleigh", "stars"),
 }
 
 INK = "#563622"
@@ -99,12 +137,11 @@ def load_codenames() -> list[str]:
         raise RuntimeError(f"Could not find suggestedCodenames in {SOURCE}")
 
     names = re.findall(r"^\s*'([^']+)'\s*,?\s*$", match.group(1), flags=re.MULTILINE)
-    if len(names) != 50 or len(set(names)) != 50:
-        raise RuntimeError(f"Expected 50 unique codenames, found {len(names)}")
-    if set(names) != set(AVATARS):
-        missing = sorted(set(names) - set(AVATARS))
-        unknown = sorted(set(AVATARS) - set(names))
-        raise RuntimeError(f"Avatar mapping mismatch. Missing={missing}, unknown={unknown}")
+    if len(names) < 50 or len(set(names)) != len(names):
+        raise RuntimeError(f"Expected at least 50 unique codenames, found {len(names)}")
+    missing = sorted(set(names) - set(AVATARS))
+    if missing:
+        raise RuntimeError(f"Avatar mapping is missing codenames: {missing}")
     return names
 
 
@@ -445,18 +482,33 @@ def svg_for(name: str) -> str:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--missing-only",
+        action="store_true",
+        help="Create only codename SVGs that do not already exist.",
+    )
+    args = parser.parse_args()
+
     OUTPUT.mkdir(parents=True, exist_ok=True)
     codenames = load_codenames()
-    generated_slugs = {slugify(name) for name in codenames}
-    for codename in codenames:
+    names_to_generate = [
+        name
+        for name in codenames
+        if not args.missing_only or not (OUTPUT / f"{slugify(name)}.svg").exists()
+    ]
+    generated_slugs = {slugify(name) for name in names_to_generate}
+    for codename in names_to_generate:
         (OUTPUT / f"{slugify(codename)}.svg").write_text(svg_for(codename), encoding="utf-8")
-    (OUTPUT / "default.svg").write_text(svg_for("default"), encoding="utf-8")
+    if not args.missing_only:
+        (OUTPUT / "default.svg").write_text(svg_for("default"), encoding="utf-8")
+        generated_slugs.add("default")
 
-    for slug in generated_slugs | {"default"}:
+    for slug in generated_slugs:
         png_path = OUTPUT / f"{slug}.png"
         if png_path.exists():
             png_path.unlink()
-    print(f"Generated {len(codenames)} funny, matching SVG mascots in {OUTPUT}")
+    print(f"Generated {len(names_to_generate)} funny, matching SVG mascots in {OUTPUT}")
 
 
 if __name__ == "__main__":

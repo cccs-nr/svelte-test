@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Funny holiday mascot for Sleigh What?</title>
+  <circle cx="128" cy="128" r="124" fill="#f8eadc"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#7a452a" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 57l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#d52f4b"/>
+  <path d="M204 52l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#237247"/>
+  <path d="M67 154h122c-12 25-35 38-68 38H88z" fill="#7a452a" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M66 194c31 14 92 14 126-3" fill="none" stroke="#237247" stroke-width="8" stroke-linecap="round"/>
+<path d="M81 148c8-42 25-63 51-63s44 21 51 63z" fill="#d52f4b" stroke="#563622" stroke-width="7"/>
+<path d="M77 77q51 20 102 0M153 77l14 37" fill="none" stroke="#237247" stroke-width="11" stroke-linecap="round"/><path d="M159 109l13-2-5 13" fill="#237247" stroke="#563622" stroke-width="3"/>
+<circle cx="108" cy="119" r="6" fill="#563622"/><circle cx="148" cy="119" r="6" fill="#563622"/><circle cx="106" cy="117" r="2" fill="#fff8e9"/><circle cx="146" cy="117" r="2" fill="#fff8e9"/><circle cx="91" cy="136" r="7" fill="#e88778"/><circle cx="165" cy="136" r="7" fill="#e88778"/><ellipse cx="128" cy="145" rx="7" ry="9" fill="#563622"/>
+</svg>

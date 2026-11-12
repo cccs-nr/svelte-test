@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Funny holiday mascot for Pudding Bandit</title>
+  <circle cx="128" cy="128" r="124" fill="#e7e9f4"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#404c80" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 48l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#e7be50"/>
+  <path d="M204 50l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#b92745"/>
+  <path d="M68 160c5-53 28-83 60-83s55 30 60 83c-29 27-91 27-120 0z" fill="#404c80" stroke="#563622" stroke-width="7"/>
+<path d="M76 157c30 17 74 17 104 0" fill="none" stroke="#b92745" stroke-width="11" stroke-linecap="round"/>
+<circle cx="128" cy="72" r="12" fill="#e7be50" stroke="#563622" stroke-width="5"/>
+<path d="M117 75q-32-37-52-5 7 28 52 20M137 75q32-37 52-5-7 28-52 20" fill="#e7be50" stroke="#563622" stroke-width="5"/><circle cx="124" cy="86" r="8" fill="#b92745"/><circle cx="139" cy="88" r="8" fill="#b92745"/>
+<path d="M102 127q6-8 12 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><circle cx="148" cy="127" r="6" fill="#563622"/><circle cx="91" cy="144" r="7" fill="#e88778"/><circle cx="165" cy="144" r="7" fill="#e88778"/><path d="M114 149q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
+</svg>

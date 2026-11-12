@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Funny holiday mascot for Nutmeg</title>
+  <circle cx="128" cy="128" r="124" fill="#eee8f5"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#5b3b76" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 59l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#e0b85b"/>
+  <path d="M204 47l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <path d="M164 95h22c24 0 24 54 0 54h-22" fill="none" stroke="#563622" stroke-width="12"/>
+<rect x="69" y="75" width="104" height="124" rx="20" fill="#5b3b76" stroke="#563622" stroke-width="7"/>
+<path d="M87 188h68" stroke="#e0b85b" stroke-width="7" stroke-linecap="round"/>
+<path d="M94 62c-12-14 8-20-2-34M128 62c-12-14 8-20-2-34M157 62c-12-14 8-20-2-34" fill="none" stroke="#c92d4b" stroke-width="7" stroke-linecap="round"/>
+<circle cx="96" cy="61" r="7" fill="#c92d4b"/><circle cx="128" cy="48" r="7" fill="#e0b85b"/><circle cx="160" cy="61" r="7" fill="#c92d4b"/>
+<circle cx="108" cy="121" r="6" fill="#563622"/><circle cx="148" cy="121" r="6" fill="#563622"/><circle cx="106" cy="119" r="2" fill="#fff8e9"/><circle cx="146" cy="119" r="2" fill="#fff8e9"/><circle cx="91" cy="138" r="7" fill="#e88778"/><circle cx="165" cy="138" r="7" fill="#e88778"/><ellipse cx="128" cy="147" rx="7" ry="9" fill="#563622"/>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Funny holiday mascot for The Gift Goblin</title>
+  <circle cx="128" cy="128" r="124" fill="#fff2d6"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#744210" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 54l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#c92d4b"/>
+  <path d="M204 50l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#17603a"/>
+  <path d="M65 116c-8-35 27-60 55-39 17-31 57-19 59 14 37 6 49 45 18 63 7 32-27 55-55 37-31 27-70 3-64-31-28-4-37-29-13-44z" fill="#744210" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M78 104c20 8 38 8 54 0M130 105c17 9 32 9 48 1" fill="none" stroke="#17603a" stroke-width="8" stroke-linecap="round"/>
+<path d="M92 79q-23-30 5-38 11-3 20 9 3-29 23-27 17 1 17 22 27-15 34 7 5 16-18 27" fill="#17603a" stroke="#563622" stroke-width="5" stroke-linejoin="round"/>
+<circle cx="108" cy="125" r="6" fill="#563622"/><circle cx="148" cy="125" r="6" fill="#563622"/><circle cx="106" cy="123" r="2" fill="#fff8e9"/><circle cx="146" cy="123" r="2" fill="#fff8e9"/><circle cx="91" cy="142" r="7" fill="#e88778"/><circle cx="165" cy="142" r="7" fill="#e88778"/><path d="M114 147q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
+</svg>

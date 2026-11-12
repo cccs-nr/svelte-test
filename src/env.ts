@@ -12,12 +12,12 @@ export const variables = defineEnvVars({
 	},
 	MAX_IMAGE_BYTES: {
 		schema: (value) => {
-			const maxBytes = value === undefined ? 5 * 1024 * 1024 : Number(value);
-			if (!Number.isSafeInteger(maxBytes) || maxBytes < 1 || maxBytes > 25 * 1024 * 1024) {
-				throw new Error('MAX_IMAGE_BYTES must be an integer between 1 and 26214400.');
+			const maxBytes = value === undefined ? 10 * 1024 * 1024 : Number(value);
+			if (!Number.isSafeInteger(maxBytes) || maxBytes < 1 || maxBytes > 10 * 1024 * 1024) {
+				throw new Error('MAX_IMAGE_BYTES must be an integer between 1 and 10485760.');
 			}
 			return maxBytes;
 		},
-		description: 'Maximum allowed size for a wishlist image upload (up to 25 MiB).'
+		description: 'Maximum allowed size for a wishlist or profile image upload (up to 10 MiB).'
 	}
 });

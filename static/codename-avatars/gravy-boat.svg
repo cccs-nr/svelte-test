@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Funny holiday mascot for Gravy Boat</title>
+  <circle cx="128" cy="128" r="124" fill="#fff2d6"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#744210" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 56l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#c92d4b"/>
+  <path d="M204 46l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#17603a"/>
+  <path d="M70 128h116c-7 58-29 83-58 83s-51-25-58-83z" fill="#744210" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<ellipse cx="128" cy="128" rx="60" ry="22" fill="#c92d4b" stroke="#563622" stroke-width="7"/>
+<circle cx="105" cy="120" r="10" fill="#17603a"/><circle cx="132" cy="112" r="10" fill="#17603a"/><circle cx="153" cy="125" r="10" fill="#17603a"/>
+<path d="M92 68q36-29 72 0" fill="none" stroke="#c92d4b" stroke-width="7" stroke-linecap="round"/><circle cx="108" cy="69" r="10" fill="#17603a" stroke="#563622" stroke-width="4"/><circle cx="128" cy="59" r="10" fill="#17603a" stroke="#563622" stroke-width="4"/><circle cx="148" cy="69" r="10" fill="#17603a" stroke="#563622" stroke-width="4"/>
+<circle cx="108" cy="112" r="6" fill="#563622"/><circle cx="148" cy="112" r="6" fill="#563622"/><circle cx="106" cy="110" r="2" fill="#fff8e9"/><circle cx="146" cy="110" r="2" fill="#fff8e9"/><circle cx="91" cy="129" r="7" fill="#e88778"/><circle cx="165" cy="129" r="7" fill="#e88778"/><path d="M114 134q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
+</svg>

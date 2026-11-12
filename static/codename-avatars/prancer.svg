@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Funny holiday mascot for Prancer</title>
+  <circle cx="128" cy="128" r="124" fill="#fff2d6"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#744210" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 51l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#c92d4b"/>
+  <path d="M204 49l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#17603a"/>
+  <path d="M91 91L77 57 53 45M78 59H51M165 91l14-34 24-12M178 59h27" fill="none" stroke="#563622" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M68 128c0-41 25-67 60-67s60 26 60 67c0 47-25 76-60 76s-60-29-60-76z" fill="#744210" stroke="#563622" stroke-width="7"/>
+<path d="M117 75q-32-37-52-5 7 28 52 20M137 75q32-37 52-5-7 28-52 20" fill="#c92d4b" stroke="#563622" stroke-width="5"/><circle cx="124" cy="86" r="8" fill="#17603a"/><circle cx="139" cy="88" r="8" fill="#17603a"/>
+<path d="M102 129q6-8 12 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><circle cx="148" cy="129" r="5" fill="#563622"/><circle cx="91" cy="146" r="6" fill="#e88778"/><circle cx="165" cy="146" r="6" fill="#e88778"/><path d="M114 151q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><circle cx="128" cy="157" r="9" fill="#17603a" stroke="#563622" stroke-width="4"/>
+</svg>

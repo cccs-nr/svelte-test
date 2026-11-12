@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Funny holiday mascot for Elf Esteem</title>
+  <circle cx="128" cy="128" r="124" fill="#e7e9f4"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#404c80" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 59l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#e7be50"/>
+  <path d="M204 60l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#b92745"/>
+  <path d="M80 105c-8-42 21-68 55-58 31 9 47 40 37 75l-15 28H93z" fill="#404c80" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<path d="M75 189c9-29 28-43 53-43s44 14 53 43v18H75z" fill="#b92745" stroke="#563622" stroke-width="7"/>
+<path d="M80 187l16 16 16-16 16 16 16-16 16 16 16-16" fill="none" stroke="#e7be50" stroke-width="7" stroke-linejoin="round"/>
+<polygon points="65.0,71.0 69.1,81.3 80.2,82.1 71.7,89.2 74.4,99.9 65.0,94.0 55.6,99.9 58.3,89.2 49.8,82.1 60.9,81.3" fill="#e7be50" stroke="#563622" stroke-width="3"/><polygon points="192.0,73.0 196.7,84.5 209.1,85.4 199.6,93.5 202.6,105.6 192.0,99.0 181.4,105.6 184.4,93.5 174.9,85.4 187.3,84.5" fill="#b92745" stroke="#563622" stroke-width="3"/>
+<circle cx="108" cy="105" r="5" fill="#563622"/><circle cx="148" cy="105" r="5" fill="#563622"/><circle cx="106" cy="103" r="2" fill="#fff8e9"/><circle cx="146" cy="103" r="2" fill="#fff8e9"/><circle cx="91" cy="122" r="6" fill="#e88778"/><circle cx="165" cy="122" r="6" fill="#e88778"/><ellipse cx="128" cy="131" rx="7" ry="9" fill="#563622"/>
+</svg>

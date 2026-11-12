@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Funny holiday mascot for Comet</title>
+  <circle cx="128" cy="128" r="124" fill="#e8f4eb"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#17603a" stroke-opacity=".24" stroke-width="4"/>
+  <path d="M49 52l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#f4c95d"/>
+  <path d="M204 59l4 7 7 4-7 4-4 7-4-7-7-4 7-4z" fill="#c92d4b"/>
+  <polygon points="128.0,44.0 152.7,98.0 211.7,104.8 167.9,145.0 179.7,203.2 128.0,174.0 76.3,203.2 88.1,145.0 44.3,104.8 103.3,98.0" fill="#17603a" stroke="#563622" stroke-width="7" stroke-linejoin="round"/>
+<polygon points="65.0,71.0 69.1,81.3 80.2,82.1 71.7,89.2 74.4,99.9 65.0,94.0 55.6,99.9 58.3,89.2 49.8,82.1 60.9,81.3" fill="#f4c95d" stroke="#563622" stroke-width="3"/><polygon points="192.0,73.0 196.7,84.5 209.1,85.4 199.6,93.5 202.6,105.6 192.0,99.0 181.4,105.6 184.4,93.5 174.9,85.4 187.3,84.5" fill="#c92d4b" stroke="#563622" stroke-width="3"/>
+<path d="M102 122q6-8 12 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/><circle cx="148" cy="122" r="6" fill="#563622"/><circle cx="91" cy="139" r="7" fill="#e88778"/><circle cx="165" cy="139" r="7" fill="#e88778"/><path d="M114 144q14 16 28 0" fill="none" stroke="#563622" stroke-width="5" stroke-linecap="round"/>
+</svg>
